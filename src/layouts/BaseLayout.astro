@@ -1,0 +1,41 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Ac | Founder. Builder. Coach.',
+  description = 'Ac is a founder, builder, coach, and operator in Cebu City, Philippines.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header" aria-label="Site header">
+        <a class="brand-mark" href="/">accoworks.dev</a>
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="/field-notes/">Field Notes</a>
+          <a href="mailto:ac@accoworks.dev">Email</a>
+        </nav>
+      </header>
+      <main>
+        <slot />
+      </main>
+      <footer class="site-footer">
+        <span>Cebu City, Philippines · Training, building, operating.</span>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const notes = (await getCollection('field-notes'))
+  .filter((note) => !note.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<BaseLayout title="Field Notes | accoworks.dev" description="Notes from training, building, and operating in the real world.">
+  <section class="page-intro">
+    <p class="kicker">Field Notes</p>
+    <h1 class="page-title">Training. Building. Operating.</h1>
+    <p class="page-copy">
+      Observations from the gym floor, the office, and the workbench. Not a blog treadmill. Just a public trail of the work,
+      the lessons, and the systems worth remembering.
+    </p>
+  </section>
+
+  <section class="section" aria-label="Field notes list">
+    {notes.length === 0 ? (
+      <p class="page-copy">No notes published yet. The workbench is being cleared.</p>
+    ) : (
+      <ol class="note-list">
+        {notes.map((note) => (
+          <li class="note-item">
+            <span class="note-date">
+              {note.data.date.toLocaleDateString('en', { year: 'numeric', month: 'short', day: 'numeric' })}
+            </span>
+            <div>
+              <h2><a href={`/field-notes/${note.id.replace(/\.mdx?$/, '')}/`}>{note.data.title}</a></h2>
+              <p>{note.data.summary}</p>
+            </div>
+            <span class="note-label">{note.data.label}</span>
+          </li>
+        ))}
+      </ol>
+    )}
+  </section>
+</BaseLayout>

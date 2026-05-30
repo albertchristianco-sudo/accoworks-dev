@@ -1,17 +1,154 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
 
+const notes = (await getCollection('field-notes'))
+  .filter((note) => !note.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title="Ac | CrossFit L3 Coach and Builder" description="Founder, builder, coach, and operator in Cebu City, Philippines.">
+  <section class="hero" aria-label="Intro">
+    <div>
+      <p class="kicker">Cebu City, Philippines</p>
+      <h1>Founder. Builder. Coach.</h1>
+      <p class="hero-copy">
+        Two gyms in Cebu, a Country Manager role with CrossFit HQ, and a building materials business I run on the side.
+        I also build tools when I cannot stop thinking about a problem. Training is the one thing that does not move.
+        Family is the reason any of this matters.
+      </p>
+    </div>
+    <aside>
+      <p class="command-line">$ whoami — Ac · accoworks.dev</p>
+      <figure class="portrait-frame">
+        <img src="/photo.jpg" alt="Ac at a Hyrox competition" width="799" height="1060" />
+      </figure>
+    </aside>
+  </section>
+
+  <section class="section" aria-labelledby="build-heading">
+    <div class="section-header">
+      <h2 id="build-heading" class="section-title">// what I build</h2>
+      <p class="section-lede">Work that sits between coaching, business, and tools that make real operations cleaner.</p>
+    </div>
+    <ol class="build-list">
+      <li class="build-item">
+        <span class="index-number">01</span>
+        <div>
+          <h3>CrossFit Subtero</h3>
+          <p>Two boxes in Cebu City: Subtero HQ and Underground. Building athletes and community.</p>
+        </div>
+        <span class="note-label">Gym</span>
+      </li>
+      <li class="build-item">
+        <span class="index-number">02</span>
+        <div>
+          <h3>CrossFit Philippines</h3>
+          <p>Country Manager for CrossFit HQ in the Philippines. Growing the affiliate network across the archipelago.</p>
+        </div>
+        <span class="note-label">National</span>
+      </li>
+      <li class="build-item">
+        <span class="index-number">03</span>
+        <div>
+          <h3>Flame and Finish Marketing Corp</h3>
+          <p>Premium imported building materials for the Philippine market.</p>
+        </div>
+        <span class="note-label">Trade</span>
+      </li>
+      <li class="build-item">
+        <span class="index-number">04</span>
+        <div>
+          <h3>accoworks lab</h3>
+          <p>Side projects, agents, and small tools. Always something on the workbench.</p>
+        </div>
+        <span class="note-label">Lab</span>
+      </li>
+    </ol>
+  </section>
+
+  <section class="section" aria-labelledby="gym-heading">
+    <div class="section-header">
+      <h2 id="gym-heading" class="section-title">// in the gym</h2>
+      <div>
+        <p class="section-lede">Training is how I stay honest. Coaching is how I learned to see people clearly.</p>
+        <p class="hero-copy">
+          CrossFit is the sport. Over a decade coaching, L3 certified. I also race Hyrox, not obsessively, just enough
+          to test myself outside the gym. I want to be moving well at 60, keep up with my son, carry things, and not fall
+          apart on the stuff that actually matters.
+        </p>
+        <div class="badge-row" aria-label="Credentials">
+          <span class="badge">CrossFit Level 3 Trainer</span>
+          <span class="badge">OPEX CCP1</span>
+          <span class="badge">Precision Nutrition Level 1</span>
+          <span class="badge">Hyrox</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="notes-heading">
+    <div class="section-header">
+      <h2 id="notes-heading" class="section-title">// field notes</h2>
+      <div>
+        <p class="section-lede">Notes from training, building, and operating in the real world.</p>
+        <a class="cta-link" href="/field-notes/">Read the field notes</a>
+      </div>
+    </div>
+    {notes.length > 0 && (
+      <ol class="note-list">
+        {notes.map((note) => (
+          <li class="note-item">
+            <span class="note-date">{note.data.date.toLocaleDateString('en', { month: 'short', day: 'numeric' })}</span>
+            <div>
+              <h2><a href={`/field-notes/${note.id.replace(/\.mdx?$/, '')}/`}>{note.data.title}</a></h2>
+              <p>{note.data.summary}</p>
+            </div>
+            <span class="note-label">{note.data.label}</span>
+          </li>
+        ))}
+      </ol>
+    )}
+  </section>
+
+  <section class="section" aria-labelledby="life-heading">
+    <div class="section-header">
+      <h2 id="life-heading" class="section-title">// off the clock</h2>
+      <p class="section-lede">Family first. Then dice, Azeroth, and whatever problem refuses to leave my head.</p>
+    </div>
+    <ul class="life-list">
+      <li class="life-item">
+        <span class="index-number">Fam</span>
+        <div>
+          <h3>Family man</h3>
+          <p>Husband and father. They are the whole point.</p>
+        </div>
+      </li>
+      <li class="life-item">
+        <span class="index-number">D20</span>
+        <div>
+          <h3>Dungeons and Dragons</h3>
+          <p>Long arcs, party dynamics, and the cost of a bad roll.</p>
+        </div>
+      </li>
+      <li class="life-item">
+        <span class="index-number">WoW</span>
+        <div>
+          <h3>World of Warcraft</h3>
+          <p>More hours in Azeroth than most people log at work. No apologies. The lore holds up.</p>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <section class="section" aria-labelledby="coaching-heading">
+    <div class="section-header">
+      <h2 id="coaching-heading" class="section-title">// coaching</h2>
+      <div>
+        <p class="section-lede">If you need direction in training, I can help you start, compete, or rebuild.</p>
+        <a class="cta-link" href="mailto:ac@accoworks.dev?subject=Coaching%20Inquiry">Work with me</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
