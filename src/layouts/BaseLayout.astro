@@ -19,12 +19,17 @@ const {
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icon-180.png" />
     <title>{title}</title>
   </head>
   <body>
     <div class="site-shell">
       <header class="site-header" aria-label="Site header">
-        <a class="brand-mark" href="/">accoworks.dev</a>
+        <a class="brand-mark" href="/" aria-label="Accoworks home">
+          <img src="/logo.svg" alt="accoworks" width="260" height="64" />
+        </a>
         <nav class="site-nav" aria-label="Primary navigation">
           <a href="/field-notes/">Field Notes</a>
           <a href="mailto:ac@accoworks.dev">Email</a>

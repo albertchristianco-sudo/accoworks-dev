@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 128" role="img" aria-labelledby="title desc">
+  <title id="title">accoworks logo</title>
+  <desc id="desc">Accoworks abstract A logo mark with lowercase wordmark.</desc>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 106L64 20L108 106" stroke="#211f1a" stroke-width="18"/>
+    <path d="M48 73H88" stroke="#211f1a" stroke-width="18"/>
+    <path d="M64 20L48 73" stroke="#4A5B6E" stroke-width="18"/>
+  </g>
+  <text x="142" y="78" fill="#211f1a" font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="54" font-weight="650" letter-spacing="-2.2">accoworks</text>
+</svg>

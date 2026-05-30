@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">Accoworks logo mark</title>
+  <desc id="desc">A grounded abstract A mark with rounded field-built geometry.</desc>
+  <path d="M20 106L64 20L108 106" fill="none" stroke="#211f1a" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M48 73H88" fill="none" stroke="#211f1a" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M64 20L48 73" fill="none" stroke="#4A5B6E" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

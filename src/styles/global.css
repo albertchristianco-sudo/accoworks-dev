@@ -100,9 +100,16 @@ img {
 }
 
 .brand-mark {
+  display: inline-flex;
+  align-items: center;
+  width: clamp(148px, 18vw, 205px);
   color: var(--ink);
-  font-weight: 700;
   text-decoration: none;
+}
+
+.brand-mark img {
+  width: 100%;
+  height: auto;
 }
 
 .site-nav {
