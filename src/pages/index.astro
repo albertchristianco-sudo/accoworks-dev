@@ -27,6 +27,30 @@ const notes = (await getCollection('field-notes'))
     </aside>
   </section>
 
+  <section class="section" aria-labelledby="notes-heading">
+    <div class="section-header">
+      <h2 id="notes-heading" class="section-title">// field notes</h2>
+      <div>
+        <p class="section-lede">Notes from training, building, and operating in the real world.</p>
+        <a class="cta-link" href="/field-notes/">Read the field notes</a>
+      </div>
+    </div>
+    {notes.length > 0 && (
+      <ol class="note-list">
+        {notes.map((note) => (
+          <li class="note-item">
+            <span class="note-date">{note.data.date.toLocaleDateString('en', { month: 'short', day: 'numeric' })}</span>
+            <div>
+              <h2><a href={`/field-notes/${note.id.replace(/\.mdx?$/, '')}/`}>{note.data.title}</a></h2>
+              <p>{note.data.summary}</p>
+            </div>
+            <span class="note-label">{note.data.label}</span>
+          </li>
+        ))}
+      </ol>
+    )}
+  </section>
+
   <section class="section" aria-labelledby="build-heading">
     <div class="section-header">
       <h2 id="build-heading" class="section-title">// what I build</h2>
@@ -86,30 +110,6 @@ const notes = (await getCollection('field-notes'))
         </div>
       </div>
     </div>
-  </section>
-
-  <section class="section" aria-labelledby="notes-heading">
-    <div class="section-header">
-      <h2 id="notes-heading" class="section-title">// field notes</h2>
-      <div>
-        <p class="section-lede">Notes from training, building, and operating in the real world.</p>
-        <a class="cta-link" href="/field-notes/">Read the field notes</a>
-      </div>
-    </div>
-    {notes.length > 0 && (
-      <ol class="note-list">
-        {notes.map((note) => (
-          <li class="note-item">
-            <span class="note-date">{note.data.date.toLocaleDateString('en', { month: 'short', day: 'numeric' })}</span>
-            <div>
-              <h2><a href={`/field-notes/${note.id.replace(/\.mdx?$/, '')}/`}>{note.data.title}</a></h2>
-              <p>{note.data.summary}</p>
-            </div>
-            <span class="note-label">{note.data.label}</span>
-          </li>
-        ))}
-      </ol>
-    )}
   </section>
 
   <section class="section" aria-labelledby="life-heading">

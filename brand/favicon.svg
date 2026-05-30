@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" aria-label="accoworks favicon">
+  <rect x="0" y="0" width="128" height="128" rx="28" fill="#0D1B2A"/>
+  <g fill="none" stroke="#F7F4EE" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 96 L58 22"/>
+    <path d="M58 22 L108 96"/>
+    <path d="M66 55 C62 50 56 47 50 47 C41 47 34 54 34 64 C34 74 41 81 50 81 C56 81 62 78 66 73"/>
+  </g>
+</svg>
