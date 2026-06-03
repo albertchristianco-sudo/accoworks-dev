@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="description" content="Private investor pitch deck for Cebu Hybrid Championship." />
+<title>Cebu Hybrid Championship — Pitch Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#0A0D13; --ink-2:#0E121A; --surface:#141A24; --surface-2:#1B232F;
+  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.16);
+  --text:#F4EFE6; --muted:#9AA3B2; --faint:rgba(244,239,230,.5);
+  --coral:#FF5A3C; --amber:#FFB13D; --aqua:#1FD1C6; --aqua-deep:#0E8C86;
+  --heat:linear-gradient(115deg,#FF5A3C 0%,#FFB13D 100%);
+  --heat-soft:linear-gradient(115deg,rgba(255,90,60,.18),rgba(255,177,61,.12));
+  --display:"Anton",sans-serif; --body:"Sora",sans-serif; --mono:"JetBrains Mono",monospace;
+  --pad:clamp(28px,5vw,92px);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--ink); color:var(--text); font-family:var(--body);
+  -webkit-font-smoothing:antialiased; overflow:hidden;
+}
+.deck{height:100vh; overflow-y:scroll; scroll-snap-type:y mandatory; scroll-behavior:smooth}
+.deck::-webkit-scrollbar{width:0}
+.slide{
+  position:relative; min-height:100vh; scroll-snap-align:start; scroll-snap-stop:always;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:clamp(58px,7vh,90px) var(--pad) clamp(42px,5.5vh,72px);
+  overflow:hidden; isolation:isolate;
+}
+/* backgrounds */
+.bg{position:absolute; inset:0; z-index:-3; background-size:cover; background-position:center;
+  filter:grayscale(.35) contrast(1.05);}
+.bg::after{content:""; position:absolute; inset:0; mix-blend-mode:multiply;
+  background:linear-gradient(120deg, rgba(255,90,60,.55), rgba(13,16,22,.2) 55%, rgba(31,209,198,.35));}
+.tint{position:absolute; inset:0; z-index:-2}
+.tint--bottom{background:linear-gradient(180deg, rgba(10,13,19,.35) 0%, rgba(10,13,19,.72) 55%, rgba(10,13,19,.96) 100%)}
+.tint--left{background:linear-gradient(90deg, rgba(10,13,19,.94) 0%, rgba(10,13,19,.72) 42%, rgba(10,13,19,.25) 100%)}
+.tint--solid{background:linear-gradient(160deg,var(--ink-2),var(--ink) 70%)}
+.grain{position:absolute; inset:0; z-index:-1; opacity:.5; pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.4'/%3E%3C/svg%3E");}
+/* decorative grid lines */
+.gridlines{position:absolute; inset:0; z-index:-1; pointer-events:none; opacity:.5;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:64px 64px; mask-image:radial-gradient(circle at 70% 30%,#000,transparent 75%);}
+
+/* typography */
+.kicker{font-family:var(--mono); font-size:clamp(11px,1vw,13px); letter-spacing:.34em;
+  text-transform:uppercase; color:var(--aqua); display:flex; align-items:center; gap:14px}
+.kicker::before{content:""; width:clamp(24px,4vw,52px); height:2px; background:var(--aqua); display:inline-block}
+.kicker--heat{color:var(--amber)} .kicker--heat::before{background:var(--heat)}
+h1,h2,h3{font-family:var(--display); font-weight:400; line-height:.94; letter-spacing:.005em; text-transform:uppercase}
+.h-mega{font-size:clamp(58px,12.5vw,182px)}
+.h-xl{font-size:clamp(40px,6.6vw,96px)}
+.h-lg{font-size:clamp(32px,4.6vw,72px)}
+.h-md{font-size:clamp(25px,3.1vw,46px)}
+.lede{font-size:clamp(17px,1.7vw,24px); line-height:1.5; color:var(--text); max-width:60ch; font-weight:300}
+.lede strong{font-weight:600}
+.muted{color:var(--muted)} .faint{color:var(--faint)}
+.hot{background:var(--heat); -webkit-background-clip:text; background-clip:text; color:transparent}
+.sea{color:var(--aqua)}
+.body-sm{font-size:clamp(14px,1.15vw,16px); line-height:1.55; color:var(--muted); font-weight:300}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:var(--faint)}
+
+/* layout helpers */
+.stack>*+*{margin-top:clamp(12px,1.9vh,24px)}
+.wrap{position:relative; z-index:2; width:100%; max-width:1320px; margin:0 auto}
+.row{display:flex; gap:clamp(20px,3vw,52px); flex-wrap:wrap}
+.between{justify-content:space-between; align-items:flex-end}
+.grid{display:grid; gap:clamp(14px,1.5vw,22px)}
+.g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+@media screen and (max-width:860px){.g3,.g4{grid-template-columns:repeat(2,1fr)} .g2{grid-template-columns:1fr}}
+.tag{display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12px;
+  letter-spacing:.12em; text-transform:uppercase; padding:7px 13px; border:1px solid var(--line-2);
+  border-radius:100px; color:var(--text)}
+.tag .dot{width:6px;height:6px;border-radius:50%;background:var(--heat)}
+
+/* cards */
+.card{background:linear-gradient(160deg,var(--surface),rgba(20,26,36,.55)); border:1px solid var(--line);
+  border-radius:18px; padding:clamp(16px,1.6vw,24px); position:relative; overflow:hidden}
+.card--glow::before{content:""; position:absolute; inset:0; background:var(--heat-soft); opacity:0; transition:.4s}
+.card:hover.card--glow::before{opacity:1}
+.card>*{position:relative}
+.card .num{font-family:var(--display); font-size:clamp(34px,4vw,58px); line-height:.9; background:var(--heat);
+  -webkit-background-clip:text; background-clip:text; color:transparent}
+.card .lab{font-family:var(--mono); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-top:12px}
+.card .sub{font-size:14px; color:var(--faint); margin-top:8px; font-weight:300}
+
+/* stat strip */
+.statline{display:flex; gap:clamp(24px,5vw,80px); flex-wrap:wrap; align-items:flex-end}
+.stat .v{font-family:var(--display); font-size:clamp(36px,4.6vw,68px); line-height:.85}
+.stat .v .unit{font-size:.42em; color:var(--aqua); margin-left:4px}
+.stat .k{font-family:var(--mono); font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-top:14px}
+
+/* reveal */
+.reveal{opacity:0; transform:translateY(34px); filter:blur(6px); transition:opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1), filter .8s}
+.is-active .reveal{opacity:1; transform:none; filter:none; transition-delay:calc(var(--i,0)*90ms)}
+body.flat .reveal{opacity:1!important; transform:none!important; filter:none!important; transition:none}
+body.flat .bar .col{transition:none}
+
+/* chart */
+.chart{display:flex; align-items:flex-end; gap:clamp(16px,4vw,64px); height:min(32vh,300px); padding-top:12px}
+.bar{flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:14px; height:100%}
+.bar .col{width:100%; max-width:120px; border-radius:10px 10px 0 0; background:var(--heat); height:0; transition:height 1.1s cubic-bezier(.2,.8,.2,1); position:relative; box-shadow:0 0 40px rgba(255,90,60,.25)}
+.bar:nth-child(1) .col{background:linear-gradient(180deg,#3a4150,#2a313e)}
+.bar:nth-child(2) .col{background:linear-gradient(180deg,#7a5648,#4a3a3a)}
+.is-active .bar .col{transition-delay:calc(var(--d,0)*180ms)}
+.bar .val{font-family:var(--display); font-size:clamp(20px,2.4vw,38px); line-height:1}
+.bar .yr{font-family:var(--mono); font-size:12px; letter-spacing:.12em; color:var(--muted)}
+
+/* station diagram */
+.stations{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
+@media screen and (max-width:720px){.stations{grid-template-columns:repeat(2,1fr)}}
+.st{border:1px solid var(--line); border-radius:14px; padding:18px 16px; background:rgba(20,26,36,.5); display:flex; flex-direction:column; gap:10px; transition:.35s}
+.st:hover{border-color:var(--line-2); transform:translateY(-4px); background:rgba(27,35,47,.7)}
+.st .n{font-family:var(--mono); font-size:12px; color:var(--aqua)}
+.st .ic{width:34px;height:34px;color:var(--amber)}
+.st .nm{font-family:var(--display); font-size:clamp(15px,1.3vw,19px); text-transform:uppercase; line-height:1}
+.st .ds{font-size:12.5px; color:var(--faint); font-family:var(--mono); letter-spacing:.04em}
+
+/* divisions */
+.divs{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
+@media screen and (max-width:900px){.divs{grid-template-columns:repeat(2,1fr)}}
+.div{border:1px solid var(--line); border-radius:16px; padding:22px 18px; background:linear-gradient(170deg,var(--surface),rgba(20,26,36,.4))}
+.div h4{font-family:var(--display); font-size:clamp(18px,1.7vw,24px); text-transform:uppercase}
+.div p{font-size:13px; color:var(--muted); margin-top:8px; line-height:1.45; font-weight:300}
+
+/* phase ladder */
+.ladder{display:grid; grid-template-columns:1fr auto 1fr; gap:clamp(16px,2.5vw,40px); align-items:stretch}
+@media screen and (max-width:880px){.ladder{grid-template-columns:1fr}}
+.phase{border:1px solid var(--line); border-radius:20px; padding:clamp(24px,2.4vw,36px); background:linear-gradient(165deg,var(--surface),rgba(20,26,36,.4)); position:relative}
+.phase--2{border-color:rgba(31,209,198,.35); background:linear-gradient(165deg,rgba(14,140,134,.16),rgba(20,26,36,.4))}
+.phase .pn{font-family:var(--mono); letter-spacing:.2em; font-size:12px; text-transform:uppercase; color:var(--amber)}
+.phase--2 .pn{color:var(--aqua)}
+.phase h3{font-size:clamp(26px,2.8vw,40px); margin:14px 0 6px}
+.phase ul{list-style:none; margin-top:18px; display:flex; flex-direction:column; gap:11px}
+.phase li{font-size:14.5px; color:var(--muted); padding-left:22px; position:relative; line-height:1.45; font-weight:300}
+.phase li::before{content:""; position:absolute; left:0; top:8px; width:9px; height:9px; border-radius:2px; background:var(--heat)}
+.phase--2 li::before{background:var(--aqua)}
+.arrow{display:flex; align-items:center; justify-content:center; color:var(--faint); font-family:var(--display); font-size:40px}
+@media screen and (max-width:880px){.arrow{transform:rotate(90deg); padding:6px 0}}
+
+/* pricing table */
+.ptable{width:100%; border-collapse:collapse; font-size:clamp(13px,1.15vw,16px)}
+.ptable th,.ptable td{text-align:left; padding:clamp(11px,1.4vh,16px) 14px; border-bottom:1px solid var(--line)}
+.ptable thead th{font-family:var(--mono); font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); font-weight:500}
+.ptable td:first-child{font-weight:500; color:var(--text)}
+.ptable .price{font-family:var(--mono); color:var(--text)}
+.ptable .eb{color:var(--amber)}
+.ptable tbody tr{transition:.25s} .ptable tbody tr:hover{background:rgba(255,255,255,.03)}
+
+/* timeline */
+.timeline{display:grid; grid-template-columns:repeat(4,1fr); gap:0; position:relative}
+@media screen and (max-width:860px){.timeline{grid-template-columns:1fr; gap:18px}}
+.tl{padding:0 20px 0 0; position:relative}
+.tl .when{font-family:var(--mono); font-size:12px; letter-spacing:.14em; color:var(--aqua); text-transform:uppercase}
+.tl .node{width:14px;height:14px;border-radius:50%;background:var(--heat); margin:16px 0; box-shadow:0 0 0 5px rgba(255,90,60,.15)}
+.tl::before{content:""; position:absolute; left:0; top:38px; height:2px; width:100%; background:var(--line-2)}
+@media screen and (max-width:860px){.tl::before{display:none}}
+.tl h4{font-family:var(--display); font-size:clamp(18px,1.6vw,23px); text-transform:uppercase; line-height:1; margin-bottom:8px}
+.tl p{font-size:13px; color:var(--muted); font-weight:300; line-height:1.45}
+
+/* asks */
+.asks{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+@media screen and (max-width:860px){.asks{grid-template-columns:1fr}}
+.ask{border:1px solid var(--line); border-radius:16px; padding:26px 22px; background:linear-gradient(170deg,var(--surface),rgba(20,26,36,.4)); position:relative; overflow:hidden}
+.ask::before{content:""; position:absolute; top:0; left:0; width:100%; height:3px; background:var(--heat)}
+.ask--b::before{background:var(--aqua)} .ask--c::before{background:linear-gradient(90deg,#7a5648,#FFB13D)}
+.ask .who{font-family:var(--mono); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--faint)}
+.ask h4{font-family:var(--display); font-size:clamp(20px,1.9vw,27px); text-transform:uppercase; margin:10px 0 14px}
+.ask p{font-size:14px; color:var(--muted); line-height:1.5; font-weight:300}
+
+/* cities list */
+.cities{display:flex; flex-direction:column; gap:2px}
+.city{display:flex; align-items:baseline; justify-content:space-between; gap:20px; padding:14px 0; border-bottom:1px solid var(--line)}
+.city .nm{font-family:var(--display); font-size:clamp(20px,2.4vw,34px); text-transform:uppercase}
+.city .meta{font-family:var(--mono); font-size:12.5px; color:var(--muted); letter-spacing:.04em; text-align:right}
+.city--gap .nm{color:var(--amber)} .city--gap{border-color:rgba(255,177,61,.4)}
+
+/* versus */
+.versus{display:grid; grid-template-columns:1fr 1fr; gap:clamp(14px,2vw,28px)}
+@media screen and (max-width:780px){.versus{grid-template-columns:1fr}}
+.vbox{border:1px solid var(--line); border-radius:18px; padding:clamp(24px,2.6vw,38px)}
+.vbox--us{border-color:rgba(255,90,60,.4); background:var(--heat-soft)}
+.vbox .vt{font-family:var(--mono); font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted)}
+.vbox .vh{font-family:var(--display); font-size:clamp(30px,4vw,58px); text-transform:uppercase; line-height:.95; margin:14px 0}
+.vbox p{font-size:14.5px; color:var(--muted); font-weight:300; line-height:1.5}
+
+/* fixed UI */
+.brandmark{position:fixed; top:26px; left:var(--pad); z-index:50; font-family:var(--display); font-size:15px; letter-spacing:.02em; text-transform:uppercase; mix-blend-mode:difference; pointer-events:none}
+.brandmark span{color:var(--amber)}
+.counter{position:fixed; top:26px; right:var(--pad); z-index:50; font-family:var(--mono); font-size:12px; letter-spacing:.12em; color:var(--faint); mix-blend-mode:difference}
+.counter b{color:var(--text); font-weight:500}
+.dots{position:fixed; right:26px; top:50%; transform:translateY(-50%); z-index:50; display:flex; flex-direction:column; gap:11px}
+@media screen and (max-width:760px){.dots{display:none} .brandmark,.counter{font-size:11px; top:18px}}
+.dots button{width:9px; height:9px; border-radius:50%; border:1px solid var(--line-2); background:transparent; cursor:pointer; padding:0; transition:.3s}
+.dots button.on{background:var(--heat); border-color:transparent; transform:scale(1.35)}
+.scrollhint{position:absolute; bottom:34px; left:50%; transform:translateX(-50%); font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--faint); display:flex; flex-direction:column; align-items:center; gap:10px}
+.scrollhint .line{width:1px; height:34px; background:linear-gradient(var(--amber),transparent); animation:drop 1.8s infinite}
+@keyframes drop{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}50.1%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+.foot{position:absolute; left:var(--pad); right:var(--pad); bottom:30px; display:flex; justify-content:space-between; gap:20px; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); z-index:3}
+.note{font-family:var(--mono); font-size:11px; color:var(--faint); letter-spacing:.04em}
+
+@media print{
+  @page{ size:1600px 900px; margin:0 }
+  html,body,.deck{height:auto; overflow:visible}
+  .slide{height:900px; min-height:0; break-after:page; page-break-after:always; overflow:hidden}
+  .dots,.scrollhint,.counter,.brandmark{display:none}
+  .reveal{opacity:1!important; transform:none!important; filter:none!important}
+  .bar .col{transition:none}
+  .bg{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+  /* avoid full-page rasterization so photos embed as compact JPEGs */
+  .grain, .gridlines{display:none}
+  .bg::after{display:none}
+  .bg{filter:none}
+}
+</style>
+</head>
+<body>
+<div class="brandmark">CEBU HYBRID <span>CHAMPIONSHIP</span></div>
+<div class="counter"><b id="cnum">01</b> / <span id="ctot">19</span></div>
+<div class="dots" id="dots"></div>
+
+<div class="deck" id="deck">
+
+  <!-- 1 COVER -->
+  <section class="slide" data-label="Cover">
+    <div class="bg" data-img="photos/cover.jpg"></div>
+    <div class="tint tint--left"></div><div class="tint tint--bottom"></div><div class="grain"></div>
+    <div class="wrap stack">
+      <div class="kicker kicker--heat reveal" style="--i:0">Visayas &middot; Mindanao &middot; Q4 2026</div>
+      <h1 class="h-mega reveal" style="--i:1">Cebu<br>Hybrid<br><span class="hot">Championship</span></h1>
+      <p class="lede reveal" style="--i:2">The first major hybrid race in the Visayas and Mindanao.<br><span class="faint">Run. Lift. Race.</span></p>
+      <div class="row reveal" style="--i:3">
+        <span class="tag"><span class="dot"></span>Il Corso, SRP &middot; Cebu</span>
+        <span class="tag"><span class="dot"></span>Independent race &middot; HYROX pathway</span>
+      </div>
+    </div>
+    <div class="scrollhint">Scroll<div class="line"></div></div>
+  </section>
+
+  <!-- 2 THESIS -->
+  <section class="slide" data-label="The thesis">
+    <div class="tint tint--solid"></div><div class="gridlines"></div><div class="grain"></div>
+    <div class="wrap stack">
+      <div class="kicker reveal" style="--i:0">The 60-second thesis</div>
+      <h2 class="h-xl reveal" style="--i:1">The world's fastest-growing sport has reached Manila.<br>The entire south still has <span class="hot">nothing</span>.</h2>
+      <div class="grid g4 reveal" style="--i:2">
+        <div class="card"><div class="lab">Global trajectory</div><p class="body-sm" style="margin-top:8px">650 athletes in 2017 to a projected <b style="color:var(--text)">1.2M</b> in 2025/26.</p></div>
+        <div class="card"><div class="lab">Proven in PH</div><p class="body-sm" style="margin-top:8px">Manila's Bench Active Hybrid Games has run twice to strong turnout. Demand is real.</p></div>
+        <div class="card"><div class="lab">The gap</div><p class="body-sm" style="margin-top:8px">Visayas and Mindanao, ~30M people, have <b style="color:var(--amber)">zero</b> hybrid races.</p></div>
+        <div class="card"><div class="lab">The move</div><p class="body-sm" style="margin-top:8px">Launch Q4 2026 in Cebu, with a pathway to official HYROX in 2027.</p></div>
+      </div>
+      <p class="lede reveal" style="--i:3">Cebu has the crowd, a brand-new world-class venue, and the operator to <strong>plant the flag first.</strong></p>
+    </div>
+  </section>
+
+  <!-- 3 WHAT IS HYBRID RACING -->
+  <section class="slide" data-label="The format">
+    <div class="tint tint--solid"></div><div class="grain"></div>
+    <div class="wrap stack">
+      <div class="kicker reveal" style="--i:0">What is HYROX</div>
+      <div class="row between">
+        <h2 class="h-lg reveal" style="--i:1">Part endurance race.<br>Part strength test.<br><span class="sea">Fully measurable.</span></h2>
+        <p class="body-sm reveal" style="--i:2; max-width:34ch">8 × 1km runs, each followed by one functional station, in the same fixed order every event worldwide. Identical course everywhere means your time is a global benchmark, like a marathon PR.</p>
+      </div>
+      <div class="stations reveal" style="--i:3">
+        <div class="st"><div class="n">01</div><div class="nm">SkiErg</div><div class="ds">1000 m</div></div>
+        <div class="st"><div class="n">02</div><div class="nm">Sled Push</div><div class="ds">100 m</div></div>
+        <div class="st"><div class="n">03</div><div class="nm">Sled Pull</div><div class="ds">100 m</div></div>
+        <div class="st"><div class="n">04</div><div class="nm">Burpee Broad Jump</div><div class="ds">80 m</div></div>
+        <div class="st"><div class="n">05</div><div class="nm">Row</div><div class="ds">1000 m</div></div>
+        <div class="st"><div class="n">06</div><div class="nm">Farmers Carry</div><div class="ds">200 m</div></div>
+        <div class="st"><div class="n">07</div><div class="nm">Sandbag Lunge</div><div class="ds">100 m</div></div>
+        <div class="st"><div class="n">08</div><div class="nm">Wall Balls</div><div class="ds">100 reps</div></div>
+      </div>
+      <p class="note reveal" style="--i:4">It sits between a road race (no strength) and CrossFit (too technical). Anyone who trains can finish. Everyone wants to beat their time.</p>
+    </div>
+  </section>
+
+  <!-- 4 GLOBAL PHENOMENON -->
+  <section class="slide" data-label="Global growth">
+    <div class="tint tint--solid"></div><div class="gridlines"></div><div class="grain"></div>
+    <div class="wrap stack">
+      <div class="row between">
+        <div class="stack" style="gap:14px">
+          <div class="kicker kicker--heat reveal" style="--i:0">A global phenomenon</div>
+          <h2 class="h-lg reveal" style="--i:1">From one race in Hamburg<br>to a global sport in <span class="hot">seven years</span>.</h2>
+        </div>
+        <p class="body-sm reveal" style="--i:2; max-width:30ch">Owned by Infront Sports &amp; Media, part of the Dalian Wanda group, the same family as IRONMAN. Partners: PUMA, Red Bull, AirAsia.</p>
+      </div>
+      <div class="chart reveal" style="--i:3">
+        <div class="bar" style="--d:0"><div class="val">650</div><div class="col" data-h="2"></div><div class="yr">2017</div></div>
+        <div class="bar" style="--d:1"><div class="val">175K</div><div class="col" data-h="16"></div><div class="yr">2022/23</div></div>
+        <div class="bar" style="--d:2"><div class="val">650K</div><div class="col" data-h="54"></div><div class="yr">2024</div></div>
+        <div class="bar" style="--d:3"><div class="val hot">1.2M</div><div class="col" data-h="100"></div><div class="yr">2025/26</div></div>
+      </div>
+      <div class="row reveal" style="--i:4; align-items:center; gap:14px">
+        <span class="tag"><span class="dot"></span>100+ events / season</span>
+        <span class="tag"><span class="dot"></span>30+ countries</span>
+        <span class="tag"><span class="dot"></span>85+ cities</span>
+        <span class="note">Figures company-stated, directional. The trajectory is the point.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 SWEEPING ASIA -->
+  <section class="slide" data-label="Asia">
+    <div class="bg" data-img="photos/crowd_alt.jpg"></div>
+    <div class="tint tint--left"></div><div class="grain"></div>
+    <div class="wrap stack">
+      <div class="kicker reveal" style="--i:0">It's already sweeping Asia</div>
+      <h2 class="h-lg reveal" style="--i:1">Every major Asian city is racing.<br><span class="hot">Except ours.</span></h2>
+      <div class="cities reveal" style="--i:2; max-width:880px">
+        <div class="city"><div class="nm">Singapore</div><div class="meta">10,000–14,000+ / event</div></div>
+        <div class="city"><div class="nm">Hong Kong</div><div class="meta">~19,500 over 3 days</div></div>
+        <div class="city"><div class="nm">Bangkok</div><div class="meta">debuted May 2025</div></div>
+        <div class="city"><div class="nm">Jakarta &middot; Kuala Lumpur</div><div class="meta">debut 2026</div></div>
+        <div class="city city--gap"><div class="nm">Visayas &middot; Mindanao</div><div class="meta">zero races. ~30M people.</div></div>
+      </div>
+      <p class="lede reveal" style="--i:3">The AirAsia × HYROX partnership alone: <strong>196,000+ athletes across 10 APAC cities</strong>, targeting 250,000+ across 15+ cities in 2026.</p>
+    </div>
+  </section>
+
+  <!-- 6 WHITE SPACE -->
+  <section class="slide" data-label="White space">
+    <div class="tint tint--solid"></div><div class="gridlines"></div><div class="grain"></div>
+    <div class="wrap stack">
+      <div class="kicker kicker--heat reveal" style="--i:0">The white space</div>
+      <h2 class="h-xl reveal" style="--i:1">First mover<br>takes the <span class="hot">south</span>.</h2>
+      <div class="versus reveal" style="--i:2">
+        <div class="vbox">
+          <div class="vt">Manila — already moving</div>
+          <div class="vh">Taken</div>
+          <p>Bench Active Hybrid Games: apparel-brand-owned, celebrity and HYROX-athlete backed, multiple editions. But entirely Manila, and a lighter format (200m × 7 rounds). Official HYROX: not here yet, rumored ~2027.</p>
+        </div>
+        <div class="vbox vbox--us">
+          <div class="vt">Visayas &amp; Mindanao — wide open</div>
+          <div class="vh">Ours to take</div>
+          <p>The entire southern half of the country has zero hybrid races of any kind. We claim it with a <b style="color:var(--text)">serious, full-scale hybrid race</b>, built to grow real fitness-racing culture and a pathway toward official HYROX.</p>
+        </div>
+      </div>
+      <p class="lede reveal" style="--i:3">We are not competing with Manila. We are <strong>building the southern Filipino hybrid audience first</strong>, and owning the community, the data, and the credibility with HYROX.</p>
+    </div>
+  </section>
+
+  <!-- 7 WHY CEBU -->
+  <section class="slide" data-label="Why Cebu">
+    <div class="tint tint--solid"></div><div class="grain"></div>
+    <div class="wrap stack">
+      <div class="kicker reveal" style="--i:0">Why Cebu, why now</div>
+      <h2 class="h-lg reveal" style="--i:1">The right city,<br>at exactly the <span class="sea">right moment</span>.</h2>
+      <div class="grid g4 reveal" style="--i:2">
+        <div class="card card--glow"><div class="num" data-count="11529">0</div><div class="lab">Cebu Marathon 2026</div><div class="sub">Runners from 47 countries. The mass-event appetite is proven.</div></div>
+        <div class="card card--glow"><div class="num" data-count="7.7" data-suffix="M+" data-dec="1">0</div><div class="lab">Domestic arrivals 2025</div><div class="sub">~10% growth projected for 2026, with an explicit MICE focus.</div></div>
+        <div class="card card--glow"><div class="num">2028</div><div class="lab">Asian Beach Games</div><div class="sub">Already landed in Cebu. 40+ countries. The LGU courts events.</div></div>
+        <div class="card card--glow"><div class="num" data-count="3" data-suffix="M+">0</div><div class="lab">Metro Cebu market</div><div class="sub">A dense, young, fitness-engaged metro and the gateway to the Visayas and Mindanao.</div></div>
+      </div>
+      <p class="lede reveal" style="--i:3">Cebu has the crowd, the city's ambition, and now the venue. The only missing piece is <strong>the event</strong>.</p>
+    </div>
+  </section>
+
+  <!-- 8 INTRODUCING -->
+  <section class="slide" data-label="The event">
+    <div class="bg" data-img="photos/intro.jpg"></div>
+    <div class="tint tint--left"></div><div class="grain"></div>
+    <div class="wrap stack">
+      <div class="kicker kicker--heat reveal" style="--i:0">Introducing</div>
+      <h2 class="h-xl reveal" style="--i:1">Cebu Hybrid<br>Championship</h2>
+      <p class="lede reveal" style="--i:2">An independent hybrid race built for the South. A real test of running and functional strength, staged as a one-day festival on the Cebu seafront. The exact format is tuned to our venue, the energy is pure <strong>fitness racing</strong>.</p>
+      <div class="row reveal" style="--i:3">
+        <span class="tag"><span class="dot"></span>A race + a one-day festival</span>
+        <span class="tag"><span class="dot"></span>Expo &middot; food &middot; music &middot; finish-line spectacle</span>
+        <span class="tag"><span class="dot"></span>Built by the south's own fitness community</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 ATHLETE EXPERIENCE -->
+  <section class="slide" data-label="Divisions">
+    <div class="tint tint--solid"></div><div class="gridlines"></div><div class="grain"></div>
+    <div class="wrap stack">
+      <div class="kicker reveal" style="--i:0">The athlete experience</div>
+      <h2 class="h-lg reveal" style="--i:1">A race anyone who trains can finish,<br>and <span class="hot">everyone</span> wants to beat.</h2>
+      <div class="divs reveal" style="--i:2">
+        <div class="div"><h4>Open</h4><p>The individual race. The entry point for most athletes.</p></div>
+        <div class="div"><h4>Doubles</h4><p>Pairs split the work. Friends bring friends.</p></div>
+        <div class="div"><h4>Relay</h4><p>Teams of four. The low-barrier, high-energy entry.</p></div>
+        <div class="div" style="border-color:rgba(31,209,198,.35)"><h4 class="sea">Corporate</h4><p>Company teams. Team-building budgets, best margin.</p></div>
+      </div>
+      <p class="lede reveal" style="--i:3">Every athlete brings two to three spectators. <strong>The crowd is the product.</strong></p>
+    </div>
+  </section>
+
+  <!-- 10 VENUE -->
+  <section class="slide" data-label="Venue">
+    <div class="tint tint--solid"></div><div class="grain"></div>
+    <div class="wrap stack">
+      <div class="kicker reveal" style="--i:0">The venue</div>
+      <div class="row between">
+        <h2 class="h-lg reveal" style="--i:1">A race on the<br><span class="sea">Cebu seafront</span>.</h2>
+        <p class="body-sm reveal" style="--i:2; max-width:34ch">Il Corso, SRP: a lifestyle district with built-in food, retail, and a highly shareable seaside backdrop. Spectator-friendly and made for social reach, which multiplies sponsor value.</p>
+      </div>
+      <div class="grid g3 reveal" style="--i:3">
+        <div class="card"><div class="lab" style="margin:0 0 10px">Timing</div><p class="body-sm">Q4 window, the drier season, with early-morning and late-afternoon race waves.</p></div>
+        <div class="card"><div class="lab" style="margin:0 0 10px">Atmosphere</div><p class="body-sm">Seaside, golden hour, festival energy. The kind of event people post about.</p></div>
+        <div class="card"><div class="lab" style="margin:0 0 10px">Access</div><p class="body-sm">On the SRP complex, the same grounds that host the Cebu Marathon's 11,500+ runners.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 WHO RACES -->
+  <section class="slide" data-label="Audience">
+    <div class="bg" data-img="photos/audience.jpg"></div>
+    <div class="tint tint--left"></div><div class="grain"></div>
+    <div class="wrap stack">
+      <div class="kicker reveal" style="--i:0">Who races</div>
+      <h2 class="h-lg reveal" style="--i:1">An affluent, engaged crowd<br>that <span class="hot">sponsors chase</span>.</h2>
+      <div class="grid g4 reveal" style="--i:2">
+        <div class="card card--glow"><div class="num" data-count="65" data-suffix="%">0</div><div class="lab">Are aged 30+</div><div class="sub">Working professionals with disposable income.</div></div>
+        <div class="card card--glow"><div class="num" data-count="38" data-suffix="%">0</div><div class="lab">Female, and rising fast</div><div class="sub">Up from ~24% in 2020. Rare balance for endurance sport.</div></div>
+        <div class="card card--glow"><div class="num" data-count="70" data-suffix="%">0</div><div class="lab">First-timers each season</div><div class="sub">A growing, recruitment-driven base.</div></div>
+        <div class="card card--glow"><div class="num">14–28<span style="font-size:.34em;color:var(--aqua)">K</span></div><div class="lab">PHP spent / athlete / yr</div><div class="sub">Entries, travel, coaching, branded kit.</div></div>
+      </div>
+      <p class="lede reveal" style="--i:3">A captive, brand-loyal, content-creating audience with money to spend on health, apparel, and lifestyle.</p>
+    </div>
+  </section>
+
+  <!-- 13 THE NUMBERS -->
+  <section class="slide" data-label="Targets">
+    <div class="tint tint--solid"></div><div class="gridlines"></div><div class="grain"></div>
+    <div class="wrap stack">
+      <div class="kicker reveal" style="--i:0">The numbers</div>
+      <h2 class="h-lg reveal" style="--i:1">Conservative targets,<br>in a <span class="sea">proven market</span>.</h2>
+      <div class="statline reveal" style="--i:2">
+        <div class="stat"><div class="v"><span data-count="400">0</span>–<span data-count="500">0</span></div><div class="k">Edition 1 athletes (upside likely)</div></div>
+        <div class="stat"><div class="v" data-count="3000" data-suffix="+">0</div><div class="k">On-site crowd, day one</div></div>
+        <div class="stat"><div class="v" data-count="11529">0</div><div class="k">Cebu Marathon ceiling</div></div>
+      </div>
+      <div class="grid g3 reveal" style="--i:3">
+        <div class="card"><div class="lab" style="margin:0 0 8px">Edition 1</div><p class="body-sm">400–500 athletes. Conservative against an 11,500-runner local marathon.</p></div>
+        <div class="card"><div class="lab" style="margin:0 0 8px">Edition 2</div><p class="body-sm">800–1,500 athletes as the community and gym network compound.</p></div>
+        <div class="card" style="border-color:rgba(31,209,198,.3)"><div class="lab sea" style="margin:0 0 8px">Official HYROX, later</div><p class="body-sm">3,000–6,000+ per weekend at mature-market benchmarks.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14 BUSINESS MODEL -->
+  <section class="slide" data-label="Business model">
+    <div class="tint tint--solid"></div><div class="grain"></div>
+    <div class="wrap stack">
+      <div class="kicker kicker--heat reveal" style="--i:0">Business model</div>
+      <div class="row between">
+        <h2 class="h-md reveal" style="--i:1">Five revenue streams,<br>anchored by registrations &amp; sponsorship.</h2>
+        <p class="note reveal" style="--i:2; max-width:30ch">Phased pricing pulls cash in early and creates urgency. All figures in PHP.</p>
+      </div>
+      <table class="ptable reveal" style="--i:3">
+        <thead><tr><th>Division</th><th class="eb">Early bird</th><th>Regular</th><th>Last call</th><th>Why it works</th></tr></thead>
+        <tbody>
+          <tr><td>Open <span class="faint">/ individual</span></td><td class="price eb">4,000</td><td class="price">4,500</td><td class="price">5,000</td><td class="body-sm">Core band</td></tr>
+          <tr><td>Doubles <span class="faint">/ head</span></td><td class="price eb">3,500</td><td class="price">4,000</td><td class="price">4,500</td><td class="body-sm">Pairs bring friends</td></tr>
+          <tr><td>Relay of 4 <span class="faint">/ head</span></td><td class="price eb">3,000</td><td class="price">3,500</td><td class="price">4,000</td><td class="body-sm">Volume + spectators</td></tr>
+          <tr><td>Corporate Relay <span class="faint">/ head</span></td><td class="price eb">4,500</td><td class="price">5,000</td><td class="price">5,500</td><td class="body-sm">Best margin</td></tr>
+        </tbody>
+      </table>
+      <div class="row reveal" style="--i:4">
+        <span class="tag"><span class="dot"></span>Registrations</span>
+        <span class="tag"><span class="dot"></span>Sponsorship</span>
+        <span class="tag"><span class="dot"></span>Expo &amp; vendors</span>
+        <span class="tag"><span class="dot"></span>F&amp;B</span>
+        <span class="tag"><span class="dot"></span>Premium spectator zone</span>
+      </div>
+      <p class="note reveal" style="--i:5">Directional: ~750 athletes at a blended ~3,900 is roughly ₱2.9M in registrations, before sponsorship and ancillary streams. Free general admission maximizes crowd and sponsor impressions.</p>
+    </div>
+  </section>
+
+  <!-- 15 SPONSORSHIP -->
+  <section class="slide" data-label="Sponsorship">
+    <div class="tint tint--solid"></div><div class="gridlines"></div><div class="grain"></div>
+    <div class="wrap stack">
+      <div class="kicker reveal" style="--i:0">Sponsorship opportunity</div>
+      <h2 class="h-lg reveal" style="--i:1">Own a category before<br>it gets <span class="hot">expensive</span>.</h2>
+      <div class="grid g4 reveal" style="--i:2">
+        <div class="card card--glow"><div class="nm" style="font-family:var(--display);font-size:clamp(20px,1.8vw,26px);text-transform:uppercase">Title</div><div class="lab" style="margin-top:10px">1 slot</div><p class="sub">"Cebu Hybrid Championship presented by ___." Naming, all assets, main stage.</p></div>
+        <div class="card card--glow"><div class="nm" style="font-family:var(--display);font-size:clamp(20px,1.8vw,26px);text-transform:uppercase">Presenting</div><div class="lab" style="margin-top:10px">3–5 slots</div><p class="sub">Category-exclusive: apparel, nutrition, beverage, auto, telco, bank.</p></div>
+        <div class="card card--glow"><div class="nm" style="font-family:var(--display);font-size:clamp(20px,1.8vw,26px);text-transform:uppercase">Station</div><div class="lab" style="margin-top:10px">8 slots</div><p class="sub">"The Sled Push, presented by ___." One brand per station.</p></div>
+        <div class="card card--glow"><div class="nm" style="font-family:var(--display);font-size:clamp(20px,1.8vw,26px);text-transform:uppercase">Expo</div><div class="lab" style="margin-top:10px">Open tier</div><p class="sub">Activation booths in the festival village.</p></div>
+      </div>
+      <div class="row between reveal" style="--i:3">
+        <p class="lede" style="max-width:46ch">Bench (apparel) owns hybrid racing in Manila. The southern brand to own it is <strong>still open</strong>.</p>
+        <div class="row" style="gap:12px">
+          <span class="tag"><span class="dot"></span>In pursuit: Reebok</span>
+          <span class="tag" style="border-color:rgba(31,209,198,.4)"><span class="dot" style="background:var(--aqua)"></span>In pursuit: Cebu City Gov</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 16 WHY US -->
+  <section class="slide" data-label="The team">
+    <div class="bg" data-img="photos/team.jpg"></div>
+    <div class="tint tint--left"></div><div class="grain"></div>
+    <div class="wrap stack">
+      <div class="kicker kicker--heat reveal" style="--i:0">Why us</div>
+      <h2 class="h-lg reveal" style="--i:1">The operator Cebu's<br>hybrid race <span class="hot">needs</span>.</h2>
+      <div class="grid g2 reveal" style="--i:2; max-width:980px">
+        <div class="card"><div class="lab" style="margin:0 0 10px">The operator</div><p class="body-sm">Owner of CrossFit Subtero (HQ &amp; Underground) and Country Manager of CrossFit Philippines. The credibility, network, and operating experience to deliver a world-standard race.</p></div>
+        <div class="card"><div class="lab" style="margin:0 0 10px">Regional reach</div><p class="body-sm">Strong interest expected from CrossFit and functional-fitness gyms across the Visayas and Mindanao. A built-in, multi-region athlete pipeline no Manila event has tapped.</p></div>
+        <div class="card" style="border-color:rgba(31,209,198,.3)"><div class="lab sea" style="margin:0 0 10px">The HYROX channel</div><p class="body-sm">Direct relationships with HYROX Asia-Pacific leadership. The warm line for bringing official HYROX to Cebu in time.</p></div>
+        <div class="card"><div class="lab" style="margin:0 0 10px">Operations</div><p class="body-sm">Timing, medical, production, and security partners to be appointed to event-grade standard.</p></div>
+      </div>
+      <p class="note reveal" style="--i:3">A credentialed local operator with a real regional network and a warm line to HYROX is exactly what the partner model looks for.</p>
+    </div>
+  </section>
+
+  <!-- 17 THE ASK -->
+  <section class="slide" data-label="The ask">
+    <div class="tint tint--solid"></div><div class="gridlines"></div><div class="grain"></div>
+    <div class="wrap stack">
+      <div class="kicker reveal" style="--i:0">The ask</div>
+      <h2 class="h-xl reveal" style="--i:1">What we need<br>from <span class="hot">you</span>.</h2>
+      <div class="asks reveal" style="--i:2">
+        <div class="ask"><div class="who">City &amp; venue</div><h4>Back the event</h4><p>Endorsement as a sports-tourism event, permits and clearances, venue terms at Il Corso, and a long-term home for the region's flagship fitness race.</p></div>
+        <div class="ask ask--b"><div class="who">Sponsors &amp; brands</div><h4>Claim a category</h4><p>A title or category commitment for edition 1 at debut-edition rates, with first position on the multi-year and official-HYROX upside.</p></div>
+        <div class="ask ask--c"><div class="who">Investors &amp; co-organizers</div><h4>Fund the first</h4><p>Capital for edition 1 against the revenue model, with first position on the growth and official-HYROX upside.</p></div>
+      </div>
+      <p class="lede reveal" style="--i:3">Each conversation ends with one clear, specific next step.</p>
+    </div>
+  </section>
+
+  <!-- 18 ROADMAP -->
+  <section class="slide" data-label="Roadmap">
+    <div class="tint tint--solid"></div><div class="grain"></div>
+    <div class="wrap stack">
+      <div class="kicker reveal" style="--i:0">Roadmap</div>
+      <h2 class="h-lg reveal" style="--i:1">From flag-planting<br>to a <span class="sea">permanent fixture</span>.</h2>
+      <div class="timeline reveal" style="--i:2">
+        <div class="tl"><div class="when">Q2–Q3 2026</div><div class="node"></div><h4>Lock &amp; launch</h4><p>Venue, sponsors, ops partners. Open registration.</p></div>
+        <div class="tl"><div class="when">Q4 2026</div><div class="node"></div><h4>Edition 1</h4><p>Cebu Hybrid Championship at Il Corso. The flag goes in the ground.</p></div>
+        <div class="tl"><div class="when">Q1 2027</div><div class="node"></div><h4>The case</h4><p>Results and data packaged for the HYROX invitation-to-quote.</p></div>
+        <div class="tl"><div class="when">2027+</div><div class="node"></div><h4>Official HYROX</h4><p>Bid for a sanctioned HYROX event. Edition 2 of the Championship in parallel.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 19 CLOSE -->
+  <section class="slide" data-label="Close">
+    <div class="bg" data-img="photos/close.jpg"></div>
+    <div class="tint tint--left"></div><div class="tint tint--bottom"></div><div class="grain"></div>
+    <div class="wrap stack">
+      <div class="kicker kicker--heat reveal" style="--i:0">The close</div>
+      <h1 class="h-mega reveal" style="--i:1">Cebu<br>goes <span class="hot">first</span>.</h1>
+      <p class="lede reveal" style="--i:2">The fastest-growing sport in the world. The first major hybrid race in the south. A pathway to official HYROX. It starts in Cebu, Q4 2026.</p>
+      <div class="row reveal" style="--i:3">
+        <span class="tag"><span class="dot"></span>Cebu Hybrid Championship</span>
+        <span class="tag"><span class="dot"></span>Il Corso, SRP &middot; Q4 2026</span>
+        <span class="tag"><span class="dot"></span>[ name &middot; email &middot; phone ]</span>
+      </div>
+    </div>
+    <div class="foot"><span>Cebu Hybrid Championship</span><span>Pitch deck v1 &middot; 2026</span></div>
+  </section>
+
+</div>
+
+<script>
+const UNS = "https://images.unsplash.com/photo-";
+const Q = "?auto=format&fit=crop&w=2200&q=80";
+// hero backgrounds: local event photos (our own Bangkok HYROX shots) or Unsplash ids
+document.querySelectorAll('.bg[data-img]').forEach(el=>{
+  const v = el.dataset.img;
+  const url = v.includes('/') ? v : (UNS + v + Q);
+  const img = new Image();
+  img.onload = ()=> el.style.backgroundImage = `url("${url}")`;
+  img.onerror = ()=> el.style.background = "radial-gradient(120% 120% at 70% 20%, rgba(255,90,60,.4), rgba(10,13,19,1) 60%)";
+  img.src = url;
+});
+
+const slides=[...document.querySelectorAll('.slide')];
+const dotsWrap=document.getElementById('dots');
+const cnum=document.getElementById('cnum');
+document.getElementById('ctot').textContent=String(slides.length).padStart(2,'0');
+slides.forEach((s,i)=>{
+  const b=document.createElement('button'); b.title=s.dataset.label||('Slide '+(i+1));
+  b.onclick=()=>s.scrollIntoView(); dotsWrap.appendChild(b);
+});
+const dots=[...dotsWrap.children];
+
+function countUp(el){
+  if(el.dataset.done) return; el.dataset.done=1;
+  const target=parseFloat(el.dataset.count); const dec=parseInt(el.dataset.dec||0);
+  const suf=el.dataset.suffix||''; const dur=1100; const t0=performance.now();
+  const fmt=v=> dec? v.toFixed(dec) : Math.round(v).toLocaleString('en-US');
+  if(document.body.classList.contains('flat')){ el.textContent=fmt(target)+suf; return; }
+  function step(t){
+    const p=Math.min(1,(t-t0)/dur); const e=1-Math.pow(1-p,3);
+    el.textContent=fmt(target*e)+ (p===1?suf:''); if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function activate(s){
+  if(s.dataset.act) return; s.dataset.act=1;
+  s.classList.add('is-active');
+  s.querySelectorAll('[data-count]').forEach(countUp);
+  s.querySelectorAll('.bar .col').forEach(c=>{c.style.height=(c.dataset.h||50)+'%';});
+}
+const ratios=new Map();
+const io=new IntersectionObserver((entries)=>{
+  entries.forEach(en=>{
+    ratios.set(en.target,en.intersectionRatio);
+    if(en.isIntersecting && en.intersectionRatio>0.4) activate(en.target);
+  });
+  let best=null,br=-1;
+  ratios.forEach((r,el)=>{ if(r>br){br=r;best=el;} });
+  if(best && br>0){
+    const i=slides.indexOf(best);
+    cnum.textContent=String(i+1).padStart(2,'0');
+    dots.forEach((d,j)=>d.classList.toggle('on',j===i));
+  }
+},{threshold:[0,.2,.4,.6,.8,1]});
+slides.forEach(s=>io.observe(s));
+
+// flat mode (?flat): reveal everything at once — useful for review/PDF
+if(/[?&]flat/.test(location.search)){ document.body.classList.add('flat'); slides.forEach(activate);
+  document.getElementById('deck').style.scrollSnapType='none'; }
+
+// keyboard navigation (offset-based, robust to variable slide heights)
+const deck=document.getElementById('deck');
+function current(){ const y=deck.scrollTop; let b=0,bd=Infinity;
+  slides.forEach((s,i)=>{const d=Math.abs(s.offsetTop-y); if(d<bd){bd=d;b=i;}}); return b; }
+function go(n){ const i=Math.max(0,Math.min(slides.length-1,n));
+  deck.scrollTo({top:slides[i].offsetTop,behavior:'smooth'}); }
+addEventListener('keydown',e=>{
+  if(['ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();go(current()+1);}
+  if(['ArrowUp','PageUp'].includes(e.key)){e.preventDefault();go(current()-1);}
+  if(e.key==='Home'){e.preventDefault();go(0);}
+  if(e.key==='End'){e.preventDefault();go(slides.length-1);}
+});
+
+// deep-link: open with #s4 to jump straight to slide 4
+function jumpHash(){
+  const m=location.hash.match(/^#s(\d+)/); if(!m) return;
+  const i=Math.max(0,Math.min(slides.length-1,parseInt(m[1])-1));
+  const doJump=()=>{
+    const top=slides[i].getBoundingClientRect().top-deck.getBoundingClientRect().top+deck.scrollTop;
+    deck.scrollTo({top,behavior:'auto'}); activate(slides[i]);
+  };
+  // wait for the display font so offsets are measured after reflow
+  (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve())
+    .then(()=>setTimeout(doJump,40));
+}
+addEventListener('load',jumpHash);
+addEventListener('hashchange',jumpHash);
+</script>
+</body>
+</html>
