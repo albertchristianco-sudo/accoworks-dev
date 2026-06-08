@@ -1,0 +1,1152 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta name="robots" content="noindex, nofollow">
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fine Upgrades SmartOps AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: oklch(18% 0.018 248);
+      --muted: oklch(45% 0.022 248);
+      --faint: oklch(68% 0.018 248);
+      --paper: oklch(96% 0.011 248);
+      --sheet: oklch(91% 0.018 248);
+      --line: oklch(82% 0.018 248);
+      --blue: oklch(62% 0.125 225);
+      --aqua: oklch(72% 0.12 194);
+      --deep: oklch(23% 0.075 238);
+      --green: oklch(61% 0.12 164);
+      --amber: oklch(74% 0.12 78);
+      --red: oklch(58% 0.15 28);
+      --violet: oklch(50% 0.115 284);
+      --radius: 28px;
+      --shadow: 0 24px 78px oklch(18% 0.018 248 / 0.13);
+      --font: "Plus Jakarta Sans", Avenir, "Avenir Next", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+      --serif: var(--display);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    .skip-link {
+      position: fixed;
+      left: 16px;
+      top: 16px;
+      z-index: 20;
+      transform: translateY(-140%);
+      background: var(--deep);
+      color: oklch(96% 0.012 248);
+      padding: 12px 16px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+    .skip-link:focus { transform: translateY(0); }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background:
+        radial-gradient(circle at 10% 10%, oklch(91% 0.055 218 / 0.72), transparent 28rem),
+        radial-gradient(circle at 88% 78%, oklch(91% 0.075 194 / 0.54), transparent 30rem),
+        linear-gradient(145deg, var(--paper), oklch(89% 0.014 238));
+      color: var(--ink);
+      overflow: hidden;
+    }
+
+    .deck {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+    }
+
+    .slide {
+      width: min(1440px, calc(100vw - 44px));
+      height: min(900px, calc(100vh - 44px));
+      background: linear-gradient(155deg, oklch(98% 0.005 238), oklch(93% 0.014 238));
+      border: 1px solid oklch(78% 0.018 248);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: none;
+      position: relative;
+      overflow: hidden;
+      padding: 46px 58px 42px;
+    }
+
+    .slide.active { display: block; }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, oklch(20% 0.02 248 / 0.04) 1px, transparent 1px),
+        linear-gradient(0deg, oklch(20% 0.02 248 / 0.035) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: linear-gradient(to bottom right, black, transparent 72%);
+      pointer-events: none;
+    }
+
+    .slide::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 44%;
+      height: 64%;
+      transform: translate(18%, 14%);
+      background-image: var(--ghost-image, none);
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      opacity: var(--ghost-opacity, 0.065);
+      filter: grayscale(1) contrast(1.08) saturate(0.35);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .slide:nth-of-type(1),
+    .slide:nth-of-type(5),
+    .slide:nth-of-type(7),
+    .slide:nth-of-type(14),
+    .slide:nth-of-type(20) {
+      --ghost-image: url("Resources-Assets/lifesmart-wheel.png");
+    }
+    .slide:nth-of-type(2),
+    .slide:nth-of-type(8),
+    .slide:nth-of-type(11),
+    .slide:nth-of-type(13) {
+      --ghost-image: url("Resources-Assets/lifesmart-smartphone.png");
+      --ghost-opacity: 0.055;
+    }
+    .slide:nth-of-type(3),
+    .slide:nth-of-type(6),
+    .slide:nth-of-type(12),
+    .slide:nth-of-type(21) {
+      --ghost-image: url("Resources-Assets/lifesmart-six-icons.jpg");
+      --ghost-opacity: 0.045;
+    }
+
+    .slide > * { position: relative; z-index: 1; }
+
+    .kicker {
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--blue);
+      font-weight: 800;
+      margin: 0 0 24px;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      font-family: var(--display);
+      font-size: clamp(64px, 7.7vw, 108px);
+      letter-spacing: -0.05em;
+      line-height: 1.02;
+      max-width: 1040px;
+      margin-bottom: 28px;
+      font-weight: 600;
+    }
+    h2 {
+      font-family: var(--display);
+      font-size: clamp(40px, 4.65vw, 64px);
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      max-width: 1080px;
+      margin-bottom: 26px;
+      font-weight: 600;
+    }
+    h3 {
+      font-size: 21px;
+      letter-spacing: -0.02em;
+      line-height: 1.16;
+      margin-bottom: 10px;
+      font-weight: 760;
+    }
+    p, li {
+      font-size: 20px;
+      line-height: 1.42;
+      color: var(--muted);
+    }
+    .lead {
+      font-size: clamp(23px, 2.55vw, 34px);
+      line-height: 1.2;
+      letter-spacing: -0.035em;
+      color: var(--ink);
+      max-width: 930px;
+    }
+    .sublead {
+      font-size: 21px;
+      max-width: 860px;
+      color: var(--muted);
+    }
+
+    .brandline {
+      position: absolute;
+      top: 34px;
+      right: 42px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--deep);
+    }
+    .logo-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background:
+        linear-gradient(135deg, var(--deep), var(--aqua));
+      display: grid;
+      place-items: center;
+      color: oklch(96% 0.012 248);
+      font-weight: 900;
+    }
+    .slide-number {
+      position: absolute;
+      left: 68px;
+      bottom: 34px;
+      color: var(--faint);
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.12em;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1.02fr 0.98fr;
+      gap: 42px;
+      align-items: start;
+      height: auto;
+    }
+    .split-wide {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 42px;
+      align-items: center;
+    }
+    .stack { display: grid; gap: 18px; }
+    .tight { gap: 10px; }
+    .block {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 19px 22px;
+      background: oklch(98% 0.006 248 / 0.78);
+    }
+    .block strong, .line strong { color: var(--ink); }
+    .accent-block {
+      background: var(--deep);
+      color: oklch(96% 0.012 248);
+      border-color: oklch(34% 0.09 250);
+    }
+    .accent-block p, .accent-block li, .accent-block .muted { color: oklch(82% 0.026 248); }
+    .green-block { background: oklch(92% 0.075 164); border-color: oklch(76% 0.09 164); }
+    .amber-block { background: oklch(94% 0.075 78); border-color: oklch(82% 0.1 78); }
+    .violet-block { background: oklch(92% 0.055 295); border-color: oklch(78% 0.08 295); }
+
+    .pill-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+    .pill {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-size: 15px;
+      font-weight: 750;
+      color: var(--deep);
+      background: oklch(98% 0.006 248 / 0.85);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+    .line {
+      display: grid;
+      grid-template-columns: 38px 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 15px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .line:last-child { border-bottom: 0; }
+    .num {
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: var(--deep);
+      color: oklch(96% 0.012 248);
+      font-weight: 900;
+    }
+    .line p { margin: 0; }
+
+    .map {
+      height: 430px;
+      border-radius: 34px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(110deg, oklch(91% 0.022 248), oklch(96% 0.008 248)),
+        linear-gradient(90deg, oklch(45% 0.05 248 / 0.1) 1px, transparent 1px),
+        linear-gradient(0deg, oklch(45% 0.05 248 / 0.1) 1px, transparent 1px);
+      background-size: auto, 46px 46px, 46px 46px;
+      position: relative;
+      overflow: hidden;
+    }
+    .map::after {
+      content: "";
+      position: absolute;
+      inset: 80px 90px;
+      border: 18px solid oklch(54% 0.08 248 / 0.18);
+      border-radius: 44% 56% 45% 55% / 55% 44% 56% 45%;
+      transform: rotate(-16deg);
+    }
+    .pin {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--blue);
+      box-shadow: 0 0 0 12px oklch(53% 0.17 249 / 0.16);
+    }
+    .pin.one { left: 27%; top: 32%; }
+    .pin.two { left: 63%; top: 43%; background: var(--green); box-shadow: 0 0 0 12px oklch(58% 0.13 164 / 0.16); }
+    .pin.three { left: 48%; top: 68%; background: var(--amber); box-shadow: 0 0 0 12px oklch(72% 0.14 78 / 0.18); }
+    .route {
+      position: absolute;
+      left: 26%;
+      top: 34%;
+      width: 40%;
+      height: 36%;
+      border-top: 4px solid oklch(48% 0.08 248 / 0.26);
+      border-right: 4px solid oklch(48% 0.08 248 / 0.26);
+      border-radius: 0 80px 0 0;
+      transform: rotate(8deg);
+    }
+
+    .phone {
+      width: 285px;
+      height: 520px;
+      border-radius: 44px;
+      background: var(--ink);
+      padding: 14px;
+      box-shadow: 0 32px 80px oklch(18% 0.018 248 / 0.22);
+      margin: 0 auto;
+    }
+    .phone-screen {
+      height: 100%;
+      border-radius: 34px;
+      background: oklch(95% 0.01 248);
+      padding: 28px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .app-top { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 800; color: var(--muted); }
+    .check-button {
+      margin-top: 14px;
+      height: 82px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, var(--deep), var(--aqua));
+      color: oklch(96% 0.012 248);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 22px;
+    }
+    .mini-card {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 14px;
+      background: oklch(98% 0.006 248);
+    }
+    .mini-card b { display: block; font-size: 13px; color: var(--ink); margin-bottom: 4px; }
+    .mini-card span { font-size: 12px; color: var(--muted); }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      align-items: stretch;
+      margin-top: 34px;
+    }
+    .stage {
+      padding: 18px 14px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: oklch(98% 0.006 248 / 0.82);
+      min-height: 132px;
+    }
+    .stage b { display: block; font-size: 16px; letter-spacing: -0.02em; margin-bottom: 10px; color: var(--ink); }
+    .stage span { color: var(--muted); font-size: 14px; line-height: 1.35; display: block; }
+    .stage.active-stage { background: var(--deep); border-color: var(--deep); }
+    .stage.active-stage b { color: oklch(96% 0.012 248); }
+    .stage.active-stage span { color: oklch(82% 0.026 248); }
+
+    .matrix {
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      overflow: hidden;
+      background: oklch(98% 0.006 248 / 0.8);
+    }
+    .matrix-row {
+      display: grid;
+      grid-template-columns: 1.05fr 1fr 1fr;
+      border-bottom: 1px solid var(--line);
+    }
+    .matrix-row:last-child { border-bottom: 0; }
+    .matrix-row > div { padding: 14px 16px; font-size: 16px; color: var(--muted); }
+    .matrix-row.header > div { color: var(--ink); font-weight: 850; background: oklch(91% 0.018 248); }
+    .matrix-row > div:first-child { font-weight: 760; color: var(--ink); }
+
+    .quote {
+      font-family: var(--serif);
+      font-size: clamp(32px, 4.1vw, 54px);
+      line-height: 1.13;
+      letter-spacing: -0.04em;
+      max-width: 1050px;
+      color: var(--ink);
+    }
+    .small-note {
+      font-size: 16px;
+      color: var(--faint);
+      line-height: 1.45;
+      max-width: 620px;
+    }
+    .big-number {
+      font-size: 118px;
+      line-height: 0.9;
+      letter-spacing: -0.08em;
+      font-weight: 880;
+      color: var(--deep);
+    }
+    .caption { font-size: 17px; color: var(--muted); }
+
+    .agent-core {
+      width: 470px;
+      height: 470px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 42%, oklch(96% 0.02 248), oklch(69% 0.13 249) 42%, oklch(26% 0.08 250) 72%);
+      box-shadow: inset 0 0 80px oklch(96% 0.02 248 / 0.4), 0 30px 90px oklch(18% 0.018 248 / 0.22);
+      display: grid;
+      place-items: center;
+      color: oklch(97% 0.01 248);
+      text-align: center;
+      margin: 20px auto 0;
+      position: relative;
+    }
+    .agent-core::before,
+    .agent-core::after {
+      content: "";
+      position: absolute;
+      border: 1px solid oklch(55% 0.11 249 / 0.55);
+      border-radius: 50%;
+    }
+    .agent-core::before { inset: -34px; }
+    .agent-core::after { inset: -74px; border-color: oklch(55% 0.11 249 / 0.25); }
+    .agent-core b { font-size: 34px; letter-spacing: -0.04em; display: block; margin-bottom: 10px; }
+    .agent-core span { color: oklch(84% 0.026 248); font-size: 16px; line-height: 1.35; max-width: 260px; display: block; }
+
+    .nav {
+      position: fixed;
+      z-index: 10;
+      left: 50%;
+      top: 16px;
+      bottom: auto;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: oklch(20% 0.02 248 / 0.86);
+      color: oklch(94% 0.012 248);
+      border: 1px solid oklch(80% 0.02 248 / 0.24);
+      border-radius: 999px;
+      padding: 8px 12px;
+      backdrop-filter: blur(14px);
+    }
+    button {
+      border: 0;
+      border-radius: 999px;
+      min-height: 44px;
+      padding: 10px 16px;
+      background: oklch(96% 0.012 248);
+      color: var(--deep);
+      font-weight: 850;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 180ms ease, background 180ms ease;
+    }
+    button:active { transform: scale(0.96); }
+    button:focus-visible, .skip-link:focus-visible {
+      outline: 3px solid var(--aqua);
+      outline-offset: 3px;
+    }
+    .nav span { font-size: 13px; min-width: 74px; text-align: center; color: oklch(86% 0.012 248); }
+
+    .notes {
+      position: absolute;
+      right: 38px;
+      bottom: 30px;
+      width: 410px;
+      background: oklch(18% 0.018 248 / 0.92);
+      color: oklch(91% 0.012 248);
+      padding: 18px 20px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.4;
+      display: none;
+      z-index: 3;
+    }
+    .show-notes .notes { display: block; }
+    .notes b { color: oklch(96% 0.012 248); display: block; margin-bottom: 8px; }
+
+    @media (min-width: 901px) {
+      .slide:nth-of-type(9) .map { height: 360px; }
+      .slide:nth-of-type(9) .block,
+      .slide:nth-of-type(22) .block { padding: 15px 18px; }
+      .slide:nth-of-type(9) p,
+      .slide:nth-of-type(22) p { font-size: 18px; }
+      .slide:nth-of-type(22) .quote { font-size: clamp(30px, 3.55vw, 46px); }
+    }
+
+    @media (max-width: 900px) {
+      html { scroll-snap-type: y proximity; }
+      body {
+        overflow: auto;
+        overscroll-behavior-y: contain;
+        background: linear-gradient(180deg, oklch(97% 0.006 238), oklch(90% 0.014 238));
+      }
+      .deck {
+        display: block;
+        padding: 0;
+        min-height: auto;
+      }
+      .slide {
+        display: block;
+        width: 100%;
+        min-height: auto;
+        height: auto;
+        border-radius: 0;
+        padding: calc(28px + env(safe-area-inset-top)) max(18px, env(safe-area-inset-left)) 52px max(18px, env(safe-area-inset-right));
+        box-shadow: none;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        scroll-snap-align: start;
+      }
+      .slide::before {
+        background-size: 34px 34px;
+        opacity: 0.48;
+        mask-image: linear-gradient(to bottom, black, transparent 62%);
+      }
+      .slide::after {
+        width: 76%;
+        height: 42%;
+        right: 0;
+        bottom: 3%;
+        transform: translate(34%, 0);
+        opacity: calc(var(--ghost-opacity, 0.065) * 0.72);
+      }
+      .brandline {
+        position: static;
+        margin-bottom: 28px;
+        justify-content: space-between;
+        font-size: 14px;
+      }
+      .logo-mark {
+        width: 34px;
+        height: 34px;
+        border-radius: 11px;
+        font-size: 13px;
+      }
+      .kicker {
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        margin-bottom: 16px;
+      }
+      h1 {
+        font-size: clamp(44px, 12.8vw, 66px);
+        line-height: 1.04;
+        letter-spacing: -0.04em;
+        margin-bottom: 18px;
+      }
+      h2 {
+        font-size: clamp(33px, 9.6vw, 50px);
+        line-height: 1.08;
+        letter-spacing: -0.035em;
+        margin-bottom: 18px;
+      }
+      h3 {
+        font-size: 19px;
+        line-height: 1.18;
+      }
+      p, li {
+        font-size: 17px;
+        line-height: 1.5;
+      }
+      .lead {
+        font-size: clamp(22px, 6.1vw, 30px);
+        line-height: 1.22;
+      }
+      .sublead { font-size: 18px; }
+      .two-col, .split-wide, .grid-2, .grid-3, .grid-4 {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        height: auto;
+      }
+      .stack { gap: 14px; }
+      .block {
+        border-radius: 20px;
+        padding: 18px;
+      }
+      .pill-row {
+        gap: 8px;
+        margin-top: 20px;
+      }
+      .pill {
+        font-size: 13px;
+        padding: 10px 12px;
+      }
+      .line {
+        grid-template-columns: 34px 1fr;
+        gap: 12px;
+        padding: 16px 0;
+      }
+      .num {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        font-size: 13px;
+      }
+      .pipeline { grid-template-columns: 1fr; gap: 10px; }
+      .stage {
+        min-height: 0;
+        padding: 16px;
+      }
+      .matrix {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 20px;
+      }
+      .matrix-row {
+        min-width: 680px;
+        grid-template-columns: 0.95fr 1fr 1fr;
+      }
+      .matrix-row > div {
+        padding: 14px 16px;
+        font-size: 15px;
+      }
+      .map {
+        height: 280px;
+        border-radius: 24px;
+      }
+      .phone {
+        width: min(285px, 88vw);
+        height: 560px;
+        transform: none;
+        margin: 8px auto 0;
+      }
+      .phone-screen { padding: 24px 18px; }
+      .check-button { min-height: 84px; }
+      .agent-core {
+        width: min(280px, 76vw);
+        height: min(280px, 76vw);
+        margin: 28px auto 18px;
+      }
+      .agent-core::before { inset: -18px; }
+      .agent-core::after { display: none; }
+      .agent-core b { font-size: 25px; }
+      .agent-core span { font-size: 14px; max-width: 210px; }
+      .quote {
+        font-size: clamp(31px, 9vw, 44px);
+        line-height: 1.12;
+      }
+      .small-note {
+        font-size: 14px;
+        max-width: 100%;
+      }
+      .slide-number, .notes { display: none; }
+      .nav {
+        display: none;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .slide { padding-left: 16px; padding-right: 16px; }
+      .matrix-row { min-width: 610px; }
+      .matrix-row > div { font-size: 14px; }
+      .phone { height: 520px; }
+      .mini-card { padding: 12px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @media print {
+      body { overflow: visible; background: var(--paper); }
+      .deck { display: block; height: auto; padding: 0; }
+      .slide {
+        display: block !important;
+        width: 100vw;
+        height: 100vh;
+        page-break-after: always;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      .nav, .notes { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#deck">Skip to deck</a>
+  <main class="deck" id="deck">
+    <section class="slide active">
+      <div class="brandline"><div class="logo-mark">FU</div><span>Fine Upgrades</span></div>
+      <p class="kicker">Scope pitch</p>
+      <h1>Fine Upgrades SmartOps AI</h1>
+      <p class="lead">An AI operating system for home automation and security work, built around inventory, field teams, project visibility, and customer trust.</p>
+      <div class="pill-row">
+        <span class="pill">Home automation</span>
+        <span class="pill">Security systems</span>
+        <span class="pill">Inventory from the ground up</span>
+        <span class="pill">GPS field logs</span>
+        <span class="pill">AI agent inside operations</span>
+      </div>
+      <div class="slide-number">01 / 22</div>
+      <aside class="notes"><b>Speaker note</b>This is a scope deck, not a budget deck. The point is to show what the business can become if the manual workflow gets rebuilt as one connected system.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>SmartOps AI</span></div>
+      <p class="kicker">Starting point</p>
+      <h2>Fine Upgrades already delivers smart spaces. The operations layer can become just as intelligent.</h2>
+      <div class="two-col">
+        <div>
+          <p class="lead">The company installs smart locks, lighting, security systems, and full automation for homes, offices, hotels, Airbnbs, and building projects.</p>
+          <p class="sublead">The opportunity is to give the team one quiet system that knows the stock, the site, the client, and the next best action.</p>
+        </div>
+        <div class="stack">
+          <div class="block green-block"><h3>What works today</h3><p>Inventory exists. Teams coordinate. Projects move. Customers get served.</p></div>
+          <div class="block amber-block"><h3>What gets harder as volume grows</h3><p>Manual updates, scattered chats, contractor tracking, project handovers, and customer follow-ups.</p></div>
+          <div class="block"><h3>What SmartOps changes</h3><p>The system becomes the shared memory of the business, from warehouse movement to customer handover.</p></div>
+        </div>
+      </div>
+      <div class="slide-number">02 / 22</div>
+      <aside class="notes"><b>Speaker note</b>Keep this grounded. The business is not broken. The pitch is about building stronger rails before growth makes the current workflow painful.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>Current workflow</span></div>
+      <p class="kicker">Today</p>
+      <h2>Work is spread across sheets, Viber, Telegram, and memory.</h2>
+      <div class="grid-4">
+        <div class="block"><h3>Excel and Google Sheets</h3><p>Useful for lists, less useful when stock moves between warehouse, project reservation, site, installation, return, and reorder.</p></div>
+        <div class="block"><h3>Viber</h3><p>Customer categories live in chat flows that are hard to audit later.</p></div>
+        <div class="block"><h3>Telegram</h3><p>Internal project updates move quickly, but the final record gets buried in threads.</p></div>
+        <div class="block"><h3>Manual checking</h3><p>Managers still need to ask people for status, proof, and context.</p></div>
+      </div>
+      <p class="small-note" style="margin-top:34px;">This deck assumes the current setup works, but too much context still lives in people, sheets, and chat threads. SmartOps keeps the practical habits, then turns them into structured data.</p>
+      <div class="slide-number">03 / 22</div>
+      <aside class="notes"><b>Speaker note</b>Avoid blaming the current tools. Sheets and chat are normal for this stage. The issue is that they do not scale cleanly when projects and field teams grow.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>Problem</span></div>
+      <p class="kicker">The hidden cost</p>
+      <h2>Manual systems create blind spots exactly where the business needs proof.</h2>
+      <div class="stack tight" style="max-width:1060px;">
+        <div class="line"><div class="num">1</div><p><strong>Inventory proof:</strong> what is on hand, reserved, installed, defective, or waiting on a supplier?</p></div>
+        <div class="line"><div class="num">2</div><p><strong>Site proof:</strong> did the contractor arrive, where did they check in, and what work did they finish?</p></div>
+        <div class="line"><div class="num">3</div><p><strong>Project proof:</strong> what changed today, what is blocked, and what should the customer know?</p></div>
+        <div class="line"><div class="num">4</div><p><strong>Payroll proof:</strong> which work logs are valid enough to trigger payment?</p></div>
+        <div class="line"><div class="num">5</div><p><strong>Customer proof:</strong> can a client see progress without asking someone in the office?</p></div>
+      </div>
+      <div class="slide-number">04 / 22</div>
+      <aside class="notes"><b>Speaker note</b>This is the core business case. SmartOps turns proof into a normal part of the workflow, not an extra admin task at the end of the day.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>Vision</span></div>
+      <p class="kicker">What we build</p>
+      <h2>One platform with four operating layers and one AI agent at the center.</h2>
+      <div class="split-wide">
+        <div class="stack">
+          <div class="line"><div class="num">A</div><p><strong>Inventory system:</strong> warehouse, project reservations, supplier orders, returns, defects, installed devices.</p></div>
+          <div class="line"><div class="num">B</div><p><strong>Field app:</strong> GPS check-in, work logs, photos, proof of visit, contractor payroll support.</p></div>
+          <div class="line"><div class="num">C</div><p><strong>Project command center:</strong> internal project status, tasks, blockers, timeline, handover history.</p></div>
+          <div class="line"><div class="num">D</div><p><strong>Customer portal:</strong> client-facing progress, installed products, team updates, photos, support history.</p></div>
+        </div>
+        <div class="agent-core"><div><b>AI inventory agent</b><span>Reads stock movement, project demand, supplier flow, and field updates. Then it flags what needs attention.</span></div></div>
+      </div>
+      <div class="slide-number">05 / 22</div>
+      <aside class="notes"><b>Speaker note</b>The AI agent starts inside inventory because stock is the backbone of every installation job. If inventory data is clean, the rest of the AI layer becomes more useful.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>Inventory</span></div>
+      <p class="kicker">Module 1</p>
+      <h2>Build inventory from the ground up, then make it intelligent.</h2>
+      <div class="two-col">
+        <div class="stack">
+          <div class="block accent-block"><h3>The inventory record becomes the source of truth.</h3><p>Every item gets a status, location, project link, supplier trail, and service history where needed.</p></div>
+          <div class="grid-2">
+            <div class="block"><h3>Stock on hand</h3><p>What is physically available in the warehouse.</p></div>
+            <div class="block"><h3>Reserved stock</h3><p>Items assigned to a specific project but not installed yet.</p></div>
+            <div class="block"><h3>Supplier orders</h3><p>Incoming orders, expected arrivals, and purchasing status.</p></div>
+            <div class="block"><h3>Defective units</h3><p>Returns, replacements, warranty handling, and items not fit for installation.</p></div>
+          </div>
+        </div>
+        <div class="matrix">
+          <div class="matrix-row header"><div>Inventory question</div><div>Manual answer</div><div>SmartOps answer</div></div>
+          <div class="matrix-row"><div>Can we install this week?</div><div>Ask warehouse and sales</div><div>Check available plus reserved stock</div></div>
+          <div class="matrix-row"><div>Where did this lock go?</div><div>Search chat and sheet notes</div><div>See project, field log, and installer</div></div>
+          <div class="matrix-row"><div>What needs reordering?</div><div>Review manually</div><div>AI flags low stock and project demand</div></div>
+          <div class="matrix-row"><div>What is defective?</div><div>Separate list</div><div>Defect status tied to SKU and supplier</div></div>
+        </div>
+      </div>
+      <div class="slide-number">06 / 22</div>
+      <aside class="notes"><b>Speaker note</b>This should feel operational, not theoretical. The inventory system should answer everyday questions faster than a person can search old chats.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>AI inventory agent</span></div>
+      <p class="kicker">Core AI concept</p>
+      <h2>The AI agent watches inventory like an operations assistant.</h2>
+      <div class="grid-3">
+        <div class="block green-block"><h3>Forecast demand</h3><p>Use active projects, common installation packages, and past movement to estimate what stock may run short.</p></div>
+        <div class="block"><h3>Catch conflicts</h3><p>Warn when the same item appears available but is already reserved for another project.</p></div>
+        <div class="block amber-block"><h3>Spot delays early</h3><p>Connect supplier order dates with scheduled installations so managers see risk before the site visit.</p></div>
+        <div class="block"><h3>Explain stock movement</h3><p>Answer questions like, "Why did smart lock stock drop this week?" using project and field logs.</p></div>
+        <div class="block violet-block"><h3>Suggest purchase actions</h3><p>Prepare reorder suggestions for review. Humans still approve purchasing.</p></div>
+        <div class="block"><h3>Prepare reports</h3><p>Turn warehouse activity into a weekly summary that managers can read in minutes.</p></div>
+      </div>
+      <p class="small-note" style="margin-top:28px;">AI should recommend, summarize, and flag. It should not change stock, approve purchases, or adjust payroll without human review.</p>
+      <div class="slide-number">07 / 22</div>
+      <aside class="notes"><b>Speaker note</b>Set the boundary. AI helps with judgment and speed, but sensitive actions still need approval.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>Field app</span></div>
+      <p class="kicker">Module 2</p>
+      <h2>The phone becomes the field log, GPS proof, and payroll trail.</h2>
+      <div class="split-wide">
+        <div>
+          <p class="lead">For contractors, the question is simple: did they go to the customer site and complete the assigned work?</p>
+          <div class="stack" style="margin-top:28px;">
+            <div class="line"><div class="num">1</div><p><strong>Check in on site:</strong> timestamp, phone location, assigned project, assigned task.</p></div>
+            <div class="line"><div class="num">2</div><p><strong>Log the work:</strong> notes, completed items, blockers, materials used.</p></div>
+            <div class="line"><div class="num">3</div><p><strong>Attach proof:</strong> photos before and after installation, optional customer sign-off.</p></div>
+            <div class="line"><div class="num">4</div><p><strong>Support payroll:</strong> valid work logs can flow into contractor payment review.</p></div>
+          </div>
+        </div>
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="app-top"><span>9:41</span><span>SmartOps</span></div>
+            <h3 style="font-size:28px;margin:8px 0 0;">The Residences, Unit 18B</h3>
+            <p style="font-size:15px;margin:0;color:var(--muted);">Smart lock and lighting scene install</p>
+            <div class="check-button">Check in</div>
+            <div class="mini-card"><b>Location status</b><span>Within approved project radius</span></div>
+            <div class="mini-card"><b>Tasks today</b><span>Install lock, pair hub, test lighting scenes</span></div>
+            <div class="mini-card"><b>Proof required</b><span>3 photos, material usage, completion note</span></div>
+            <div class="mini-card"><b>Payroll status</b><span>Pending manager review after checkout</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-number">08 / 22</div>
+      <aside class="notes"><b>Speaker note</b>This replaces the idea of a separate GPS tracker. The custom app can use the phone location as part of the work record.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>Field controls</span></div>
+      <p class="kicker">Practical guardrails</p>
+      <h2>Field tracking should prove work without feeling like surveillance for its own sake.</h2>
+      <div class="two-col">
+        <div class="map"><div class="route"></div><div class="pin one"></div><div class="pin two"></div><div class="pin three"></div></div>
+        <div class="stack">
+          <div class="block"><h3>Project radius</h3><p>Check-ins only count when the phone is within the approved site area, with a manual exception flow for edge cases.</p></div>
+          <div class="block"><h3>Work window</h3><p>Logs show when the worker checked in, checked out, and submitted proof.</p></div>
+          <div class="block"><h3>Photo proof</h3><p>Before and after photos can tie the field log to the actual installation.</p></div>
+          <div class="block"><h3>Payroll review</h3><p>The system prepares the evidence. A manager still approves payment.</p></div>
+        </div>
+      </div>
+      <div class="slide-number">09 / 22</div>
+      <aside class="notes"><b>Speaker note</b>This point matters. Owners want proof, but workers need a fair system. The design should focus on work validation, not constant tracking.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>Project command center</span></div>
+      <p class="kicker">Module 3</p>
+      <h2>Every client project gets one living record.</h2>
+      <div class="pipeline">
+        <div class="stage"><b>Inquiry</b><span>Customer details, property type, requested automation scope, initial notes.</span></div>
+        <div class="stage"><b>Design</b><span>Proposed devices, room plan, quote references, package assumptions.</span></div>
+        <div class="stage active-stage"><b>Install</b><span>Assigned field team, reserved inventory, site logs, photos, blockers.</span></div>
+        <div class="stage"><b>Handover</b><span>Installed products, user training, customer acceptance, warranty start.</span></div>
+        <div class="stage"><b>Support</b><span>Service requests, replacements, troubleshooting, upgrade opportunities.</span></div>
+      </div>
+      <div class="two-col" style="height:auto;margin-top:42px;">
+        <div class="block"><h3>For the office</h3><p>Managers see what is active, what is blocked, what needs stock, and what is ready for customer update.</p></div>
+        <div class="block"><h3>For the field team</h3><p>Installers see the assigned work, materials, site notes, and proof requirements in one place.</p></div>
+      </div>
+      <div class="slide-number">10 / 22</div>
+      <aside class="notes"><b>Speaker note</b>The project record becomes the connective tissue between sales, warehouse, field work, and customer support.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>Customer portal</span></div>
+      <p class="kicker">Module 4</p>
+      <h2>Customers should not need to ask for basic status.</h2>
+      <div class="two-col">
+        <div>
+          <p class="lead">A portal gives clients a clean view of their project without exposing internal chatter.</p>
+          <div class="pill-row">
+            <span class="pill">Project status</span>
+            <span class="pill">Timeline</span>
+            <span class="pill">Installed products</span>
+            <span class="pill">Photos</span>
+            <span class="pill">Team updates</span>
+            <span class="pill">Support history</span>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="block green-block"><h3>For homeowners</h3><p>Less anxiety during installation. They can see progress, proof, and next steps.</p></div>
+          <div class="block"><h3>For developers and hotels</h3><p>Better visibility across units, rooms, phases, and punch list items.</p></div>
+          <div class="block amber-block"><h3>For Fine Upgrades</h3><p>Fewer repetitive update requests and a more professional handover experience.</p></div>
+        </div>
+      </div>
+      <div class="slide-number">11 / 22</div>
+      <aside class="notes"><b>Speaker note</b>Customer visibility should be curated. They see what helps them trust the work, not every internal detail.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>AI project layer</span></div>
+      <p class="kicker">AI potential</p>
+      <h2>AI turns daily activity into useful management signals.</h2>
+      <div class="matrix">
+        <div class="matrix-row header"><div>AI capability</div><div>What it reads</div><div>What it produces</div></div>
+        <div class="matrix-row"><div>Daily project summary</div><div>Field logs, photos, task changes</div><div>Plain update for owners and managers</div></div>
+        <div class="matrix-row"><div>Customer update draft</div><div>Approved project status and photos</div><div>Short customer-ready message</div></div>
+        <div class="matrix-row"><div>Delay risk flag</div><div>Blocked tasks, missing stock, supplier dates</div><div>Warning before the schedule slips</div></div>
+        <div class="matrix-row"><div>Handover checklist</div><div>Installed devices and completion logs</div><div>Missing documents, tests, and training steps</div></div>
+        <div class="matrix-row"><div>Support history summary</div><div>Tickets, replacements, site visits</div><div>Quick context before a return visit</div></div>
+      </div>
+      <div class="slide-number">12 / 22</div>
+      <aside class="notes"><b>Speaker note</b>AI is most useful when it reads trusted operational data. This is why the platform comes first and the AI layer sits on top of it.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>AI assistant</span></div>
+      <p class="kicker">Technician support</p>
+      <h2>A technician assistant can help installers solve site issues faster.</h2>
+      <div class="two-col">
+        <div class="stack">
+          <div class="block"><h3>On-site troubleshooting</h3><p>Ask about pairing issues, device resets, hub connectivity, room scenes, and common LifeSmart setup problems.</p></div>
+          <div class="block"><h3>Install guidance</h3><p>Show project-specific device lists, required photos, test steps, and customer handover notes.</p></div>
+          <div class="block"><h3>Knowledge base</h3><p>Internal installation notes, manuals, past fixes, and product quirks can become searchable.</p></div>
+        </div>
+        <div class="block accent-block" style="min-height:420px;display:flex;flex-direction:column;justify-content:center;">
+          <p class="quote" style="font-size:46px;color:oklch(96% 0.012 248);">"The hub is online, but the living room switch will not pair."</p>
+          <p style="margin-top:24px;">The assistant checks the product notes, asks for the model, suggests the reset sequence, and records the fix if it works.</p>
+        </div>
+      </div>
+      <div class="slide-number">13 / 22</div>
+      <aside class="notes"><b>Speaker note</b>This is a strong future module because it captures the team's practical knowledge. It also helps new installers get up to speed.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>AI sales layer</span></div>
+      <p class="kicker">AI potential</p>
+      <h2>Smart package recommendations can support sales without making the process feel pushy.</h2>
+      <div class="grid-3">
+        <div class="block"><h3>Space-based planning</h3><p>Recommend starter packages for homes, offices, hotel rooms, model units, rental properties, and building management use cases.</p></div>
+        <div class="block green-block"><h3>Good, better, best options</h3><p>Turn customer needs into practical package choices with clear differences in scope.</p></div>
+        <div class="block"><h3>Inventory-aware suggestions</h3><p>Prefer products that are available or arriving soon, so sales does not promise what operations cannot install.</p></div>
+        <div class="block amber-block"><h3>Upgrade paths</h3><p>Suggest future add-ons after handover, such as sensors, security scenes, curtains, or hotel room controls.</p></div>
+        <div class="block"><h3>Proposal drafts</h3><p>Generate first drafts from approved package templates and project notes.</p></div>
+        <div class="block violet-block"><h3>Customer education</h3><p>Explain what the system does in simple language, especially for homeowners new to automation.</p></div>
+      </div>
+      <div class="slide-number">14 / 22</div>
+      <aside class="notes"><b>Speaker note</b>Keep this as optional future scope. It is useful, but the first value probably comes from inventory, field logs, and project visibility.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>Data model</span></div>
+      <p class="kicker">Under the hood</p>
+      <h2>The system works because the main records are connected.</h2>
+      <div class="grid-2">
+        <div class="block"><h3>Customer</h3><p>Contact, property, category, project history, support history, portal access.</p></div>
+        <div class="block"><h3>Project</h3><p>Status, timeline, scope, assigned team, tasks, blockers, photos, customer updates.</p></div>
+        <div class="block"><h3>Inventory item</h3><p>SKU, serial number where needed, warehouse location, reserved project, installed project, supplier, defect status.</p></div>
+        <div class="block"><h3>Field log</h3><p>Worker, GPS check-in, checkout, task result, materials used, photos, payroll eligibility.</p></div>
+        <div class="block"><h3>Supplier order</h3><p>Vendor, ordered items, quantity, expected date, received quantity, linked projects.</p></div>
+        <div class="block"><h3>AI event</h3><p>Recommendation, warning, summary, draft message, human approval status.</p></div>
+      </div>
+      <div class="slide-number">15 / 22</div>
+      <aside class="notes"><b>Speaker note</b>This slide explains why a custom system matters. AI cannot work well if customer, project, stock, and field data stay disconnected.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>System flow</span></div>
+      <p class="kicker">How work moves</p>
+      <h2>One installation can update inventory, field logs, payroll review, project status, and the customer portal.</h2>
+      <div class="stack tight" style="max-width:1120px;">
+        <div class="line"><div class="num">1</div><p>Project manager reserves devices from available warehouse stock.</p></div>
+        <div class="line"><div class="num">2</div><p>Installer checks in at the customer site through the mobile app.</p></div>
+        <div class="line"><div class="num">3</div><p>Installer logs installed devices, materials used, photos, and blockers.</p></div>
+        <div class="line"><div class="num">4</div><p>Inventory changes from reserved to installed, or returns to warehouse if unused.</p></div>
+        <div class="line"><div class="num">5</div><p>Project status updates internally. The customer portal receives the approved version.</p></div>
+        <div class="line"><div class="num">6</div><p>AI summarizes the day, flags missing proof, and prepares manager review items.</p></div>
+      </div>
+      <div class="slide-number">16 / 22</div>
+      <aside class="notes"><b>Speaker note</b>This is the clearest example of the whole platform working together. One field action should ripple through the right parts of the business.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>Roles</span></div>
+      <p class="kicker">Who uses it</p>
+      <h2>Each role gets a focused view, not the same dashboard for everyone.</h2>
+      <div class="matrix">
+        <div class="matrix-row header"><div>Role</div><div>Needs to see</div><div>Needs to do</div></div>
+        <div class="matrix-row"><div>Owner or manager</div><div>Active projects, risks, stock, payroll queue</div><div>Approve, review, prioritize</div></div>
+        <div class="matrix-row"><div>Warehouse</div><div>Stock, reservations, defects, supplier arrivals</div><div>Receive, release, count, tag</div></div>
+        <div class="matrix-row"><div>Project lead</div><div>Timeline, assigned team, blockers, customer updates</div><div>Plan, assign, update, hand over</div></div>
+        <div class="matrix-row"><div>Field agent</div><div>Today&apos;s site, tasks, materials, proof requirements</div><div>Check in, log work, upload photos</div></div>
+        <div class="matrix-row"><div>Customer</div><div>Approved status, timeline, installed products, photos</div><div>Review progress, ask support, confirm handover</div></div>
+      </div>
+      <div class="slide-number">17 / 22</div>
+      <aside class="notes"><b>Speaker note</b>This helps avoid building one overloaded system. The product should respect each person's actual job.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>Possible build sequence</span></div>
+      <p class="kicker">Scope without dates</p>
+      <h2>We can build this in layers, starting with the cleanest data foundation.</h2>
+      <div class="stack tight" style="max-width:1120px;">
+        <div class="line"><div class="num">1</div><p><strong>Foundation:</strong> users, roles, customers, projects, products, warehouse locations, and basic dashboard.</p></div>
+        <div class="line"><div class="num">2</div><p><strong>Inventory:</strong> stock on hand, reservations, supplier orders, defects, project-linked movement.</p></div>
+        <div class="line"><div class="num">3</div><p><strong>Field app:</strong> GPS check-in, work logs, photos, task completion, payroll review queue.</p></div>
+        <div class="line"><div class="num">4</div><p><strong>Project center:</strong> timelines, assignments, blockers, handover records, internal reporting.</p></div>
+        <div class="line"><div class="num">5</div><p><strong>Customer portal:</strong> approved project status, installed products, photos, support requests.</p></div>
+        <div class="line"><div class="num">6</div><p><strong>AI layer:</strong> inventory agent, project summaries, risk flags, customer drafts, technician assistant.</p></div>
+      </div>
+      <div class="slide-number">18 / 22</div>
+      <aside class="notes"><b>Speaker note</b>No timeline here yet. This is a sequencing slide, not a delivery promise.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>Decisions</span></div>
+      <p class="kicker">What we need to define</p>
+      <h2>The discovery call should answer practical questions before design or development starts.</h2>
+      <div class="grid-2">
+        <div class="block"><h3>Inventory rules</h3><p>What counts as available, reserved, released, installed, defective, returned, or lost?</p></div>
+        <div class="block"><h3>Payroll rules</h3><p>What proof is required before a contractor is eligible for payment?</p></div>
+        <div class="block"><h3>Customer visibility</h3><p>Which updates are safe for customers to see, and which stay internal?</p></div>
+        <div class="block"><h3>Field exceptions</h3><p>What happens when GPS is inaccurate, the site has poor signal, or work happens outside the radius?</p></div>
+        <div class="block"><h3>LifeSmart data</h3><p>Which information can come from LifeSmart tools, and which needs to be entered into SmartOps?</p></div>
+        <div class="block"><h3>AI permissions</h3><p>What can AI draft or recommend, and what always needs human approval?</p></div>
+      </div>
+      <div class="slide-number">19 / 22</div>
+      <aside class="notes"><b>Speaker note</b>This gives the meeting a clear next step. The deck opens the scope, then discovery turns it into requirements.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>Operating principles</span></div>
+      <p class="kicker">Design rules</p>
+      <h2>SmartOps should feel like a reliable operations tool, not a complicated experiment.</h2>
+      <div class="grid-2">
+        <div class="block accent-block"><h3>Human approval for sensitive actions</h3><p>AI can recommend purchases, summarize work, and flag payroll issues. People approve the final action.</p></div>
+        <div class="block"><h3>Use the phone as proof</h3><p>Location, photos, and timestamps become part of the normal work log.</p></div>
+        <div class="block"><h3>Keep customer updates clean</h3><p>Customers see a polished version of the project record, not raw internal operations.</p></div>
+        <div class="block green-block"><h3>Start with inventory quality</h3><p>Good inventory data improves scheduling, purchasing, field work, and AI recommendations.</p></div>
+      </div>
+      <div class="slide-number">20 / 22</div>
+      <aside class="notes"><b>Speaker note</b>This slide prevents the AI discussion from becoming too abstract. It states the product philosophy.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>Business impact</span></div>
+      <p class="kicker">Expected outcomes</p>
+      <h2>If built well, SmartOps gives the owners cleaner control over the business.</h2>
+      <div class="grid-2">
+        <div class="block"><h3>Less manual follow-up</h3><p>Managers can check the system instead of asking several people for status.</p></div>
+        <div class="block"><h3>Better stock discipline</h3><p>Inventory movement is tied to projects, field logs, suppliers, and defects.</p></div>
+        <div class="block"><h3>Cleaner contractor payment review</h3><p>Payroll decisions can use GPS check-in, checkout, completed tasks, and proof photos.</p></div>
+        <div class="block"><h3>More professional customer experience</h3><p>Customers can see progress and installed products without waiting for a manual reply.</p></div>
+        <div class="block"><h3>Earlier warning signs</h3><p>AI can flag missing stock, supplier delays, blocked tasks, and incomplete proof.</p></div>
+        <div class="block"><h3>A stronger base for growth</h3><p>More projects can move through the company without relying only on memory and chat threads.</p></div>
+      </div>
+      <div class="slide-number">21 / 22</div>
+      <aside class="notes"><b>Speaker note</b>No ROI numbers yet. Keep the impact qualitative until the discovery call gives enough data for estimates.</aside>
+    </section>
+
+    <section class="slide">
+      <div class="brandline"><div class="logo-mark">FU</div><span>Next step</span></div>
+      <p class="kicker">Discovery</p>
+      <h2>The next step is to map the real workflow before committing to the build.</h2>
+      <div class="two-col">
+        <div>
+          <p class="quote">Start with the inventory system. Let the AI agent grow from clean operations data.</p>
+        </div>
+        <div class="stack">
+          <div class="block"><h3>1. Workflow mapping</h3><p>Trace one project from inquiry to install to handover to support.</p></div>
+          <div class="block"><h3>2. Inventory audit</h3><p>List products, SKUs, warehouse process, supplier order flow, and defect handling.</p></div>
+          <div class="block"><h3>3. Field work rules</h3><p>Define check-in logic, proof requirements, exceptions, and payroll review.</p></div>
+          <div class="block"><h3>4. AI scope</h3><p>Choose which AI features are useful now and which should wait.</p></div>
+        </div>
+      </div>
+      <div class="slide-number">22 / 22</div>
+      <aside class="notes"><b>Speaker note</b>Close by asking for a discovery session, not an immediate full build commitment.</aside>
+    </section>
+  </main>
+
+  <nav class="nav" aria-label="Presentation controls">
+    <button type="button" id="prev">Prev</button>
+    <span id="count">1 / 22</span>
+    <button type="button" id="next">Next</button>
+    <button type="button" id="notes">Notes</button>
+  </nav>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const count = document.getElementById('count');
+    const deck = document.getElementById('deck');
+    let current = 0;
+
+    function show(index) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, i) => slide.classList.toggle('active', i === current));
+      count.textContent = `${current + 1} / ${slides.length}`;
+      window.location.hash = `slide-${current + 1}`;
+    }
+
+    document.getElementById('prev').addEventListener('click', () => show(current - 1));
+    document.getElementById('next').addEventListener('click', () => show(current + 1));
+    document.getElementById('notes').addEventListener('click', () => deck.classList.toggle('show-notes'));
+
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowRight' || event.key === 'PageDown' || event.key === ' ') show(current + 1);
+      if (event.key === 'ArrowLeft' || event.key === 'PageUp') show(current - 1);
+      if (event.key.toLowerCase() === 'n') deck.classList.toggle('show-notes');
+      if (event.key === 'Home') show(0);
+      if (event.key === 'End') show(slides.length - 1);
+    });
+
+    const match = window.location.hash.match(/slide-(\d+)/);
+    if (match) show(Number(match[1]) - 1);
+  </script>
+</body>
+</html>
