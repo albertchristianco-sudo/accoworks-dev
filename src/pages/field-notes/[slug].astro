@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import LikeButton from '../../components/LikeButton.astro';
 import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
@@ -22,6 +23,7 @@ const { Content } = await render(note);
     <div class="prose">
       <Content />
     </div>
+    <LikeButton slug={note.id.replace(/\.mdx?$/, '')} />
     <aside class="author-card" aria-label="About Ac">
       <img src="/ac-author-crossfit.jpg" alt="Ac at a CrossFit event" loading="lazy" />
       <div>
