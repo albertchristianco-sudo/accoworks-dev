@@ -160,6 +160,36 @@ img {
   line-height: 0.82;
 }
 
+.gradient-text {
+  background-image: linear-gradient(
+    90deg,
+    #4A5B6E,
+    #2F80ED,
+    #56CCF2,
+    #2F80ED,
+    #4A5B6E
+  );
+  background-size: 300% 100%;
+  background-position: 0% 50%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: gradient-pan 6s linear infinite;
+}
+
+@keyframes gradient-pan {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gradient-text {
+    animation: none;
+    background-position: 50% 50%;
+  }
+}
+
 .gooey-text {
   position: relative;
   display: block;
