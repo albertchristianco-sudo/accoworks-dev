@@ -50,66 +50,55 @@ const id = `gooey-${Math.random().toString(36).slice(2)}`;
       return;
     }
 
-    let index = 0;
-    let morph = 0;
-    let cooldown = 2.15;
-    let lastTime = performance.now();
-    const morphTime = 1.35;
-    const cooldownTime = 2.15;
-    const maxBlur = 1.6;
+    const holdTime = 2.4;
+    const morphTime = 1.2;
+    const cycleTime = holdTime + morphTime;
+    const maxBlur = 1.25;
+    const startedAt = performance.now();
+    let lastIndex = -1;
 
-    const setMorph = (fraction: number) => {
-      const progress = Math.min(Math.max(fraction, 0), 1);
-      const inverse = 1 - progress;
-      const eased = progress * progress * (3 - 2 * progress);
-      const outProgress = Math.min(eased / 0.46, 1);
-      const inProgress = Math.max((eased - 0.54) / 0.46, 0);
-
-      wordB.style.filter = `blur(${Math.max(inverse - 0.18, 0) * maxBlur}px)`;
-      wordB.style.opacity = `${Math.pow(inProgress, 0.7) * 100}%`;
-
-      wordA.style.filter = `blur(${Math.max(progress - 0.18, 0) * maxBlur}px)`;
-      wordA.style.opacity = `${Math.pow(1 - outProgress, 0.7) * 100}%`;
+    const renderHold = (index: number) => {
+      wordA.textContent = texts[index];
+      wordB.textContent = texts[(index + 1) % texts.length];
+      wordA.style.filter = 'none';
+      wordA.style.opacity = '100%';
+      wordB.style.filter = `blur(${maxBlur}px)`;
+      wordB.style.opacity = '0%';
     };
 
-    const setCooldown = () => {
-      morph = 0;
-      wordB.style.filter = '';
-      wordB.style.opacity = '100%';
-      wordA.style.filter = '';
-      wordA.style.opacity = '0%';
+    const renderMorph = (index: number, fraction: number) => {
+      const progress = Math.min(Math.max(fraction, 0), 1);
+      const eased = progress * progress * (3 - 2 * progress);
+      const currentOpacity = 1 - eased;
+      const nextOpacity = eased;
+
+      wordA.textContent = texts[index];
+      wordB.textContent = texts[(index + 1) % texts.length];
+      wordA.style.filter = `blur(${progress * maxBlur}px)`;
+      wordA.style.opacity = `${currentOpacity * 100}%`;
+      wordB.style.filter = `blur(${(1 - progress) * maxBlur}px)`;
+      wordB.style.opacity = `${nextOpacity * 100}%`;
     };
 
     const animate = (time: number) => {
-      const delta = (time - lastTime) / 1000;
-      lastTime = time;
-      cooldown -= delta;
+      const elapsed = (time - startedAt) / 1000;
+      const cycleIndex = Math.floor(elapsed / cycleTime);
+      const index = cycleIndex % texts.length;
+      const phase = elapsed - cycleIndex * cycleTime;
 
-      if (cooldown <= 0) {
-        morph -= cooldown;
-        cooldown = 0;
-        const fraction = morph / morphTime;
-
-        if (fraction >= 1) {
-          cooldown = cooldownTime;
-          morph = 0;
-          index = (index + 1) % texts.length;
-          wordA.textContent = texts[index % texts.length];
-          wordB.textContent = texts[(index + 1) % texts.length];
-          setCooldown();
-        } else {
-          setMorph(fraction);
+      if (phase < holdTime) {
+        if (index !== lastIndex) {
+          renderHold(index);
+          lastIndex = index;
         }
       } else {
-        setCooldown();
+        renderMorph(index, (phase - holdTime) / morphTime);
       }
 
       requestAnimationFrame(animate);
     };
 
-    wordA.textContent = texts[index];
-    wordB.textContent = texts[(index + 1) % texts.length];
-    setCooldown();
+    renderHold(0);
     requestAnimationFrame(animate);
   });
 </script>
