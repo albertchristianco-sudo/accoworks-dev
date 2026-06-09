@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import GooeyTextMorph from '../components/GooeyTextMorph.astro';
+import TypewriterText from '../components/TypewriterText.astro';
 import { getCollection } from 'astro:content';
 
 const notes = (await getCollection('field-notes'))
@@ -32,7 +33,7 @@ const notes = (await getCollection('field-notes'))
     <div class="section-header">
       <h2 id="notes-heading" class="section-title">// field notes</h2>
       <div>
-        <p class="section-lede">Notes from training, building, and operating in the real world.</p>
+        <TypewriterText class="section-lede" text="Read my notes from training, building, and operating in the real world." />
         <a class="cta-link" href="/field-notes/">Read the field notes</a>
       </div>
     </div>
