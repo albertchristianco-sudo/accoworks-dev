@@ -11,17 +11,17 @@ const id = `gooey-${Math.random().toString(36).slice(2)}`;
 
 <span class={`gooey-text ${className}`} data-gooey-text data-texts={JSON.stringify(safeTexts)} aria-label={safeTexts.join(' ')}>
   <span class="gooey-text__fallback" aria-hidden="true">{safeTexts.join(' ')}</span>
-  <span class="gooey-text__stage" aria-hidden="true" style={`filter: url(#${id}) blur(0.35px);`}>
+  <span class="gooey-text__stage" aria-hidden="true" style={`filter: url(#${id});`}>
     <span class="gooey-text__word gooey-text__word--a">{safeTexts[0]}</span>
     <span class="gooey-text__word gooey-text__word--b">{safeTexts[1] ?? safeTexts[0]}</span>
   </span>
   <svg class="gooey-text__filter" aria-hidden="true" focusable="false">
     <filter id={id}>
-      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="blur" />
       <feColorMatrix
         in="blur"
         mode="matrix"
-        values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -8"
+        values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 12 -4"
         result="gooey"
       />
       <feComposite in="SourceGraphic" in2="gooey" operator="atop" />
@@ -52,20 +52,24 @@ const id = `gooey-${Math.random().toString(36).slice(2)}`;
 
     let index = 0;
     let morph = 0;
-    let cooldown = 0.74;
+    let cooldown = 2.15;
     let lastTime = performance.now();
-    const morphTime = 1.08;
-    const cooldownTime = 0.62;
+    const morphTime = 1.35;
+    const cooldownTime = 2.15;
+    const maxBlur = 1.6;
 
     const setMorph = (fraction: number) => {
       const progress = Math.min(Math.max(fraction, 0), 1);
       const inverse = 1 - progress;
+      const eased = progress * progress * (3 - 2 * progress);
+      const outProgress = Math.min(eased / 0.46, 1);
+      const inProgress = Math.max((eased - 0.54) / 0.46, 0);
 
-      wordB.style.filter = `blur(${Math.min(8 / Math.max(progress, 0.02) - 8, 100)}px)`;
-      wordB.style.opacity = `${Math.pow(progress, 0.42) * 100}%`;
+      wordB.style.filter = `blur(${Math.max(inverse - 0.18, 0) * maxBlur}px)`;
+      wordB.style.opacity = `${Math.pow(inProgress, 0.7) * 100}%`;
 
-      wordA.style.filter = `blur(${Math.min(8 / Math.max(inverse, 0.02) - 8, 100)}px)`;
-      wordA.style.opacity = `${Math.pow(inverse, 0.42) * 100}%`;
+      wordA.style.filter = `blur(${Math.max(progress - 0.18, 0) * maxBlur}px)`;
+      wordA.style.opacity = `${Math.pow(1 - outProgress, 0.7) * 100}%`;
     };
 
     const setCooldown = () => {
