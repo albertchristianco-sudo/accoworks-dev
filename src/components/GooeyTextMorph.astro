@@ -1,0 +1,111 @@
+---
+interface Props {
+  texts: string[];
+  className?: string;
+}
+
+const { texts, className = '' } = Astro.props;
+const safeTexts = texts.length > 0 ? texts : ['FOUNDER.', 'BUILDER.', 'COACH.'];
+const id = `gooey-${Math.random().toString(36).slice(2)}`;
+---
+
+<span class={`gooey-text ${className}`} data-gooey-text data-texts={JSON.stringify(safeTexts)} aria-label={safeTexts.join(' ')}>
+  <span class="gooey-text__fallback" aria-hidden="true">{safeTexts.join(' ')}</span>
+  <span class="gooey-text__stage" aria-hidden="true" style={`filter: url(#${id}) blur(0.35px);`}>
+    <span class="gooey-text__word gooey-text__word--a">{safeTexts[0]}</span>
+    <span class="gooey-text__word gooey-text__word--b">{safeTexts[1] ?? safeTexts[0]}</span>
+  </span>
+  <svg class="gooey-text__filter" aria-hidden="true" focusable="false">
+    <filter id={id}>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
+      <feColorMatrix
+        in="blur"
+        mode="matrix"
+        values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -8"
+        result="gooey"
+      />
+      <feComposite in="SourceGraphic" in2="gooey" operator="atop" />
+    </filter>
+  </svg>
+</span>
+
+<script>
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  document.querySelectorAll<HTMLElement>('[data-gooey-text]').forEach((root) => {
+    const texts = JSON.parse(root.getAttribute('data-texts') || '[]') as string[];
+    const fallback = root.querySelector<HTMLElement>('.gooey-text__fallback');
+    const wordA = root.querySelector<HTMLElement>('.gooey-text__word--a');
+    const wordB = root.querySelector<HTMLElement>('.gooey-text__word--b');
+
+    if (!wordA || !wordB || texts.length < 2) return;
+
+    if (fallback) fallback.setAttribute('hidden', '');
+
+    if (reduceMotion) {
+      wordA.textContent = texts.join(' ');
+      wordA.style.opacity = '1';
+      wordA.style.filter = 'none';
+      wordB.style.opacity = '0';
+      return;
+    }
+
+    let index = 0;
+    let morph = 0;
+    let cooldown = 0.74;
+    let lastTime = performance.now();
+    const morphTime = 1.08;
+    const cooldownTime = 0.62;
+
+    const setMorph = (fraction: number) => {
+      const progress = Math.min(Math.max(fraction, 0), 1);
+      const inverse = 1 - progress;
+
+      wordB.style.filter = `blur(${Math.min(8 / Math.max(progress, 0.02) - 8, 100)}px)`;
+      wordB.style.opacity = `${Math.pow(progress, 0.42) * 100}%`;
+
+      wordA.style.filter = `blur(${Math.min(8 / Math.max(inverse, 0.02) - 8, 100)}px)`;
+      wordA.style.opacity = `${Math.pow(inverse, 0.42) * 100}%`;
+    };
+
+    const setCooldown = () => {
+      morph = 0;
+      wordB.style.filter = '';
+      wordB.style.opacity = '100%';
+      wordA.style.filter = '';
+      wordA.style.opacity = '0%';
+    };
+
+    const animate = (time: number) => {
+      const delta = (time - lastTime) / 1000;
+      lastTime = time;
+      cooldown -= delta;
+
+      if (cooldown <= 0) {
+        morph -= cooldown;
+        cooldown = 0;
+        const fraction = morph / morphTime;
+
+        if (fraction >= 1) {
+          cooldown = cooldownTime;
+          morph = 0;
+          index = (index + 1) % texts.length;
+          wordA.textContent = texts[index % texts.length];
+          wordB.textContent = texts[(index + 1) % texts.length];
+          setCooldown();
+        } else {
+          setMorph(fraction);
+        }
+      } else {
+        setCooldown();
+      }
+
+      requestAnimationFrame(animate);
+    };
+
+    wordA.textContent = texts[index];
+    wordB.textContent = texts[(index + 1) % texts.length];
+    setCooldown();
+    requestAnimationFrame(animate);
+  });
+</script>

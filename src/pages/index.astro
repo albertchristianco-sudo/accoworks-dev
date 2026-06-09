@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import GooeyTextMorph from '../components/GooeyTextMorph.astro';
 import { getCollection } from 'astro:content';
 
 const notes = (await getCollection('field-notes'))
@@ -12,7 +13,7 @@ const notes = (await getCollection('field-notes'))
   <section class="hero" aria-label="Intro">
     <div>
       <p class="kicker">Cebu City, Philippines</p>
-      <h1>Founder. Builder. Coach.</h1>
+      <h1><GooeyTextMorph texts={["FOUNDER.", "BUILDER.", "COACH."]} /></h1>
       <p class="hero-copy">
         Two gyms in Cebu, a Country Manager role with CrossFit HQ, and a building materials business I run on the side.
         I also build tools when I cannot stop thinking about a problem. Training is the one thing that does not move.

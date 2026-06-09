@@ -160,6 +160,39 @@ img {
   line-height: 0.82;
 }
 
+.gooey-text {
+  position: relative;
+  display: block;
+  min-height: 0.92em;
+  color: var(--ink);
+}
+
+.gooey-text__fallback {
+  display: none;
+}
+
+.gooey-text__stage {
+  position: relative;
+  display: block;
+  min-height: 0.92em;
+  isolation: isolate;
+}
+
+.gooey-text__word {
+  position: absolute;
+  inset: 0 auto auto 0;
+  display: block;
+  white-space: nowrap;
+  will-change: filter, opacity;
+}
+
+.gooey-text__filter {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
 .hero-copy,
 .page-copy,
 .note-summary {
