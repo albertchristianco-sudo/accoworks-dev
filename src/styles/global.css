@@ -157,7 +157,7 @@ img {
   font-size: clamp(4.3rem, 12vw, 10.8rem);
   font-weight: 500;
   letter-spacing: -0.082em;
-  line-height: 0.82;
+  line-height: 0.95;
 }
 
 .gradient-text {
