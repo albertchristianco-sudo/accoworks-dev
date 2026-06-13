@@ -51,6 +51,20 @@ landing-page --branch main`. So:
 - Logo (`/logo.svg`) is theme-tinted via CSS mask (`.brand-logo`), not an
   `<img>`. Do not revert it to `<img>` or it goes black on dark.
 
+## Dependencies / npm audit
+
+`npm install` reports ~10 audit findings (5 high from `esbuild`/`vite` via the
+Astro/Vite build chain; 5 moderate from `yaml` via `@astrojs/check`). **All are
+build/dev-time only** and do not ship. This is a static site with no Node
+runtime in production, so none of these packages run for visitors.
+
+- **Do NOT run `npm audit fix --force`.** The only fix it offers is a major
+  downgrade (`astro` toward 2.x, `@astrojs/check` downgrade) that breaks the
+  build. Uther correctly refused it on 2026-06-13.
+- Leave them. They clear via a routine `npm update` once upstream ships
+  patched ranges. Re-check with `npm audit` occasionally; don't chase the
+  count.
+
 ## Conventions
 
 - Build: `npm run build`. Type/template check: `npx astro check`.
