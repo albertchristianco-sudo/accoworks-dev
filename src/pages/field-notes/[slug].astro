@@ -13,24 +13,31 @@ export async function getStaticPaths() {
 
 const { note } = Astro.props;
 const { Content } = await render(note);
+const slug = note.id.replace(/\.mdx?$/, '');
 ---
 
-<BaseLayout title={`${note.data.title} | Field Notes`} description={note.data.summary}>
-  <article class="note-article">
+<BaseLayout title={`${note.data.title} | Field Notes`} description={note.data.summary} ogType="article">
+  <article class="note-article reveal">
     <p class="kicker">{note.data.label} · {note.data.date.toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
     <h1>{note.data.title}</h1>
     <p class="note-summary">{note.data.summary}</p>
     <div class="prose">
       <Content />
     </div>
-    <LikeButton slug={note.id.replace(/\.mdx?$/, '')} />
+
+    <LikeButton slug={slug} />
+
     <aside class="author-card" aria-label="About Ac">
-      <img src="/ac-author-crossfit.jpg" alt="Ac at a CrossFit event" loading="lazy" />
+      <img src="/ac-author-crossfit.jpg" alt="Ac at a CrossFit event" loading="lazy" width="72" height="72" />
       <div>
         <p class="author-card__eyebrow">About Ac</p>
         <p class="author-card__copy">Ac is a CrossFit Level 3 Trainer, owner of CrossFit Subtero in Cebu City, and CrossFit Philippines Country Manager. He writes Field Notes on training, building, and operating from the ground floor of coaching, business, and real work.</p>
       </div>
     </aside>
-    <a class="cta-link" href="/field-notes/">Back to Field Notes</a>
+
+    <a class="cta-link" href="/field-notes/">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+      Back to Field Notes
+    </a>
   </article>
 </BaseLayout>

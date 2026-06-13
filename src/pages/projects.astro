@@ -1,0 +1,125 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+type Project = {
+  name: string;
+  tag: string;
+  desc: string;
+  stack?: string;
+  link?: { href: string; label: string };
+};
+
+const projects: Project[] = [
+  {
+    name: 'accoworks.dev',
+    tag: 'Open source',
+    desc: 'This site. Static-first personal site with a dark/light system and a few React islands. Zero JS shipped where it is not needed.',
+    stack: 'Astro · React · Cloudflare Pages',
+    link: { href: 'https://github.com/albertchristianco-sudo/accoworks-dev', label: 'View source' },
+  },
+  {
+    name: 'Cortex Orchestrator',
+    tag: 'Lab',
+    desc: 'An orchestration layer for running and coordinating coding agents across parallel lanes, with shared context and guardrails.',
+    stack: 'Agents · TypeScript',
+  },
+  {
+    name: 'Life Dashboard',
+    tag: 'Lab',
+    desc: 'A personal operations dashboard that pulls training, business, and the day-to-day into one honest view.',
+    stack: 'Web · automation',
+  },
+  {
+    name: 'Claude Statusbar',
+    tag: 'Tool',
+    desc: 'A status line for agent coding sessions. Small quality-of-life tooling for the way I actually work.',
+    stack: 'CLI · TypeScript',
+  },
+  {
+    name: 'Flame & Finish systems',
+    tag: 'Internal',
+    desc: 'Inventory, ordering, and reporting for the building materials business, plus a custom catalogue theme for the storefront.',
+    stack: 'WordPress · Python · accounting sync',
+  },
+  {
+    name: 'Gym programming automation',
+    tag: 'Internal',
+    desc: 'Tools that draft and push CrossFit and Hyrox programming into coaching platforms, so the writing stays human and the entry stays fast.',
+    stack: 'APIs · scripting',
+  },
+];
+---
+
+<BaseLayout
+  title="Projects | accoworks.dev"
+  description="The workbench: ventures, internal systems, and small tools Ac builds across coaching, business, and software."
+>
+  <section class="page-intro grid-hero reveal">
+    <div class="grid-backdrop" aria-hidden="true">
+      <div class="grid-layer grid-layer--base"></div>
+      <div class="grid-layer grid-layer--spot"></div>
+      <div class="grid-blobs"></div>
+    </div>
+    <p class="kicker">accoworks lab</p>
+    <h1 class="page-title">The workbench.</h1>
+    <p class="page-copy">
+      Some of this ships to customers. Some of it only ever runs for me. All of it exists because a problem would not
+      leave my head. A running list of ventures, internal systems, and small tools.
+    </p>
+  </section>
+
+  <section class="section" aria-label="Projects">
+    <ol class="card-grid reveal-stagger">
+      {projects.map((p) => (
+        <li class={`card${p.link ? ' card--link' : ''}`}>
+          <div class="card__top">
+            <span class="tag tag--accent">{p.tag}</span>
+            {p.stack && <span class="card__index">{p.stack}</span>}
+          </div>
+          <h2 class="card__title">
+            {p.link ? <a class="card__title" href={p.link.href} target="_blank" rel="noopener">{p.name}</a> : p.name}
+          </h2>
+          <p class="card__desc">{p.desc}</p>
+          {p.link && (
+            <p class="card__meta">
+              <a class="cta-link" href={p.link.href} target="_blank" rel="noopener">
+                {p.link.label}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+              </a>
+            </p>
+          )}
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="section" aria-labelledby="lab-cta">
+    <div class="panel reveal">
+      <div>
+        <p class="section-eyebrow"><span class="hash">//</span> collaborate</p>
+        <h2 id="lab-cta">Building something adjacent?</h2>
+        <p>Gym software, trade operations, or agent tooling. If it is in my lane and the problem is interesting, I am listening.</p>
+      </div>
+      <a class="btn btn--primary" href="mailto:ac@accoworks.dev?subject=Project%20Inquiry">
+        Get in touch
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <script is:inline>
+    (function () {
+      var hero = document.querySelector('.grid-hero');
+      var bg = hero && hero.querySelector('.grid-backdrop');
+      if (!hero || !bg) return;
+      var raf = null, mx = 0, my = 0;
+      function apply() { raf = null; bg.style.setProperty('--mx', mx + 'px'); bg.style.setProperty('--my', my + 'px'); }
+      hero.addEventListener('pointermove', function (e) {
+        var r = bg.getBoundingClientRect();
+        mx = e.clientX - r.left;
+        my = e.clientY - r.top;
+        if (!raf) raf = requestAnimationFrame(apply);
+      });
+    })();
+  </script>
+</BaseLayout>

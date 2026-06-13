@@ -1,52 +1,78 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import GooeyTextMorph from '../components/GooeyTextMorph.astro';
-import TypewriterText from '../components/TypewriterText.astro';
+import Sparkles from '../components/Sparkles.tsx';
 import { getCollection } from 'astro:content';
 
 const notes = (await getCollection('field-notes'))
   .filter((note) => !note.data.draft)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
+
+const ventures = [
+  { n: '01', title: 'CrossFit Subtero', tag: 'Gym', desc: 'Two boxes in Cebu City: Subtero HQ and Underground. Building athletes and community.' },
+  { n: '02', title: 'CrossFit Philippines', tag: 'National', desc: 'Country Manager for CrossFit HQ in the Philippines. Growing the affiliate network across the archipelago.' },
+  { n: '03', title: 'Flame & Finish', tag: 'Trade', desc: 'Premium imported building materials for the Philippine market. SPC flooring and WPC wall panels.' },
+  { n: '04', title: 'accoworks lab', tag: 'Lab', desc: 'Side projects, agents, and small tools. Always something on the workbench.' },
+];
+
+const life = [
+  { n: 'Fam', title: 'Family man', desc: 'Husband and father. They are the whole point.' },
+  { n: 'D20', title: 'Dungeons & Dragons', desc: 'Long arcs, party dynamics, and the cost of a bad roll.' },
+  { n: 'WoW', title: 'World of Warcraft', desc: 'More hours in Azeroth than most people log at work. No apologies. The lore holds up.' },
+];
 ---
 
-<BaseLayout title="Ac | CrossFit L3 Coach and Builder" description="Founder, builder, coach, and operator in Cebu City, Philippines.">
+<BaseLayout title="Ac | CrossFit L3 Coach and Builder" description="Founder, builder, coach, and operator in Cebu City, Philippines. Two CrossFit boxes, Country Manager for CrossFit Philippines, a building materials business, and a workbench of tools.">
   <section class="hero" aria-label="Intro">
-    <div>
+    <div class="hero-sparkles" aria-hidden="true">
+      <Sparkles client:idle className="sparkles-fill" particleColor="#93B4FF" particleDensity={180} minSize={0.5} maxSize={1.5} speed={1.6} />
+    </div>
+    <div class="hero-main reveal">
       <p class="kicker">Cebu City, Philippines</p>
-      <h1><GooeyTextMorph texts={["FOUNDER.", "BUILDER.", "COACH."]} /></h1>
+      <h1>Founder. Builder. <span class="accent">Coach.</span></h1>
       <p class="hero-copy">
         Two gyms in Cebu, a Country Manager role with CrossFit HQ, and a building materials business I run on the side.
         I also build tools when I cannot stop thinking about a problem. Training is the one thing that does not move.
         Family is the reason any of this matters.
       </p>
+      <div class="hero-actions">
+        <a class="btn btn--primary" href="/projects/">
+          See the work
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <a class="btn btn--ghost" href="mailto:ac@accoworks.dev?subject=Coaching%20Inquiry">Work with me</a>
+      </div>
     </div>
-    <aside>
-      <p class="command-line">$ whoami — Ac · accoworks.dev</p>
+    <aside class="hero-aside reveal">
+      <p class="command-line"><span class="dot"></span>$ whoami — Ac · accoworks.dev</p>
       <figure class="portrait-frame">
-        <img src="/photo.jpg" alt="Ac at a Hyrox competition" width="799" height="1060" />
+        <img src="/photo.jpg" alt="Ac at a Hyrox competition" width="799" height="1060" loading="eager" />
+        <figcaption class="portrait-cap">// Hyrox · Cebu</figcaption>
       </figure>
     </aside>
   </section>
 
   <section class="section" aria-labelledby="notes-heading">
-    <div class="section-header">
-      <h2 id="notes-heading" class="section-title">// field notes</h2>
+    <div class="section-head reveal">
+      <p class="section-eyebrow"><span class="hash">//</span> field notes</p>
       <div>
-        <TypewriterText class="section-lede" text="Read my notes from training, building, and operating in the real world." />
-        <a class="cta-link" href="/field-notes/">Read the field notes</a>
+        <h2 id="notes-heading" class="section-lede">Notes from training, building, and operating in the real world.</h2>
+        <a class="cta-link" href="/field-notes/">
+          Read the field notes
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
       </div>
     </div>
     {notes.length > 0 && (
-      <ol class="note-list">
+      <ol class="note-list reveal-stagger">
         {notes.map((note) => (
           <li class="note-item">
             <span class="note-date">{note.data.date.toLocaleDateString('en', { month: 'short', day: 'numeric' })}</span>
             <div>
-              <h2><a href={`/field-notes/${note.id.replace(/\.mdx?$/, '')}/`}>{note.data.title}</a></h2>
+              <h3 class="note-title"><a href={`/field-notes/${note.id.replace(/\.mdx?$/, '')}/`}>{note.data.title}</a></h3>
               <p>{note.data.summary}</p>
             </div>
-            <span class="note-label">{note.data.label}</span>
+            <span class="tag">{note.data.label}</span>
           </li>
         ))}
       </ol>
@@ -54,52 +80,30 @@ const notes = (await getCollection('field-notes'))
   </section>
 
   <section class="section" aria-labelledby="build-heading">
-    <div class="section-header">
-      <h2 id="build-heading" class="section-title">// what I build</h2>
-      <p class="section-lede">Work that sits between coaching, business, and tools that make real operations cleaner.</p>
+    <div class="section-head reveal">
+      <p class="section-eyebrow"><span class="hash">//</span> what I build</p>
+      <h2 id="build-heading" class="section-lede">Work that sits between coaching, business, and tools that make real operations cleaner.</h2>
     </div>
-    <ol class="build-list">
-      <li class="build-item">
-        <span class="index-number">01</span>
-        <div>
-          <h3>CrossFit Subtero</h3>
-          <p>Two boxes in Cebu City: Subtero HQ and Underground. Building athletes and community.</p>
-        </div>
-        <span class="note-label">Gym</span>
-      </li>
-      <li class="build-item">
-        <span class="index-number">02</span>
-        <div>
-          <h3>CrossFit Philippines</h3>
-          <p>Country Manager for CrossFit HQ in the Philippines. Growing the affiliate network across the archipelago.</p>
-        </div>
-        <span class="note-label">National</span>
-      </li>
-      <li class="build-item">
-        <span class="index-number">03</span>
-        <div>
-          <h3>Flame and Finish Marketing Corp</h3>
-          <p>Premium imported building materials for the Philippine market.</p>
-        </div>
-        <span class="note-label">Trade</span>
-      </li>
-      <li class="build-item">
-        <span class="index-number">04</span>
-        <div>
-          <h3>accoworks lab</h3>
-          <p>Side projects, agents, and small tools. Always something on the workbench.</p>
-        </div>
-        <span class="note-label">Lab</span>
-      </li>
+    <ol class="card-grid reveal-stagger">
+      {ventures.map((v) => (
+        <li class="card">
+          <div class="card__top">
+            <span class="card__index">{v.n}</span>
+            <span class="tag tag--accent">{v.tag}</span>
+          </div>
+          <h3 class="card__title">{v.title}</h3>
+          <p class="card__desc">{v.desc}</p>
+        </li>
+      ))}
     </ol>
   </section>
 
   <section class="section" aria-labelledby="gym-heading">
-    <div class="section-header">
-      <h2 id="gym-heading" class="section-title">// in the gym</h2>
+    <div class="section-head reveal">
+      <p class="section-eyebrow"><span class="hash">//</span> in the gym</p>
       <div>
-        <p class="section-lede">Training is how I stay honest. Coaching is how I learned to see people clearly.</p>
-        <p class="hero-copy">
+        <h2 id="gym-heading" class="section-lede">Training is how I stay honest. Coaching is how I learned to see people clearly.</h2>
+        <p class="section-sub">
           CrossFit is the sport. Over a decade coaching, L3 certified. I also race Hyrox, not obsessively, just enough
           to test myself outside the gym. I want to be moving well at 60, keep up with my son, carry things, and not fall
           apart on the stuff that actually matters.
@@ -115,42 +119,34 @@ const notes = (await getCollection('field-notes'))
   </section>
 
   <section class="section" aria-labelledby="life-heading">
-    <div class="section-header">
-      <h2 id="life-heading" class="section-title">// off the clock</h2>
-      <p class="section-lede">Family first. Then dice, Azeroth, and whatever problem refuses to leave my head.</p>
+    <div class="section-head reveal">
+      <p class="section-eyebrow"><span class="hash">//</span> off the clock</p>
+      <h2 id="life-heading" class="section-lede">Family first. Then dice, Azeroth, and whatever problem refuses to leave my head.</h2>
     </div>
-    <ul class="life-list">
-      <li class="life-item">
-        <span class="index-number">Fam</span>
-        <div>
-          <h3>Family man</h3>
-          <p>Husband and father. They are the whole point.</p>
-        </div>
-      </li>
-      <li class="life-item">
-        <span class="index-number">D20</span>
-        <div>
-          <h3>Dungeons and Dragons</h3>
-          <p>Long arcs, party dynamics, and the cost of a bad roll.</p>
-        </div>
-      </li>
-      <li class="life-item">
-        <span class="index-number">WoW</span>
-        <div>
-          <h3>World of Warcraft</h3>
-          <p>More hours in Azeroth than most people log at work. No apologies. The lore holds up.</p>
-        </div>
-      </li>
+    <ul class="card-grid card-grid--3 reveal-stagger">
+      {life.map((item) => (
+        <li class="card">
+          <div class="card__top">
+            <span class="card__index">{item.n}</span>
+          </div>
+          <h3 class="card__title">{item.title}</h3>
+          <p class="card__desc">{item.desc}</p>
+        </li>
+      ))}
     </ul>
   </section>
 
   <section class="section" aria-labelledby="coaching-heading">
-    <div class="section-header">
-      <h2 id="coaching-heading" class="section-title">// coaching</h2>
+    <div class="panel reveal">
       <div>
-        <p class="section-lede">If you need direction in training, I can help you start, compete, or rebuild.</p>
-        <a class="cta-link" href="mailto:ac@accoworks.dev?subject=Coaching%20Inquiry">Work with me</a>
+        <p class="section-eyebrow"><span class="hash">//</span> coaching</p>
+        <h2 id="coaching-heading">Need direction in training?</h2>
+        <p>I can help you start, compete, or rebuild. Tell me what you are training for and where you are stuck.</p>
       </div>
+      <a class="btn btn--primary" href="mailto:ac@accoworks.dev?subject=Coaching%20Inquiry">
+        Work with me
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
     </div>
   </section>
 </BaseLayout>

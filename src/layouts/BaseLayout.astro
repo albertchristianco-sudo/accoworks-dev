@@ -1,48 +1,153 @@
 ---
 import '../styles/global.css';
+import ThemeToggle from '../components/ThemeToggle.tsx';
 
 interface Props {
   title?: string;
   description?: string;
+  image?: string;
+  ogType?: string;
 }
 
 const {
   title = 'Ac | Founder. Builder. Coach.',
-  description = 'Ac is a founder, builder, coach, and operator in Cebu City, Philippines.',
+  description = 'Ac is a founder, builder, coach, and operator in Cebu City, Philippines. Two CrossFit boxes, Country Manager for CrossFit Philippines, a building materials business, and a workbench of tools.',
+  image = '/og.png',
+  ogType = 'website',
 } = Astro.props;
+
+const site = Astro.site ?? new URL('https://accoworks.dev');
+const canonical = new URL(Astro.url.pathname, site).href;
+const ogImage = new URL(image, site).href;
+const path = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === '/' ? path === '/' : path.startsWith(href);
+const year = new Date().getFullYear();
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <!-- No-flash theme: runs before paint -->
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var prefersLight =
+            window.matchMedia &&
+            window.matchMedia('(prefers-color-scheme: light)').matches;
+          var theme = stored || (prefersLight ? 'light' : 'dark');
+          document.documentElement.dataset.theme = theme;
+        } catch (e) {
+          document.documentElement.dataset.theme = 'dark';
+        }
+      })();
+    </script>
+
+    <meta name="theme-color" content="#070A10" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="accoworks.dev" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/icon-180.png" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&display=swap" rel="stylesheet" />
-    <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div class="site-shell">
       <header class="site-header" aria-label="Site header">
-        <a class="brand-mark" href="/" aria-label="Accoworks home">
-          <img src="/logo.svg" alt="accoworks" width="260" height="51" />
+        <a class="brand-mark" href="/" aria-label="accoworks home">
+          <span class="brand-logo" role="img" aria-label="accoworks"></span>
         </a>
-        <nav class="site-nav" aria-label="Primary navigation">
-          <a href="/field-notes/">Field Notes</a>
-          <a href="mailto:ac@accoworks.dev">Email</a>
-        </nav>
+        <div class="nav-cluster">
+          <nav class="site-nav" aria-label="Primary navigation">
+            <a class="nav-link" href="/" aria-current={isActive('/') ? 'page' : undefined}>Home</a>
+            <a class="nav-link" href="/projects/" aria-current={isActive('/projects') ? 'page' : undefined}>Projects</a>
+            <a class="nav-link" href="/field-notes/" aria-current={isActive('/field-notes') ? 'page' : undefined}>Field Notes</a>
+            <a class="nav-link" href="mailto:ac@accoworks.dev">Email</a>
+          </nav>
+          <ThemeToggle client:load />
+        </div>
       </header>
+
       <main>
         <slot />
       </main>
+
       <footer class="site-footer">
-        <span>Cebu City, Philippines · Training, building, operating.</span>
+        <div class="footer-grid">
+          <span class="footer-meta">Cebu City, Philippines · Training, building, operating.</span>
+          <div class="footer-links">
+            <a href="/projects/">Projects</a>
+            <a href="/field-notes/">Field Notes</a>
+            <a href="https://github.com/albertchristianco-sudo" rel="me noopener" target="_blank">GitHub</a>
+            <a href="mailto:ac@accoworks.dev">ac@accoworks.dev</a>
+          </div>
+          <span class="footer-meta">© {year} accoworks</span>
+        </div>
       </footer>
     </div>
+
+    <!-- Header scroll state + scroll reveal -->
+    <script is:inline>
+      (function () {
+        var header = document.querySelector('.site-header');
+        if (header) {
+          var onScroll = function () {
+            header.setAttribute('data-scrolled', window.scrollY > 8 ? 'true' : 'false');
+          };
+          onScroll();
+          window.addEventListener('scroll', onScroll, { passive: true });
+        }
+
+        var reduce =
+          window.matchMedia &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var targets = document.querySelectorAll('.reveal, .reveal-stagger');
+        if (reduce || !('IntersectionObserver' in window)) {
+          targets.forEach(function (el) { el.classList.add('is-visible'); });
+          return;
+        }
+        var io = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                io.unobserve(entry.target);
+              }
+            });
+          },
+          { rootMargin: '0px 0px -10% 0px', threshold: 0.12 }
+        );
+        targets.forEach(function (el) { io.observe(el); });
+      })();
+    </script>
   </body>
 </html>
