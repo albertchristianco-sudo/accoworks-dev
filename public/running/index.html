@@ -146,6 +146,11 @@
   .seg button[aria-pressed=true][data-k="2"]{background:var(--mid); color:#1a1402}
   .seg button[aria-pressed=true][data-k="3"]{background:var(--bad); color:#fff}
   .hint{font-family:var(--mono); font-size:10.5px; color:var(--ink-3); letter-spacing:.02em; line-height:1.5}
+  .surf{display:grid; grid-template-columns:1fr 1fr; border:1.5px solid var(--ink)}
+  .surf button{background:transparent; border:0; border-right:1.5px solid var(--ink); color:var(--ink-2); padding:11px 0; font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; transition:.12s}
+  .surf button:last-child{border-right:0}
+  .surf button[aria-pressed=true]{background:var(--ink); color:var(--paper)}
+  .conv-hint{display:block; font-family:var(--mono); font-size:10.5px; color:var(--blaze); margin-top:5px; letter-spacing:.02em; min-height:13px}
 
   .rpe-row{display:flex; align-items:center; gap:14px}
   input[type=range]{-webkit-appearance:none; appearance:none; height:3px; background:var(--ink); flex:1; padding:0; border:0}
@@ -358,10 +363,10 @@
   var state = load();
 
   function load(){
-    try{ var raw = localStorage.getItem(KEY); if(raw){ var p=JSON.parse(raw); SESSIONS.forEach(function(x){ if(!p[x.id]) p[x.id]=blank(); }); return p; } }catch(e){}
+    try{ var raw = localStorage.getItem(KEY); if(raw){ var p=JSON.parse(raw); SESSIONS.forEach(function(x){ p[x.id]=Object.assign(blank(), p[x.id]||{}); }); return p; } }catch(e){}
     var s={}; SESSIONS.forEach(function(x){ s[x.id]=blank(); }); return s;
   }
-  function blank(){ return {status:"pending",date:"",speed:"",time:"",dist:"",avghr:"",maxhr:"",knee:null,rpe:5,strava:"",notes:""}; }
+  function blank(){ return {status:"pending",surface:"tread",date:"",speed:"",time:"",dist:"",avghr:"",maxhr:"",knee:null,rpe:5,strava:"",notes:""}; }
   function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} renderProgress(); }
 
   function el(tag, cls, html){ var e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e; }
@@ -390,12 +395,20 @@
     body.appendChild(rx);
 
     var form = el("div","form");
+    var road = d.surface==="road";
     form.innerHTML =
       '<div class="form-h">Log this run</div>'+
+      '<div class="f full" style="margin-bottom:16px"><label>Surface</label>'+
+        '<div class="surf" id="surf_'+cfg.id+'">'+
+          '<button type="button" data-s="tread" aria-pressed="'+(!road)+'">Treadmill</button>'+
+          '<button type="button" data-s="road" aria-pressed="'+road+'">Outdoor</button>'+
+        '</div></div>'+
       '<div class="grid">'+
         fieldDate("date_"+cfg.id,"Date",d.date)+
-        field("speed_"+cfg.id,"km/h","7.5", d.speed)+
-        field("time_"+cfg.id,"Time","mm:ss", d.time)+
+        '<div class="f"><label id="spdlab_'+cfg.id+'">'+(road?"Pace /km":"km/h")+'</label>'+
+          '<input type="text" id="speed_'+cfg.id+'" placeholder="'+(road?"6:00":"7.5")+'" value="'+esc(d.speed)+'" inputmode="'+(road?"text":"decimal")+'">'+
+          '<span class="conv-hint" id="convhint_'+cfg.id+'"></span></div>'+
+        field("time_"+cfg.id,"Time","mm:ss", d.time, "text")+
         field("dist_"+cfg.id,"Dist km","4.0", d.dist)+
         field("avghr_"+cfg.id,"Avg HR","bpm", d.avghr)+
         field("maxhr_"+cfg.id,"Max HR","bpm", d.maxhr)+
@@ -426,6 +439,21 @@
     function bind(name, prop){ var node=document.getElementById(name+"_"+id); if(!node)return; node.addEventListener("input", function(){ d[prop]=node.value; save(); }); }
     bind("date","date"); bind("speed","speed"); bind("time","time"); bind("dist","dist");
     bind("avghr","avghr"); bind("maxhr","maxhr"); bind("strava","strava"); bind("notes","notes");
+
+    document.getElementById("speed_"+id).addEventListener("input", function(){ updHint(id); });
+    var surf=document.getElementById("surf_"+id);
+    surf.querySelectorAll("button").forEach(function(b){
+      b.addEventListener("click", function(){
+        var s=b.getAttribute("data-s"); if(d.surface===s) return;
+        d.surface=s; d.speed="";
+        surf.querySelectorAll("button").forEach(function(x){ x.setAttribute("aria-pressed", x.getAttribute("data-s")===s); });
+        var isRoad=s==="road";
+        var lab=document.getElementById("spdlab_"+id), inp=document.getElementById("speed_"+id);
+        lab.textContent=isRoad?"Pace /km":"km/h"; inp.placeholder=isRoad?"6:00":"7.5"; inp.value=""; inp.setAttribute("inputmode", isRoad?"text":"decimal");
+        updHint(id); save(); inp.focus();
+      });
+    });
+    updHint(id);
 
     var rpe=document.getElementById("rpe_"+id), rpev=document.getElementById("rpeval_"+id);
     rpe.addEventListener("input", function(){ d.rpe=+rpe.value; rpev.innerHTML="<b>"+rpe.value+"</b>/10"; save(); });
@@ -460,7 +488,18 @@
   function statusClass(s){ return s==="done"?"done":s==="skip"?"skip":"pending"; }
   function statusLabel(s){ return s==="done"?"DONE":s==="skip"?"SKIP":"OPEN"; }
 
-  function field(id,label,ph,val){ return '<div class="f"><label>'+label+'</label><input type="text" id="'+id+'" placeholder="'+ph+'" value="'+esc(val)+'" inputmode="decimal"></div>'; }
+  function field(id,label,ph,val,im){ return '<div class="f"><label>'+label+'</label><input type="text" id="'+id+'" placeholder="'+ph+'" value="'+esc(val)+'" inputmode="'+(im||"decimal")+'"></div>'; }
+  function parsePace(s){ s=(s||"").replace(/\s/g,""); var m=s.match(/^(\d{1,2}):([0-5]?\d)$/); if(m) return (+m[1])+(+m[2])/60; var f=parseFloat(s.replace(",",".")); return isFinite(f)&&f>0? f : null; }
+  function fmtPace(mins){ var t=Math.round(mins*60), mm=Math.floor(t/60), ss=t%60; return mm+":"+(ss<10?"0":"")+ss; }
+  function updHint(id){
+    var d=state[id], v=(d.speed||"").trim(), h=document.getElementById("convhint_"+id); if(!h) return;
+    if(!v){ h.textContent=""; return; }
+    if(d.surface==="road"){
+      var mins=parsePace(v); if(mins&&mins>0){ var kmh=60/mins; h.textContent="= "+kmh.toFixed(1)+" km/h · "+(kmh/1.609344).toFixed(1)+" mph"; } else h.textContent="";
+    } else {
+      var k=parseFloat(v.replace(",",".")); if(isFinite(k)&&k>0){ h.textContent="= "+(k/1.609344).toFixed(1)+" mph · "+fmtPace(60/k)+"/km"; } else h.textContent="";
+    }
+  }
   function fieldDate(id,label,val){ return '<div class="f"><label>'+label+'</label><input type="date" id="'+id+'" value="'+esc(val)+'"></div>'; }
   function esc(v){ return (v==null?"":(""+v)).replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
 
@@ -494,7 +533,8 @@
       var tag=d.status==="done"?"[DONE]":d.status==="skip"?"[SKIPPED]":"[PENDING]";
       L.push(c.day+" — "+c.title+(c.optional?" (optional)":"")+" "+tag);
       if(d.status==="done"){
-        L.push("  Date: "+(d.date||"-")+" | Speed: "+(d.speed||"-")+" km/h | Time: "+(d.time||"-")+" | Dist: "+(d.dist||"-")+" km");
+        var rd=d.surface==="road";
+        L.push("  Date: "+(d.date||"-")+" | "+(rd?"Outdoor":"Treadmill")+" | "+(rd?("Pace: "+(d.speed||"-")+"/km"):("Speed: "+(d.speed||"-")+" km/h"))+" | Time: "+(d.time||"-")+" | Dist: "+(d.dist||"-")+" km");
         L.push("  Avg HR: "+(d.avghr||"-")+" | Max HR: "+(d.maxhr||"-")+" | Knee: "+(d.knee==null?"-":d.knee+"/3")+" | RPE: "+(d.rpe||"-")+"/10");
         if(d.strava) L.push("  Strava: "+d.strava);
         if(d.notes) L.push("  Notes: "+d.notes);
