@@ -171,14 +171,19 @@
   details.ref>summary .pl{font-family:var(--mono); font-size:18px; color:var(--blaze); font-weight:700}
   details.ref[open]>summary .pl{color:var(--ink)}
   .ref-body{padding:2px 18px 20px}
-  table{width:100%; border-collapse:collapse; font-size:13px}
-  th,td{text-align:left; padding:8px 6px; border-bottom:1px solid var(--hair)}
-  th{font-family:var(--mono); color:var(--ink-3); font-size:9.5px; text-transform:uppercase; letter-spacing:.1em}
-  td{font-size:13px}
-  td.spd2{font-family:var(--mono); color:var(--blaze); font-weight:700}
-  td.pc{font-family:var(--mono); color:var(--ink-2)}
+  table{width:100%; border-collapse:collapse; font-size:12px}
+  th,td{text-align:left; padding:7px 5px; border-bottom:1px solid var(--hair)}
+  th{font-family:var(--mono); color:var(--ink-3); font-size:9px; text-transform:uppercase; letter-spacing:.07em}
+  td{font-size:12px}
+  td.spd2{font-family:var(--mono); color:var(--blaze); font-weight:700; white-space:nowrap}
+  td.pc{font-family:var(--mono); color:var(--ink-2); white-space:nowrap}
+  td.mph{font-family:var(--mono); color:var(--ink); font-weight:700; white-space:nowrap; text-decoration:underline; text-decoration-color:var(--blaze); text-underline-offset:3px}
   .ref-body p{font-size:13px; color:var(--ink-2); margin:10px 0 0}
-  .kvbar{font-family:var(--mono); font-size:11.5px; color:var(--ink-2); border:1.5px solid var(--ink); padding:11px 12px; margin-top:12px; line-height:1.9; word-spacing:.04em}
+  .unitnote{font-size:12px; color:var(--ink-2); margin:11px 0 0}
+  .conv{display:grid; grid-template-columns:auto auto auto; justify-content:start; gap:1px 20px; border:1.5px solid var(--ink); padding:11px 14px; margin-top:11px; font-family:var(--mono); font-size:12.5px; font-variant-numeric:tabular-nums}
+  .conv .ch{font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); border-bottom:1px solid var(--hair); padding-bottom:4px; margin-bottom:3px}
+  .conv .b{color:var(--blaze); font-weight:700}
+  .conv .m{color:var(--ink); font-weight:700; text-decoration:underline; text-decoration-color:var(--blaze); text-underline-offset:2px}
   .rule-row{display:grid; grid-template-columns:auto 1fr; gap:11px; font-size:13.5px; color:var(--ink-2); margin:11px 0; line-height:1.45}
   .rule-row .num{font-family:var(--disp); font-size:15px; color:var(--blaze)}
   .rule-row b{color:var(--ink)}
@@ -260,17 +265,27 @@
     <summary>Pace + Treadmill <span class="pl" aria-hidden="true">+</span></summary>
     <div class="ref-body">
       <table>
-        <thead><tr><th>Zone</th><th>Pace /km</th><th>km/h</th><th>Feel</th></tr></thead>
+        <thead><tr><th>Zone</th><th>/km</th><th>km/h</th><th>mph</th><th>Feel</th></tr></thead>
         <tbody>
-          <tr><td>Easy · E</td><td class="pc">7:40-8:10</td><td class="spd2">7.4-7.8</td><td>Conversational</td></tr>
-          <tr><td>Steady · S</td><td class="pc">7:00-7:15</td><td class="spd2">8.3-8.6</td><td>Comf. hard</td></tr>
-          <tr><td>Thresh · T</td><td class="pc">6:25-6:35</td><td class="spd2">9.1-9.4</td><td>~1hr effort</td></tr>
-          <tr><td>VO2 · I</td><td class="pc">5:50-6:00</td><td class="spd2">10.0-10.3</td><td>Hard 3-5min</td></tr>
-          <tr><td>Race pace</td><td class="pc">5:30</td><td class="spd2">10.9</td><td>Short reps</td></tr>
-          <tr><td>Strides · R</td><td class="pc">5:10-5:25</td><td class="spd2">11.0-11.6</td><td>Fast 25-30s</td></tr>
+          <tr><td>Easy</td><td class="pc">7:40-8:10</td><td class="spd2">7.4-7.8</td><td class="mph">4.6-4.8</td><td>Easy talk</td></tr>
+          <tr><td>Steady</td><td class="pc">7:00-7:15</td><td class="spd2">8.3-8.6</td><td class="mph">5.2-5.3</td><td>Comf. hard</td></tr>
+          <tr><td>Thresh</td><td class="pc">6:25-6:35</td><td class="spd2">9.1-9.4</td><td class="mph">5.7-5.8</td><td>~1hr</td></tr>
+          <tr><td>VO2</td><td class="pc">5:50-6:00</td><td class="spd2">10.0-10.3</td><td class="mph">6.2-6.4</td><td>3-5 min</td></tr>
+          <tr><td>Race</td><td class="pc">5:30</td><td class="spd2">10.9</td><td class="mph">6.8</td><td>Short reps</td></tr>
+          <tr><td>Strides</td><td class="pc">5:10-5:25</td><td class="spd2">11.0-11.6</td><td class="mph">6.8-7.2</td><td>25-30s</td></tr>
         </tbody>
       </table>
-      <div class="kvbar">8:00=7.5 · 7:30=8.0 · 7:00=8.6 · 6:40=9.0 · 6:30=9.2 · 6:00=10.0 · 5:40=10.6 · 5:30=10.9 · 5:00=12.0</div>
+      <p class="unitnote">Sessions are written in <b style="color:var(--ink)">km/h</b>. Your treadmill reads mph — use the <b style="color:var(--blaze)">mph</b> column.</p>
+      <div class="conv">
+        <div class="ch">/km</div><div class="ch">km/h</div><div class="ch">mph</div>
+        <div>8:00</div><div class="b">7.5</div><div class="m">4.7</div>
+        <div>7:00</div><div class="b">8.6</div><div class="m">5.3</div>
+        <div>6:30</div><div class="b">9.2</div><div class="m">5.7</div>
+        <div>6:00</div><div class="b">10.0</div><div class="m">6.2</div>
+        <div>5:40</div><div class="b">10.6</div><div class="m">6.6</div>
+        <div>5:30</div><div class="b">10.9</div><div class="m">6.8</div>
+        <div>5:00</div><div class="b">12.0</div><div class="m">7.5</div>
+      </div>
       <p>Treadmill at <b style="color:var(--ink)">1% incline</b>. Cadence <b style="color:var(--ink)">175-180 spm</b> — short, quick steps protect the knees.</p>
     </div>
   </details>
