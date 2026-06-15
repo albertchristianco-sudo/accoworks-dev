@@ -118,6 +118,9 @@
   .rx li{display:grid; grid-template-columns:74px 1fr; gap:10px; font-size:14px; color:var(--ink-2); line-height:1.45}
   .rx li .ph{font-family:var(--disp); font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink); padding-top:2px}
   .spd{font-family:var(--mono); font-weight:700; color:var(--blaze); font-size:13.5px; background:var(--blaze);color:var(--blaze-ink); padding:1px 5px; white-space:nowrap}
+  .rx-out{display:flex; gap:11px; margin-top:14px; padding-top:13px; border-top:1px dashed var(--hair); font-size:13px; color:var(--ink-2); line-height:1.5}
+  .rx-out-tag{font-family:var(--disp); font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--blaze); border:1.5px solid var(--blaze); padding:4px 7px 2px; align-self:flex-start; white-space:nowrap}
+  .rx-out b{color:var(--ink); font-weight:700}
 
   /* log form */
   .form{margin-top:20px; border-top:1px dashed var(--hair); padding-top:16px}
@@ -345,19 +348,22 @@
         ["Warm-up","8-10 min easy, build <span class='spd'>7.0&rarr;7.8</span> km/h + leg swings, ankle circles"],
         ["Main","24 min easy @ <span class='spd'>7.4-7.6 km/h</span>, then 4 &times; strides (25-30s @ <span class='spd'>10.5-11.0</span>, 90s easy)"],
         ["Down","5 min easy walk-down + knee prehab"]
-      ] },
+      ],
+      out:"Easy <b>~7:55-8:05/km</b>, then 4 &times; strides <b>5:30-5:45/km</b> (25-30s, 90s easy walk). In Cebu heat run by <b>effort</b> (easy = nose-breathing, conversational) and let the pace drift slower." },
     { id:"thu", day:"THU", title:"Easy 20 min", desc:"optional · pure recovery volume", optional:true,
       rx:[
         ["Warm-up","6-8 min easy build to 7.4 km/h"],
         ["Main","20 min easy @ <span class='spd'>7.4 km/h</span> · conversational, nose-breathing"],
         ["Down","5 min walk-down"]
-      ] },
+      ],
+      out:"Easy / recovery <b>~8:05-8:20/km</b>, no strides. Keep it genuinely easy, by feel." },
     { id:"sat", day:"SAT", title:"Easy 30 min", desc:"longest of the week · steady", optional:false,
       rx:[
         ["Warm-up","8-10 min easy, build 7.0&rarr;7.8 km/h"],
         ["Main","30 min easy @ <span class='spd'>7.4-7.6 km/h</span>"],
         ["Down","5 min easy + knee prehab"]
-      ] }
+      ],
+      out:"Easy <b>~7:55-8:05/km</b> for the full 30 min. In Cebu heat run by <b>effort</b>, conversational throughout." }
   ];
 
   var state = load();
@@ -391,7 +397,8 @@
 
     var body = el("div","ebody");
     var rx = el("div","rx");
-    rx.innerHTML = '<h4>The Session</h4><ul>'+cfg.rx.map(function(r){ return '<li><span class="ph">'+r[0]+'</span><span>'+r[1]+'</span></li>'; }).join("")+'</ul>';
+    rx.innerHTML = '<h4>The Session</h4><ul>'+cfg.rx.map(function(r){ return '<li><span class="ph">'+r[0]+'</span><span>'+r[1]+'</span></li>'; }).join("")+'</ul>'+
+      '<div class="rx-out"><span class="rx-out-tag">Outdoors</span><span>'+cfg.out+'</span></div>';
     body.appendChild(rx);
 
     var form = el("div","form");
