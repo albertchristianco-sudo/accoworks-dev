@@ -303,6 +303,66 @@
     footer { padding: 40px 0 60px; text-align: center; color: var(--faint); font-size: 12.5px; background: #f0f4ff; }
     footer a { color: var(--gray); }
 
+    /* ---------- intake form ---------- */
+    .respond { background: linear-gradient(180deg, #fbfbfd 0%, #eef3ff 100%); border-top: 1px solid var(--line-soft); }
+    .intake { max-width: 720px; margin: 50px auto 0; background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 38px 38px 34px; }
+    @media (max-width: 560px) { .intake { padding: 26px 22px; } }
+    .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    .field { margin-bottom: 26px; }
+    .field > label { display: block; font-size: 15.5px; font-weight: 600; color: var(--ink); letter-spacing: -0.014em; }
+    .field .help { font-size: 13.5px; color: var(--gray); margin: 5px 0 12px; line-height: 1.45; }
+    .intake input[type=text], .intake textarea {
+      width: 100%; font-family: var(--sans); font-size: 15px; color: var(--ink);
+      background: #fbfbfd; border: 1px solid var(--line); border-radius: 13px;
+      padding: 12px 14px; line-height: 1.5; resize: vertical; -webkit-appearance: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+    .intake textarea { min-height: 64px; }
+    .intake input[type=text]:focus, .intake textarea:focus {
+      outline: none; border-color: var(--blue); background: #fff;
+      box-shadow: 0 0 0 4px rgba(0,113,227,0.14);
+    }
+    .intake input::placeholder, .intake textarea::placeholder { color: #aeaeb5; }
+    .seg { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .seg label {
+      display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+      font-size: 13.5px; color: var(--ink-soft); font-weight: 500;
+      border: 1px solid var(--line); background: #fbfbfd; border-radius: 999px; padding: 8px 14px;
+      transition: all 0.15s ease;
+    }
+    .seg label:hover { border-color: #b9c4d6; }
+    .seg input { accent-color: var(--blue); margin: 0; }
+    .seg label:has(input:checked) { border-color: var(--blue); background: #eaf3ff; color: var(--blue-ink); font-weight: 600; }
+    .actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 30px; }
+    .btn {
+      font-family: var(--sans); font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em;
+      color: #fff; background: var(--blue); border: none; border-radius: 999px;
+      padding: 13px 28px; cursor: pointer; transition: background 0.15s ease, transform 0.06s ease;
+    }
+    .btn:hover { background: #0077ed; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.5; cursor: default; }
+    .btn-link {
+      display: inline-flex; align-items: center; gap: 8px; margin: 40px auto 0;
+      font-size: 15px; font-weight: 600; color: #fff; background: var(--ink);
+      border-radius: 999px; padding: 13px 26px; text-decoration: none; transition: transform 0.06s ease, background 0.15s ease;
+    }
+    .btn-link:hover { text-decoration: none; background: #000; transform: translateY(-1px); }
+    .center-btn { text-align: center; }
+    .formnote { font-size: 13.5px; color: var(--gray); }
+    .formnote.err { color: #c4320a; font-weight: 500; }
+    .intake-done {
+      max-width: 720px; margin: 50px auto 0; text-align: center;
+      background: var(--card); border: 1px solid #cfe9d8; border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md); padding: 56px 38px;
+    }
+    .intake-done .check {
+      width: 56px; height: 56px; border-radius: 50%; background: #1d8a4e; color: #fff;
+      font-size: 28px; font-weight: 700; display: grid; place-items: center; margin: 0 auto 22px;
+    }
+    .intake-done h3 { font-size: 26px; letter-spacing: -0.02em; }
+    .intake-done p { font-size: 16px; color: var(--gray); margin-top: 12px; }
+
     /* ---------- reveal ---------- */
     .reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.8s cubic-bezier(.16,.7,.3,1), transform 0.8s cubic-bezier(.16,.7,.3,1); }
     .reveal.in { opacity: 1; transform: none; }
@@ -329,7 +389,7 @@
         <a href="#kpis">KPIs</a>
         <a href="#team">Team</a>
         <a href="#scope">Scope</a>
-        <a href="#next">Next</a>
+        <a href="#respond">Respond</a>
       </div>
     </div>
   </nav>
@@ -687,6 +747,69 @@
         </div>
       </div>
     </div>
+      <div class="wrap center-btn"><a class="btn-link reveal" href="#respond">Answer the four questions &darr;</a></div>
+  </section>
+
+  <!-- RESPOND -->
+  <section id="respond" class="respond">
+    <div class="wrap center">
+      <div class="kicker reveal">Your answers</div>
+      <h2 class="sec-title reveal">Answer right here.</h2>
+      <p class="sec-lead narrow reveal">Four quick questions. Type your answers and submit. No login, nothing else to install. We collect them and start the build.</p>
+    </div>
+    <form id="intake" class="intake reveal" novalidate>
+      <input type="text" name="company" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
+      <div class="field">
+        <label for="f-name">Your name</label>
+        <input id="f-name" type="text" name="name" value="Ryan Yu" autocomplete="name" />
+      </div>
+      <div class="field">
+        <label for="f-geofence">1. Geofence rules</label>
+        <p class="help">Is a 150m geofence right for your sites? Who approves an out-of-site exception (for example, buying materials)?</p>
+        <textarea id="f-geofence" name="geofence" rows="3" placeholder="e.g. 150m is fine. Salde approves exceptions."></textarea>
+      </div>
+      <div class="field">
+        <label>2. Staff contact details</label>
+        <p class="help">Phone, email, and Telegram ID for each person on the roster.</p>
+        <div class="seg" role="radiogroup" aria-label="How you will send contact details">
+          <label><input type="radio" name="contactsMode" value="spreadsheet" checked /> I'll send a spreadsheet</label>
+          <label><input type="radio" name="contactsMode" value="typed" /> I'll type them below</label>
+        </div>
+        <textarea name="contacts" rows="3" placeholder="Optional: paste contact details here" style="margin-top:10px"></textarea>
+      </div>
+      <div class="field">
+        <label>3. Field devices</label>
+        <p class="help">Do all field staff have smartphones with mobile data, and what is the mix?</p>
+        <div class="seg" role="radiogroup" aria-label="Do field staff have smartphones">
+          <label><input type="radio" name="devicesHave" value="yes" checked /> All have them</label>
+          <label><input type="radio" name="devicesHave" value="most" /> Most do</label>
+          <label><input type="radio" name="devicesHave" value="no" /> Not yet</label>
+        </div>
+        <div class="seg" role="radiogroup" aria-label="Device mix" style="margin-top:10px">
+          <label><input type="radio" name="devicesMix" value="android" checked /> Mostly Android</label>
+          <label><input type="radio" name="devicesMix" value="iphone" /> Mostly iPhone</label>
+          <label><input type="radio" name="devicesMix" value="mixed" /> Mixed</label>
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-incentives">4. Incentive formulas</label>
+        <p class="help">How should the KPI scores tie to incentives or bonuses? Rough ideas are fine.</p>
+        <textarea id="f-incentives" name="incentives" rows="3" placeholder="e.g. Monthly bonus scaled by on-time rate and EOD compliance."></textarea>
+      </div>
+      <div class="field">
+        <label for="f-notes">Anything else (optional)</label>
+        <textarea id="f-notes" name="notes" rows="2" placeholder="Corrections, additions, or questions"></textarea>
+      </div>
+      <div class="actions">
+        <button type="submit" class="btn" id="intake-submit">Submit answers</button>
+        <span class="formnote" id="formnote"></span>
+      </div>
+    </form>
+    <div id="intake-done" class="intake-done" hidden>
+      <div class="check">&#10003;</div>
+      <h3>Got it. Thank you, <span id="done-name">Ryan</span>.</h3>
+      <p>Your answers are in. Ac will pick them up and move Phase 1 forward.</p>
+    </div>
   </section>
 
   <!-- STACK -->
@@ -745,6 +868,44 @@
         });
       }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
       els.forEach(function (e) { io.observe(e); });
+    })();
+
+    // Intake form submission
+    (function () {
+      var form = document.getElementById('intake');
+      if (!form) return;
+      var note = document.getElementById('formnote');
+      var btn = document.getElementById('intake-submit');
+      form.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        note.textContent = '';
+        note.classList.remove('err');
+        var data = {};
+        new FormData(form).forEach(function (v, k) { data[k] = v; });
+        btn.disabled = true;
+        var label = btn.textContent;
+        btn.textContent = 'Sending...';
+        fetch('/api/techisland-intake', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(data)
+        }).then(function (r) {
+          if (!r.ok) throw new Error('bad status ' + r.status);
+          return r.json();
+        }).then(function () {
+          var done = document.getElementById('intake-done');
+          var dn = document.getElementById('done-name');
+          if (dn) dn.textContent = (data.name || 'there').split(' ')[0];
+          form.hidden = true;
+          done.hidden = false;
+          done.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }).catch(function () {
+          btn.disabled = false;
+          btn.textContent = label;
+          note.textContent = 'Something went wrong. Please try again, or send your answers to Ac directly.';
+          note.classList.add('err');
+        });
+      });
     })();
   </script>
 </body>
