@@ -1,6 +1,5 @@
 ---
 import '../styles/global.css';
-import ThemeToggle from '../components/ThemeToggle.tsx';
 
 interface Props {
   title?: string;
@@ -35,23 +34,12 @@ const year = new Date().getFullYear();
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
 
-    <!-- No-flash theme: runs before paint -->
+    <!-- Dark-only theme -->
     <script is:inline>
-      (function () {
-        try {
-          var stored = localStorage.getItem('theme');
-          var prefersLight =
-            window.matchMedia &&
-            window.matchMedia('(prefers-color-scheme: light)').matches;
-          var theme = stored || (prefersLight ? 'light' : 'dark');
-          document.documentElement.dataset.theme = theme;
-        } catch (e) {
-          document.documentElement.dataset.theme = 'dark';
-        }
-      })();
+      document.documentElement.dataset.theme = 'dark';
     </script>
 
-    <meta name="theme-color" content="#070A10" />
+    <meta name="theme-color" content="#070707" />
 
     <!-- Open Graph -->
     <meta property="og:type" content={ogType} />
@@ -76,7 +64,7 @@ const year = new Date().getFullYear();
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Montserrat:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
   </head>
@@ -93,7 +81,6 @@ const year = new Date().getFullYear();
             <a class="nav-link" href="/field-notes/" aria-current={isActive('/field-notes') ? 'page' : undefined}>Field Notes</a>
             <a class="nav-link" href="mailto:ac@accoworks.dev">Email</a>
           </nav>
-          <ThemeToggle client:load />
         </div>
       </header>
 
