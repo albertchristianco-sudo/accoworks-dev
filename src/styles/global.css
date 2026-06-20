@@ -1,54 +1,60 @@
 /* ================================================================
-   accoworks.dev — Neuro.AI Cyber Future design system
-   Dark-only. Near-black surfaces, molten orange/gold accent,
-   Orbitron display + Montserrat body. Tokens drive everything.
+   accoworks.dev — Daylight Dev-Tool design system
+   Light-only. Cool paper surfaces, one cobalt accent (sky->cobalt
+   gradient), faint blueprint grid, Space Mono display + IBM Plex
+   Sans body + JetBrains Mono labels. Tokens drive everything.
    ================================================================ */
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* Surfaces (near-black, cyber) */
-  --bg:            #070707;
-  --bg-2:          #0A0A0C;
-  --surface:       #0E0F12;
-  --surface-2:     #141519;
-  --surface-hover: #17181D;
+  /* Surfaces (cool paper) */
+  --bg:            #F5F7FB;
+  --bg-2:          #EDF1F7;
+  --surface:       #FFFFFF;
+  --surface-2:     #EFF3F9;
+  --surface-hover: #F4F7FC;
 
-  /* Ink */
-  --ink:    #F4F5F7;
-  --ink-2:  #AEB4BE;
-  --ink-3:  #7C828D;
+  /* Ink (cool near-black -> slate) */
+  --ink:    #0D1526;
+  --ink-2:  #4C586C;
+  --ink-3:  #8A94A6;
 
-  /* Lines */
-  --line:   rgba(255, 255, 255, 0.07);
-  --line-2: rgba(255, 255, 255, 0.12);
+  /* Lines (ink hairlines on light) */
+  --line:   rgba(13, 21, 38, 0.08);
+  --line-2: rgba(13, 21, 38, 0.14);
 
-  /* Accent (molten orange-red + gold "fire") */
-  --accent:      #D9491C;
-  --accent-2:    #E2A431;
-  --accent-ink:  #0A0502;
-  --accent-soft: rgba(217, 73, 28, 0.12);
-  --accent-line: rgba(217, 73, 28, 0.42);
-  --accent-glow: rgba(217, 73, 28, 0.34);
+  /* Accent (cobalt blue + electric sky) */
+  --accent:      #2563EB;
+  --accent-2:    #38BDF8;
+  --accent-ink:  #FFFFFF;
+  --accent-soft: rgba(37, 99, 235, 0.10);
+  --accent-line: rgba(37, 99, 235, 0.38);
+  --accent-glow: rgba(37, 99, 235, 0.28);
 
-  --grid:   rgba(255, 255, 255, 0.024);
+  --grid:   rgba(37, 99, 235, 0.055);
 
-  /* Fire gradient (gold -> orange -> red): text + fills */
-  --grad-1: #E2A431;
-  --grad-2: #E0662A;
-  --grad-3: #D9491C;
+  /* Accent gradient (sky -> blue -> cobalt): text + fills */
+  --grad-1: #38BDF8;
+  --grad-2: #3B82F6;
+  --grad-3: #2563EB;
+
+  /* "Like" / heart — the one non-accent semantic color */
+  --heart:  #f43f6b;
 
   --max:    1180px;
   --radius: 18px;
   --radius-sm: 12px;
-  --shadow: 0 30px 70px -28px rgba(0, 0, 0, 0.80);
+  --shadow: 0 18px 44px -24px rgba(13, 29, 64, 0.20), 0 4px 12px -6px rgba(13, 29, 64, 0.08);
+  --shadow-glow: 0 22px 54px -28px var(--accent-glow);
+  --shadow-btn:  0 10px 26px -12px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.28);
   --ease:   cubic-bezier(0.22, 1, 0.36, 1);
 
   --font-sans:
-    'Montserrat', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --font-display: 'Space Grotesk', var(--font-sans);
+    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-display: 'Space Mono', var(--font-mono);
 
   font-family: var(--font-sans);
 }
@@ -245,10 +251,10 @@ img { display: block; max-width: 100%; }
   margin: 0;
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: clamp(3rem, 9vw, 8rem);
+  font-size: clamp(3rem, 8vw, 7rem);
   font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 0.92;
+  letter-spacing: 0;
+  line-height: 0.96;
   overflow-wrap: break-word;
 }
 .hero h1 .accent {
@@ -342,14 +348,14 @@ img { display: block; max-width: 100%; }
 .btn svg { width: 16px; height: 16px; }
 .btn--primary {
   color: var(--accent-ink);
-  background: linear-gradient(115deg, var(--grad-1), var(--grad-3));
+  background: linear-gradient(115deg, var(--grad-2), var(--grad-3));
   border: 1px solid transparent;
-  box-shadow: 0 10px 30px -12px var(--accent-glow), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-btn);
 }
 .btn--primary:hover {
   color: var(--accent-ink);
   transform: translateY(-2px);
-  box-shadow: 0 16px 44px -10px var(--accent-glow), inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 40px -12px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.34);
 }
 .btn--ghost {
   color: var(--ink);
@@ -406,10 +412,10 @@ img { display: block; max-width: 100%; }
   margin: 0;
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: clamp(1.6rem, 3.1vw, 2.9rem);
+  font-size: clamp(1.6rem, 3.1vw, 2.7rem);
   font-weight: 500;
-  letter-spacing: -0.035em;
-  line-height: 1.04;
+  letter-spacing: 0;
+  line-height: 1.1;
 }
 .section-sub {
   max-width: 680px;
@@ -481,8 +487,8 @@ img { display: block; max-width: 100%; }
   font-family: var(--font-display);
   font-size: clamp(1.18rem, 1.7vw, 1.46rem);
   font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.12;
+  letter-spacing: 0;
+  line-height: 1.18;
 }
 .card a.card__title:hover { color: var(--accent); }
 .card__desc { margin: 0; color: var(--ink-2); font-size: 0.98rem; }
@@ -535,8 +541,8 @@ img { display: block; max-width: 100%; }
   font-family: var(--font-display);
   font-weight: 500;
   font-size: clamp(1.14rem, 1.9vw, 1.5rem);
-  letter-spacing: -0.02em;
-  line-height: 1.12;
+  letter-spacing: 0;
+  line-height: 1.18;
 }
 .note-title a { color: var(--ink); text-decoration: none; }
 .note-title a:hover { color: var(--accent); }
@@ -577,8 +583,8 @@ img { display: block; max-width: 100%; }
   font-family: var(--font-display);
   font-size: clamp(1.6rem, 3vw, 2.4rem);
   font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1.05;
+  letter-spacing: 0;
+  line-height: 1.1;
 }
 .panel p { margin: 0; max-width: 540px; color: var(--ink-2); }
 
@@ -588,10 +594,10 @@ img { display: block; max-width: 100%; }
   margin: 0;
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: clamp(3rem, 8.4vw, 7rem);
+  font-size: clamp(2.8rem, 7.4vw, 6rem);
   font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 0.9;
+  letter-spacing: 0;
+  line-height: 0.96;
 }
 .page-copy { max-width: 720px; margin: 26px 0 0; color: var(--ink-2); font-size: clamp(1.05rem, 1.6vw, 1.22rem); }
 
@@ -690,16 +696,16 @@ img { display: block; max-width: 100%; }
     transform 180ms var(--ease), background 180ms var(--ease);
 }
 .like__btn:hover { color: var(--ink); border-color: var(--accent-line); transform: translateY(-1px); }
-.like__btn.is-liked { color: #ff5a7a; border-color: rgba(255, 90, 122, 0.5); background: rgba(255, 90, 122, 0.08); }
+.like__btn.is-liked { color: var(--heart); border-color: rgba(244, 63, 107, 0.5); background: rgba(244, 63, 107, 0.08); }
 .like__heart { position: relative; display: inline-flex; }
 .like__heart svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7px; transition: transform 200ms var(--ease); }
-.like__btn.is-liked .like__heart svg { fill: #ff5a7a; stroke: #ff5a7a; }
+.like__btn.is-liked .like__heart svg { fill: var(--heart); stroke: var(--heart); }
 .like__btn.is-burst .like__heart svg { animation: like-pop 420ms var(--ease); }
 @keyframes like-pop { 0% { transform: scale(1); } 35% { transform: scale(0.82); } 70% { transform: scale(1.18); } 100% { transform: scale(1); } }
 .like__count { font-family: var(--font-mono); font-size: 0.9rem; min-width: 1ch; text-align: center; }
 .like__label { color: var(--ink-3); font-size: 0.84rem; }
 .like__burst { position: absolute; inset: 0; pointer-events: none; }
-.like__burst i { position: absolute; top: 50%; left: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: #ff5a7a; opacity: 0; }
+.like__burst i { position: absolute; top: 50%; left: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: var(--heart); opacity: 0; }
 .like__btn.is-burst .like__burst i { animation: like-burst 560ms var(--ease) forwards; }
 .like__burst i:nth-child(1) { --deg: 0deg; }
 .like__burst i:nth-child(2) { --deg: 60deg; }
@@ -734,10 +740,10 @@ img { display: block; max-width: 100%; }
   margin: 16px 0 22px;
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: clamp(2.4rem, 5.8vw, 4.4rem);
+  font-size: clamp(2.2rem, 5.4vw, 4rem);
   font-weight: 700;
-  line-height: 1.0;
-  letter-spacing: -0.02em;
+  line-height: 1.06;
+  letter-spacing: 0;
 }
 .note-summary { margin: 0 0 40px; color: var(--ink-2); font-size: clamp(1.08rem, 1.6vw, 1.28rem); }
 .prose {
@@ -754,8 +760,8 @@ img { display: block; max-width: 100%; }
   font-family: var(--font-display);
   font-size: 1.7rem;
   font-weight: 600;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  line-height: 1.15;
+  letter-spacing: 0;
 }
 .prose a { color: var(--accent); }
 .prose strong { color: var(--ink); }
