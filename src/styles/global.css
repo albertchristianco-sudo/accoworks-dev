@@ -172,25 +172,6 @@ img { display: block; max-width: 100%; }
 .nav-link:hover { color: var(--ink); background: var(--surface-hover); }
 .nav-link[aria-current="page"] { color: var(--accent); }
 
-.theme-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  margin-left: 6px;
-  padding: 0;
-  color: var(--ink-2);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  cursor: pointer;
-  transition: color 180ms var(--ease), border-color 180ms var(--ease),
-    background 180ms var(--ease), transform 180ms var(--ease);
-}
-.theme-toggle:hover { color: var(--ink); border-color: var(--accent-line); transform: translateY(-1px); }
-.theme-toggle svg { width: 18px; height: 18px; }
-
 /* ---- Typography primitives ----------------------------------- */
 .kicker,
 .section-eyebrow,
@@ -830,7 +811,6 @@ img { display: block; max-width: 100%; }
   .site-nav { gap: 0; font-size: 0.74rem; }
   .nav-link { padding: 7px 9px; white-space: nowrap; }
   .nav-link[href="/"] { display: none; } /* logo links home */
-  .theme-toggle { width: 34px; height: 34px; margin-left: 2px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
