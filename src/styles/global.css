@@ -134,23 +134,52 @@ img { display: block; max-width: 100%; }
 }
 .site-header[data-scrolled="true"] { border-bottom-color: var(--line); }
 
+/* Terminal mark: ink tile with `ac` prompt + blinking cobalt caret */
 .brand-mark {
+  --s: 36px;
   display: inline-flex;
   align-items: center;
-  width: clamp(104px, 12vw, 132px);
+  gap: 0.6em;
   color: var(--ink);
   text-decoration: none;
 }
-.brand-logo {
-  display: block;
-  width: 100%;
-  aspect-ratio: 987 / 195;
-  background-color: var(--ink);
-  -webkit-mask: url("/logo.svg") no-repeat center / contain;
-  mask: url("/logo.svg") no-repeat center / contain;
-  transition: background-color 180ms var(--ease);
+.brand-tile {
+  width: var(--s);
+  height: var(--s);
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.08em;
+  border-radius: calc(var(--s) * 0.2);
+  background: var(--ink);
+  color: var(--bg);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: calc(var(--s) * 0.44);
+  line-height: 1;
+  letter-spacing: -0.02em;
 }
-.brand-mark:hover .brand-logo { background-color: var(--accent); }
+.brand-caret {
+  display: inline-block;
+  width: 0.2em;
+  height: 0.82em;
+  border-radius: 0.05em;
+  background: var(--accent);
+}
+.brand-wm {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: calc(var(--s) * 0.56);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  transition: color 180ms var(--ease);
+}
+.brand-mark:hover .brand-wm { color: var(--accent); }
+@media (prefers-reduced-motion: no-preference) {
+  .brand-caret { animation: brand-blink 1.1s steps(1) infinite; }
+}
+@keyframes brand-blink { 50% { opacity: 0; } }
 
 .nav-cluster { display: flex; align-items: center; gap: 6px; }
 
@@ -811,6 +840,7 @@ img { display: block; max-width: 100%; }
   .site-nav { gap: 0; font-size: 0.74rem; }
   .nav-link { padding: 7px 9px; white-space: nowrap; }
   .nav-link[href="/"] { display: none; } /* logo links home */
+  .brand-wm { display: none; } /* tile-only mark on narrow screens */
 }
 
 @media (prefers-reduced-motion: reduce) {

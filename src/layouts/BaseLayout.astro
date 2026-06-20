@@ -58,7 +58,8 @@ const year = new Date().getFullYear();
     <meta name="twitter:image" content={ogImage} />
 
     <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icon-16.png" />
     <link rel="apple-touch-icon" href="/icon-180.png" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -72,7 +73,8 @@ const year = new Date().getFullYear();
     <div class="site-shell">
       <header class="site-header" aria-label="Site header">
         <a class="brand-mark" href="/" aria-label="accoworks home">
-          <span class="brand-logo" role="img" aria-label="accoworks"></span>
+          <span class="brand-tile" aria-hidden="true"><span class="brand-ac">ac</span><span class="brand-caret"></span></span>
+          <span class="brand-wm">accoworks</span>
         </a>
         <div class="nav-cluster">
           <nav class="site-nav" aria-label="Primary navigation">
