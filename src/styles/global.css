@@ -175,6 +175,7 @@ img { display: block; max-width: 100%; }
   color: var(--ink);
   transition: color 180ms var(--ease);
 }
+.brand-tld { color: var(--ink-3); }
 .brand-mark:hover .brand-wm { color: var(--accent); }
 @media (prefers-reduced-motion: no-preference) {
   .brand-caret { animation: brand-blink 1.1s steps(1) infinite; }
