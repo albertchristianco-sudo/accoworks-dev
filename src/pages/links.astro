@@ -1,0 +1,111 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+type Link = {
+  label: string;
+  sub: string;
+  href: string;
+  icon: string;
+  external?: boolean;
+  me?: boolean;
+};
+
+const groups: { label: string; links: Link[] }[] = [
+  {
+    label: 'connect',
+    links: [
+      { label: 'Instagram', sub: '@axtian.cf', href: 'https://www.instagram.com/axtian.cf/', icon: 'instagram', external: true },
+      { label: 'Facebook', sub: '/lordac', href: 'https://www.facebook.com/lordac/', icon: 'facebook', external: true },
+      { label: 'LinkedIn', sub: 'in/albertchristianco', href: 'https://www.linkedin.com/in/albertchristianco/', icon: 'linkedin', external: true },
+    ],
+  },
+  {
+    label: 'the work',
+    links: [
+      { label: 'accoworks.dev', sub: 'founder · builder · coach', href: '/', icon: 'globe' },
+      { label: 'Field Notes', sub: 'training, building, operating', href: '/field-notes/', icon: 'globe' },
+      { label: 'GitHub', sub: '@albertchristianco-sudo', href: 'https://github.com/albertchristianco-sudo', icon: 'github', external: true, me: true },
+    ],
+  },
+  {
+    label: 'crossfit subtero',
+    links: [
+      { label: 'CrossFit Subtero HQ', sub: '@crossfitsubtero', href: 'https://www.instagram.com/crossfitsubtero/', icon: 'instagram', external: true },
+      { label: 'Subtero Underground', sub: '@crossfitsubtero.ug', href: 'https://www.instagram.com/crossfitsubtero.ug/', icon: 'instagram', external: true },
+      { label: 'Subtero website', sub: 'crossfitsubtero.com', href: 'https://www.crossfitsubtero.com', icon: 'globe', external: true },
+    ],
+  },
+  {
+    label: 'crossfit philippines',
+    links: [
+      { label: 'CrossFit Philippines', sub: '@crossfitphilippines', href: 'https://www.instagram.com/crossfitphilippines/', icon: 'instagram', external: true },
+      { label: 'Affiliation inquiries', sub: 'albert.christianco@crossfit.com', href: 'mailto:albert.christianco@crossfit.com', icon: 'mail' },
+    ],
+  },
+  {
+    label: 'flame & finish',
+    links: [
+      { label: 'Flame & Finish', sub: 'flameandfinish.com', href: 'https://flameandfinish.com', icon: 'globe', external: true },
+      { label: 'Flame & Finish', sub: '@flameandfinish', href: 'https://www.instagram.com/flameandfinish/', icon: 'instagram', external: true },
+      { label: 'Flame & Finish', sub: 'Facebook', href: 'https://www.facebook.com/profile.php?id=61576694652412', icon: 'facebook', external: true },
+    ],
+  },
+  {
+    label: 'work with me',
+    links: [
+      { label: 'Coaching', sub: 'start, compete, or rebuild', href: 'mailto:ac@accoworks.dev?subject=Coaching%20Inquiry', icon: 'mail' },
+      { label: 'AI solutions', sub: 'tools & automation for your business', href: 'mailto:ac@accoworks.dev?subject=AI%20Solutions%20Inquiry', icon: 'mail' },
+    ],
+  },
+];
+
+const icons: Record<string, string> = {
+  instagram: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>`,
+  facebook: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`,
+  linkedin: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z"/></svg>`,
+  github: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>`,
+  globe: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z"/></svg>`,
+  mail: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>`,
+};
+
+const go = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`;
+---
+
+<BaseLayout
+  minimalNav
+  title="Ac — Links | accoworks.dev"
+  description="Every link in one place: CrossFit Subtero, CrossFit Philippines, Flame & Finish, Field Notes, socials, coaching, and AI solutions. From Ac in Cebu City, Philippines."
+>
+  <section class="bio" aria-label="All links">
+    <header class="bio-head reveal">
+      <img class="bio-avatar" src="/avatar.jpg" alt="Ac coaching at a CrossFit event" width="112" height="112" loading="eager" />
+      <h1 class="bio-name">Ac</h1>
+      <p class="bio-realname">Albert Christian Co</p>
+      <p class="bio-tagline">Founder. Builder. <span class="accent">Coach.</span></p>
+      <p class="command-line"><span class="dot"></span>$ whoami — Cebu City, Philippines</p>
+    </header>
+
+    {groups.map((group) => (
+      <section class="link-group reveal">
+        <p class="group-label"><span class="hash">//</span> {group.label}</p>
+        <div class="link-list">
+          {group.links.map((link) => (
+            <a
+              class="link-row"
+              href={link.href}
+              target={link.external ? '_blank' : undefined}
+              rel={link.external ? (link.me ? 'me noopener' : 'noopener') : undefined}
+            >
+              <span class="link-row__icon" set:html={icons[link.icon]} />
+              <span class="link-row__body">
+                <span class="link-row__label">{link.label}</span>
+                <span class="link-row__sub">{link.sub}</span>
+              </span>
+              <span class="link-row__go" set:html={go} />
+            </a>
+          ))}
+        </div>
+      </section>
+    ))}
+  </section>
+</BaseLayout>

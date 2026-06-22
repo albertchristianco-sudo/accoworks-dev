@@ -849,3 +849,155 @@ img { display: block; max-width: 100%; }
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
   .reveal, .reveal-stagger > * { opacity: 1; transform: none; }
 }
+
+/* ---- Link-in-bio page (/links) ------------------------------- */
+.bio {
+  width: min(560px, 100%);
+  margin: 0 auto;
+  padding: clamp(28px, 6vw, 56px) 0 clamp(56px, 9vw, 88px);
+}
+
+.bio-head { text-align: center; margin-bottom: clamp(26px, 5vw, 40px); }
+.bio-avatar {
+  width: 112px;
+  height: 112px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 36%;
+  border: 1px solid var(--line-2);
+  box-shadow: 0 0 0 4px var(--bg), 0 0 0 5px var(--accent-line), var(--shadow-glow);
+}
+.bio-name {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 7vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+}
+.bio-realname {
+  margin: 9px 0 0;
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+}
+.bio-tagline {
+  margin: 14px 0 0;
+  color: var(--ink-2);
+  font-family: var(--font-display);
+  font-size: clamp(1.04rem, 3.4vw, 1.28rem);
+  font-weight: 400;
+}
+.bio-tagline .accent {
+  background: linear-gradient(110deg, var(--grad-1), var(--grad-2), var(--grad-3));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+.bio-head .command-line { margin: 20px 0 0; }
+
+.link-group { margin-top: clamp(24px, 5vw, 34px); }
+.group-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 13px;
+  padding-left: 4px;
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.group-label .hash { color: var(--accent); }
+
+.link-list { display: flex; flex-direction: column; gap: 12px; }
+
+.link-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 15px 18px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  overflow: hidden;
+  transition: transform 220ms var(--ease), border-color 220ms var(--ease),
+    background 220ms var(--ease), box-shadow 220ms var(--ease);
+}
+.link-row::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(140% 100% at 0% 0%, var(--accent-soft), transparent 60%);
+  transition: opacity 220ms var(--ease);
+}
+.link-row:hover {
+  color: var(--ink);
+  transform: translateY(-3px);
+  border-color: var(--accent-line);
+  background: var(--surface-hover);
+  box-shadow: var(--shadow), 0 22px 54px -30px var(--accent-glow);
+}
+.link-row:hover::after { opacity: 1; }
+
+.link-row__icon {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-2);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  transition: color 200ms var(--ease), border-color 200ms var(--ease), background 200ms var(--ease);
+}
+.link-row__icon svg { width: 20px; height: 20px; }
+.link-row:hover .link-row__icon {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+
+.link-row__body { position: relative; z-index: 1; flex: 1 1 auto; min-width: 0; }
+.link-row__label {
+  display: block;
+  color: var(--ink);
+  font-size: 0.98rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+.link-row__sub {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.link-row__go {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  color: var(--ink-3);
+  transition: transform 200ms var(--ease), color 200ms var(--ease);
+}
+.link-row__go svg { display: block; width: 18px; height: 18px; }
+.link-row:hover .link-row__go { color: var(--accent); transform: translateX(3px); }

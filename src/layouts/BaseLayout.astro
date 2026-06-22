@@ -6,6 +6,7 @@ interface Props {
   description?: string;
   image?: string;
   ogType?: string;
+  minimalNav?: boolean;
 }
 
 const {
@@ -13,6 +14,7 @@ const {
   description = 'Ac is a founder, builder, coach, and operator in Cebu City, Philippines. Two CrossFit boxes, Country Manager for CrossFit Philippines, a building materials business, and a workbench of tools.',
   image = '/og.png',
   ogType = 'website',
+  minimalNav = false,
 } = Astro.props;
 
 const site = Astro.site ?? new URL('https://accoworks.dev');
@@ -76,14 +78,16 @@ const year = new Date().getFullYear();
           <span class="brand-tile" aria-hidden="true"><span class="brand-ac">ac</span><span class="brand-caret"></span></span>
           <span class="brand-wm">accoworks<span class="brand-tld">.dev</span></span>
         </a>
-        <div class="nav-cluster">
-          <nav class="site-nav" aria-label="Primary navigation">
-            <a class="nav-link" href="/" aria-current={isActive('/') ? 'page' : undefined}>Home</a>
-            <a class="nav-link" href="/projects/" aria-current={isActive('/projects') ? 'page' : undefined}>Projects</a>
-            <a class="nav-link" href="/field-notes/" aria-current={isActive('/field-notes') ? 'page' : undefined}>Field Notes</a>
-            <a class="nav-link" href="mailto:ac@accoworks.dev">Email</a>
-          </nav>
-        </div>
+        {!minimalNav && (
+          <div class="nav-cluster">
+            <nav class="site-nav" aria-label="Primary navigation">
+              <a class="nav-link" href="/" aria-current={isActive('/') ? 'page' : undefined}>Home</a>
+              <a class="nav-link" href="/projects/" aria-current={isActive('/projects') ? 'page' : undefined}>Projects</a>
+              <a class="nav-link" href="/field-notes/" aria-current={isActive('/field-notes') ? 'page' : undefined}>Field Notes</a>
+              <a class="nav-link" href="mailto:ac@accoworks.dev">Email</a>
+            </nav>
+          </div>
+        )}
       </header>
 
       <main>
