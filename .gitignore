@@ -24,3 +24,15 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# local scratch, design handoffs, private decks (not part of the deployed site).
+# Anchored to repo root so they do not shadow nested same-named dirs (e.g. public/pitch).
+/_temp/
+/HANDOFF.md
+/assets/
+/Field Notes Posts/
+/AccoWorks Design System.zip
+/design_handoff_accoworks_redesign/
+/design_handoff_logo/
+/docs/
+/pitch/
