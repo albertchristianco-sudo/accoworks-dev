@@ -65,6 +65,13 @@ runtime in production, so none of these packages run for visitors.
   patched ranges. Re-check with `npm audit` occasionally; don't chase the
   count.
 
+## Debugging
+
+When builds fail, deployments stall, or multi-host sync issues arise, load the
+`systematic-debugging` skill. Reproduce, isolate, understand, then fix all
+instances of the bug class at once. This project has a known failure mode
+(multi-host `main` drift) that a single-symptom fix cannot resolve permanently.
+
 ## Conventions
 
 - Build: `npm run build`. Type/template check: `npx astro check`.
