@@ -1,0 +1,3 @@
+# Public landing site is crawlable; the private dashboard subpath is not.
+User-agent: *
+Disallow: /dashboard/

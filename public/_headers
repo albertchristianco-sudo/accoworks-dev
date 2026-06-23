@@ -1,0 +1,10 @@
+# Security headers for the private dashboard subpath (served at accoworks.dev/dashboard,
+# gated by Cloudflare Access). Scoped to /dashboard/* so the public landing site is
+# unaffected. CSP is Report-Only for now: once the dashboard board is confirmed rendering
+# behind Access, flip the header name to Content-Security-Policy (enforcing).
+/dashboard/*
+  X-Robots-Tag: noindex, nofollow
+  Referrer-Policy: no-referrer
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'
