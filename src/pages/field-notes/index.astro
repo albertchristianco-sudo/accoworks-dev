@@ -5,10 +5,12 @@ import { getCollection } from 'astro:content';
 const notes = (await getCollection('field-notes'))
   .filter((note) => !note.data.draft)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const [featured, ...archive] = notes;
 ---
 
 <BaseLayout title="Field Notes | accoworks.dev" description="Notes from training, building, and operating in the real world.">
-  <section class="page-intro field-notes-intro">
+  <section class="page-intro field-notes-intro page-intro--folio">
+    <span class="page-folio" aria-hidden="true">03 / FIELD NOTES</span>
     <p class="kicker">Field Notes</p>
     <h1 class="page-title">
       Training. Building. <span class="accent">Operating.</span>
@@ -20,23 +22,48 @@ const notes = (await getCollection('field-notes'))
   </section>
 
   <section class="section" aria-label="Field notes list">
-    {notes.length === 0 ? (
+    {!featured ? (
       <p class="page-copy">No notes published yet. The workbench is being cleared.</p>
     ) : (
-      <ol class="note-list">
-        {notes.map((note) => (
-          <li class="note-item">
-            <span class="note-date">
-              {note.data.date.toLocaleDateString('en', { year: 'numeric', month: 'short', day: 'numeric' })}
-            </span>
-            <div>
-              <h2 class="note-title"><a href={`/field-notes/${note.id.replace(/\.mdx?$/, '')}/`}>{note.data.title}</a></h2>
-              <p>{note.data.summary}</p>
-            </div>
-            <span class="tag">{note.data.label}</span>
-          </li>
-        ))}
-      </ol>
+      <>
+        <article class="featured-note">
+          <div class="featured-note__meta">
+            <span>Latest issue</span>
+            <time datetime={featured.data.date.toISOString()}>
+              {featured.data.date.toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric' })}
+            </time>
+          </div>
+          <div class="featured-note__body">
+            <span class="tag">{featured.data.label}</span>
+            <h2><a href={`/field-notes/${featured.id.replace(/\.mdx?$/, '')}/`}>{featured.data.title}</a></h2>
+            <p>{featured.data.summary}</p>
+            <a class="cta-link" href={`/field-notes/${featured.id.replace(/\.mdx?$/, '')}/`}>
+              Read the latest note
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+          </div>
+        </article>
+
+        {archive.length > 0 && (
+          <div class="note-archive">
+            <p class="section-eyebrow"><span class="hash">//</span> previous notes</p>
+            <ol class="note-list">
+              {archive.map((note) => (
+                <li class="note-item">
+                  <span class="note-date">
+                    {note.data.date.toLocaleDateString('en', { year: 'numeric', month: 'short', day: 'numeric' })}
+                  </span>
+                  <div>
+                    <h2 class="note-title"><a href={`/field-notes/${note.id.replace(/\.mdx?$/, '')}/`}>{note.data.title}</a></h2>
+                    <p>{note.data.summary}</p>
+                  </div>
+                  <span class="tag">{note.data.label}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+      </>
     )}
   </section>
 </BaseLayout>

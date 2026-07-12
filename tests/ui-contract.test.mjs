@@ -105,6 +105,26 @@ test('defines coarse-pointer touch targets at 44px or larger', () => {
   assert.match(css, /min-height:\s*44px/);
 });
 
+test('adds the approved field-manual graphic system without decorating the Links utility page', () => {
+  assert.match(home, /chapter-band/);
+  assert.match(home, /folio-number/);
+  assert.match(home, /photo-registration/);
+  assert.match(home, /field-strip/);
+  assert.match(projects, /project-timeline/);
+  assert.match(notes, /featured-note/);
+  assert.match(css, /\/paper-grain\.png/);
+  assert.doesNotMatch(css, /feTurbulence|mix-blend-mode/);
+  assert.match(css, /\.chapter-band\s*\{/);
+  assert.match(css, /\.folio-number\s*\{/);
+  assert.match(css, /\.chapter-band a:focus-visible/);
+  assert.match(css, /\.featured-note a:focus-visible/);
+  assert.doesNotMatch(css, /#E5ECFD|opacity:\s*0\.82/);
+  assert.match(home, /field-coach-480\.avif/);
+  assert.match(home, /field-build-480\.avif/);
+  assert.match(css, /@media\s*\(max-width:\s*699px\)[\s\S]*?\.field-strip\s*\{[\s\S]*?grid-template-columns:\s*1fr/);
+  assert.doesNotMatch(links, /chapter-band|folio-number|field-strip/);
+});
+
 test('gates production deployment on tests and Astro diagnostics', () => {
   const workflow = read('.github/workflows/deploy.yml');
   assert.match(workflow, /run: npm test/);

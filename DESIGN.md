@@ -32,6 +32,12 @@ Use the existing 1180px maximum width and responsive gutters. Favor asymmetrical
 
 Projects are evidence-led records with clear status, stack, outcome, and verified public destination when available. Private work is explicitly labeled and remains unlinked. Field Notes prioritize scanning and reading. The links page stays compact and functional.
 
+## Graphic System
+
+Use one strong cobalt chapter band on the home page as the visual anchor. Oversized low-opacity folio numbers, thin registration marks, timeline rules, and short monospace annotations make the field-manual idea visible without turning the site into a terminal costume. A small pre-rasterized repeating texture adds restrained paper grain without runtime SVG filters or compositing effects.
+
+Each major page gets one distinct device: documentary chapter band and field strip on Home, vertical operating timeline on Projects, featured current issue plus ruled archive on Field Notes. Links stays deliberately quieter. Graphic devices remain decorative to assistive technology and may never obscure content or create horizontal overflow.
+
 ## Components
 
 - Header: quiet sticky navigation, visible focus, 44px mobile hit areas, skip link
@@ -48,7 +54,7 @@ Motion is subtle and optional. Use opacity and transform only. Remove particles,
 
 ## Imagery
 
-Use Ac's real photography. Serve responsive AVIF and WebP sources with explicit dimensions and sensible crops. Above-fold imagery receives fetch priority; below-fold imagery loads lazily.
+Use Ac's real photography. Serve responsive AVIF and WebP sources with explicit dimensions and sensible crops. Above-fold imagery receives fetch priority; below-fold imagery loads lazily. Documentary strips become a single readable column on narrow screens rather than shrinking into illegible thumbnails.
 
 ## Anti-patterns
 

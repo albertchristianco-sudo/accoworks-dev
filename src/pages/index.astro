@@ -38,7 +38,15 @@ const life = [
       </div>
     </div>
     <aside class="hero-aside" aria-label="From the field">
+      <div class="photo-registration" aria-hidden="true">
+        <span>Field log 01</span>
+        <span>CEB · PH</span>
+      </div>
       <figure class="portrait-frame">
+        <span class="crop-mark crop-mark--tl" aria-hidden="true"></span>
+        <span class="crop-mark crop-mark--tr" aria-hidden="true"></span>
+        <span class="crop-mark crop-mark--bl" aria-hidden="true"></span>
+        <span class="crop-mark crop-mark--br" aria-hidden="true"></span>
         <picture>
           <source type="image/avif" srcset="/photo-400.avif 400w, /photo-640.avif 640w, /photo-720.avif 720w, /photo-800.avif 799w" sizes="(max-width: 699px) calc(100vw - 32px), (max-width: 860px) 400px, 360px" />
           <source type="image/webp" srcset="/photo-400.webp 400w, /photo-640.webp 640w, /photo-720.webp 720w, /photo-800.webp 799w" sizes="(max-width: 699px) calc(100vw - 32px), (max-width: 860px) 400px, 360px" />
@@ -50,6 +58,7 @@ const life = [
   </section>
 
   <section class="section" aria-labelledby="notes-heading">
+    <span class="folio-number" aria-hidden="true">02</span>
     <div class="section-head">
       <p class="section-eyebrow"><span class="hash">//</span> field notes</p>
       <div>
@@ -76,7 +85,8 @@ const life = [
     )}
   </section>
 
-  <section class="section" aria-labelledby="build-heading">
+  <section class="section chapter-band" aria-labelledby="build-heading">
+    <span class="folio-number" aria-hidden="true">03</span>
     <div class="section-head">
       <p class="section-eyebrow"><span class="hash">//</span> operating record</p>
       <h2 id="build-heading" class="section-lede">The gym, the affiliate network, the trade business, and the tools behind them.</h2>
@@ -93,9 +103,36 @@ const life = [
         </li>
       ))}
     </ol>
+    <div class="field-strip" aria-label="Scenes from the work">
+      <figure>
+        <picture>
+          <source type="image/avif" srcset="/field-coach-480.avif 480w, /field-coach-720.avif 720w" sizes="(max-width: 699px) calc(100vw - 32px), 33vw" />
+          <source type="image/webp" srcset="/field-coach-480.webp 480w, /field-coach-720.webp 720w" sizes="(max-width: 699px) calc(100vw - 32px), 33vw" />
+          <img src="/field-coach-480.webp" alt="Ac coaching at a CrossFit event" width="480" height="480" loading="lazy" decoding="async" />
+        </picture>
+        <figcaption><span>01</span> Coach</figcaption>
+      </figure>
+      <figure>
+        <picture>
+          <source type="image/avif" srcset="/photo-400.avif 400w, /photo-640.avif 640w, /photo-720.avif 720w" sizes="(max-width: 699px) calc(100vw - 32px), 33vw" />
+          <source type="image/webp" srcset="/photo-400.webp 400w, /photo-640.webp 640w, /photo-720.webp 720w" sizes="(max-width: 699px) calc(100vw - 32px), 33vw" />
+          <img src="/photo-400.webp" alt="Ac moving a weighted sled during a Hyrox race" width="400" height="531" loading="lazy" decoding="async" />
+        </picture>
+        <figcaption><span>02</span> Train</figcaption>
+      </figure>
+      <figure>
+        <picture>
+          <source type="image/avif" srcset="/field-build-480.avif 480w, /field-build-720.avif 720w" sizes="(max-width: 699px) calc(100vw - 32px), 33vw" />
+          <source type="image/webp" srcset="/field-build-480.webp 480w, /field-build-720.webp 720w" sizes="(max-width: 699px) calc(100vw - 32px), 33vw" />
+          <img src="/field-build-480.webp" alt="Flame & Finish website showing architectural materials stocked in Cebu" width="480" height="315" loading="lazy" decoding="async" />
+        </picture>
+        <figcaption><span>03</span> Build</figcaption>
+      </figure>
+    </div>
   </section>
 
   <section class="section" aria-labelledby="gym-heading">
+    <span class="folio-number" aria-hidden="true">04</span>
     <div class="section-head">
       <p class="section-eyebrow"><span class="hash">//</span> in the gym</p>
       <div>
@@ -114,6 +151,7 @@ const life = [
   </section>
 
   <section class="section" aria-labelledby="life-heading">
+    <span class="folio-number" aria-hidden="true">05</span>
     <div class="section-head">
       <p class="section-eyebrow"><span class="hash">//</span> off the clock</p>
       <h2 id="life-heading" class="section-lede">Family first. Then dice, Azeroth, and whatever problem refuses to leave my head.</h2>
@@ -130,6 +168,7 @@ const life = [
   </section>
 
   <section class="section" aria-labelledby="coaching-heading">
+    <span class="folio-number" aria-hidden="true">06</span>
     <div class="coaching-cta">
       <div>
         <p class="section-eyebrow"><span class="hash">//</span> coaching</p>

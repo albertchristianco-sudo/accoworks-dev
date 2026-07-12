@@ -60,7 +60,8 @@ const projects: Project[] = [
   title="Projects | accoworks.dev"
   description="The workbench: ventures, internal systems, and small tools Ac builds across coaching, business, and software."
 >
-  <section class="page-intro">
+  <section class="page-intro page-intro--folio">
+    <span class="page-folio" aria-hidden="true">02 / OPERATIONS</span>
     <p class="kicker">Operating record</p>
     <h1 class="page-title">The workbench.</h1>
     <p class="page-copy">
@@ -73,7 +74,7 @@ const projects: Project[] = [
       <p class="section-eyebrow"><span class="hash">//</span> current systems</p>
       <h2 id="project-list-heading" class="visually-hidden">Current projects and systems</h2>
     </div>
-    <ol class="project-ledger">
+    <ol class="project-ledger project-timeline">
       {projects.map((project, index) => (
         <li class="project-record">
           <div class="project-record__index">{String(index + 1).padStart(2, '0')}</div>
