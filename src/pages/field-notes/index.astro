@@ -8,12 +8,10 @@ const notes = (await getCollection('field-notes'))
 ---
 
 <BaseLayout title="Field Notes | accoworks.dev" description="Notes from training, building, and operating in the real world.">
-  <section class="page-intro reveal">
+  <section class="page-intro field-notes-intro">
     <p class="kicker">Field Notes</p>
-    <h1 class="page-title gradient-title">
-      <span class="gword gword--1" data-word="Training.">Training.</span>
-      <span class="gword gword--2" data-word="Building.">Building.</span>
-      <span class="gword gword--3" data-word="Operating.">Operating.</span>
+    <h1 class="page-title">
+      Training. Building. <span class="accent">Operating.</span>
     </h1>
     <p class="page-copy">
       Observations from the gym floor, the office, and the workbench. Not a blog treadmill. Just a public trail of the work,
@@ -25,7 +23,7 @@ const notes = (await getCollection('field-notes'))
     {notes.length === 0 ? (
       <p class="page-copy">No notes published yet. The workbench is being cleared.</p>
     ) : (
-      <ol class="note-list reveal-stagger">
+      <ol class="note-list">
         {notes.map((note) => (
           <li class="note-item">
             <span class="note-date">

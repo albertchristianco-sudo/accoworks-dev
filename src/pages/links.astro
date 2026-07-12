@@ -54,7 +54,6 @@ const groups: { label: string; links: Link[] }[] = [
     label: 'work with me',
     links: [
       { label: 'Coaching', sub: 'start, compete, or rebuild', href: 'mailto:ac@accoworks.dev?subject=Coaching%20Inquiry', icon: 'mail' },
-      { label: 'AI solutions', sub: 'tools & automation for your business', href: 'mailto:ac@accoworks.dev?subject=AI%20Solutions%20Inquiry', icon: 'mail' },
     ],
   },
 ];
@@ -74,20 +73,20 @@ const go = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wi
 <BaseLayout
   minimalNav
   title="Ac — Links | accoworks.dev"
-  description="Every link in one place: CrossFit Subtero, CrossFit Philippines, Flame & Finish, Field Notes, socials, coaching, and AI solutions. From Ac in Cebu City, Philippines."
+  description="Every link in one place: CrossFit Subtero, CrossFit Philippines, Flame & Finish, Field Notes, socials, and coaching. From Ac in Cebu City, Philippines."
 >
   <section class="bio" aria-label="All links">
-    <header class="bio-head reveal">
+    <header class="bio-head">
       <img class="bio-avatar" src="/avatar.jpg" alt="Ac coaching at a CrossFit event" width="112" height="112" loading="eager" />
       <h1 class="bio-name">Ac</h1>
       <p class="bio-realname">Albert Christian Co</p>
       <p class="bio-tagline">Founder. Builder. <span class="accent">Coach.</span></p>
-      <p class="command-line"><span class="dot"></span>$ whoami — Cebu City, Philippines</p>
+      <p class="bio-location">Cebu City, Philippines</p>
     </header>
 
     {groups.map((group) => (
-      <section class="link-group reveal">
-        <p class="group-label"><span class="hash">//</span> {group.label}</p>
+      <section class="link-group">
+        <h2 class="group-label"><span class="hash">//</span> {group.label}</h2>
         <div class="link-list">
           {group.links.map((link) => (
             <a

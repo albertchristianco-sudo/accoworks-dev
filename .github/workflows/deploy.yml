@@ -19,6 +19,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm test
+      - run: npx astro check
       - run: npm run build
       - run: npx wrangler pages deploy dist --project-name landing-page --branch main
         env:

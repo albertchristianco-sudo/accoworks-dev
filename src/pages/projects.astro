@@ -3,49 +3,55 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 type Project = {
   name: string;
-  tag: string;
-  desc: string;
-  stack?: string;
+  status: string;
+  scope: string;
+  outcome: string;
+  stack: string;
+  access: string;
   link?: { href: string; label: string };
 };
 
 const projects: Project[] = [
   {
     name: 'accoworks.dev',
-    tag: 'Open source',
-    desc: 'This site. Static-first personal site with a dark theme and a few React islands. Zero JS shipped where it is not needed.',
-    stack: 'Astro · React · Cloudflare Pages',
-    link: { href: 'https://github.com/albertchristianco-sudo/accoworks-dev', label: 'View source' },
+    status: 'Live · Open source',
+    scope: 'Personal site and publishing system',
+    outcome: 'Publishes Field Notes and gives Ac’s coaching, operating, and building work one public front door.',
+    stack: 'Astro · MDX · Cloudflare Pages',
+    access: 'Public',
+    link: { href: 'https://github.com/albertchristianco-sudo/accoworks-dev', label: 'View public source' },
   },
   {
     name: 'Cortex Orchestrator',
-    tag: 'Lab',
-    desc: 'An orchestration layer for running and coordinating coding agents across parallel lanes, with shared context and guardrails.',
-    stack: 'Agents · TypeScript',
+    status: 'Active · Private',
+    scope: 'Approval-gated agent operations',
+    outcome: 'Keeps consequential agent actions behind explicit approval before execution.',
+    stack: 'Python · LangGraph',
+    access: 'Private system',
   },
   {
     name: 'Life Dashboard',
-    tag: 'Lab',
-    desc: 'A personal operations dashboard that pulls training, business, and the day-to-day into one honest view.',
-    stack: 'Web · automation',
-  },
-  {
-    name: 'Claude Statusbar',
-    tag: 'Tool',
-    desc: 'A status line for agent coding sessions. Small quality-of-life tooling for the way I actually work.',
-    stack: 'CLI · TypeScript',
+    status: 'In progress · Local',
+    scope: 'Personal operations dashboard',
+    outcome: 'Version 0.1 renders 2 of 8 planned adapters into one local view of training, business, and daily operations.',
+    stack: 'Python · Static web',
+    access: 'Local only',
   },
   {
     name: 'Flame & Finish systems',
-    tag: 'Internal',
-    desc: 'Inventory, ordering, and reporting for the building materials business, plus a custom catalogue theme for the storefront.',
-    stack: 'WordPress · Python · accounting sync',
+    status: 'Active · Internal',
+    scope: 'Trade operations',
+    outcome: 'Keeps inventory, ordering, reporting, and storefront work inside systems built for the trade business.',
+    stack: 'Django · WordPress · Automation',
+    access: 'Business internal',
   },
   {
     name: 'Gym programming automation',
-    tag: 'Internal',
-    desc: 'Tools that draft and push CrossFit and Hyrox programming into coaching platforms, so the writing stays human and the entry stays fast.',
-    stack: 'APIs · scripting',
+    status: 'Active · Internal',
+    scope: 'Coaching operations',
+    outcome: 'Reduces repetitive platform entry while keeping programming decisions with the coach.',
+    stack: 'APIs · Python · Scripting',
+    access: 'Coaching internal',
   },
 ];
 ---
@@ -54,72 +60,59 @@ const projects: Project[] = [
   title="Projects | accoworks.dev"
   description="The workbench: ventures, internal systems, and small tools Ac builds across coaching, business, and software."
 >
-  <section class="page-intro grid-hero reveal">
-    <div class="grid-backdrop" aria-hidden="true">
-      <div class="grid-layer grid-layer--base"></div>
-      <div class="grid-layer grid-layer--spot"></div>
-      <div class="grid-blobs"></div>
-    </div>
-    <p class="kicker">accoworks lab</p>
+  <section class="page-intro">
+    <p class="kicker">Operating record</p>
     <h1 class="page-title">The workbench.</h1>
     <p class="page-copy">
-      Some of this ships to customers. Some of it only ever runs for me. All of it exists because a problem would not
-      leave my head. A running list of ventures, internal systems, and small tools.
+      Some of this ships in public. Most of it serves a real operation first. This is a record of what the work is for, what exists now, and what remains private.
     </p>
   </section>
 
-  <section class="section" aria-label="Projects">
-    <ol class="card-grid reveal-stagger">
-      {projects.map((p) => (
-        <li class={`card${p.link ? ' card--link' : ''}`}>
-          <div class="card__top">
-            <span class="tag tag--accent">{p.tag}</span>
-            {p.stack && <span class="card__index">{p.stack}</span>}
+  <section class="section" aria-labelledby="project-list-heading">
+    <div class="section-head section-head--compact">
+      <p class="section-eyebrow"><span class="hash">//</span> current systems</p>
+      <h2 id="project-list-heading" class="visually-hidden">Current projects and systems</h2>
+    </div>
+    <ol class="project-ledger">
+      {projects.map((project, index) => (
+        <li class="project-record">
+          <div class="project-record__index">{String(index + 1).padStart(2, '0')}</div>
+          <div class="project-record__main">
+            <div class="project-record__heading">
+              <div>
+                <p class="project-record__status">{project.status}</p>
+                <h3>{project.name}</h3>
+              </div>
+              <span class="project-record__access">{project.access}</span>
+            </div>
+            <p class="project-record__scope">{project.scope}</p>
+            <p class="project-record__outcome"><span>Outcome</span>{project.outcome}</p>
+            <div class="project-record__footer">
+              <span>{project.stack}</span>
+              {project.link && (
+                <a class="cta-link" href={project.link.href} target="_blank" rel="noopener">
+                  {project.link.label}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+                </a>
+              )}
+            </div>
           </div>
-          <h2 class="card__title">
-            {p.link ? <a class="card__title" href={p.link.href} target="_blank" rel="noopener">{p.name}</a> : p.name}
-          </h2>
-          <p class="card__desc">{p.desc}</p>
-          {p.link && (
-            <p class="card__meta">
-              <a class="cta-link" href={p.link.href} target="_blank" rel="noopener">
-                {p.link.label}
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
-              </a>
-            </p>
-          )}
         </li>
       ))}
     </ol>
   </section>
 
   <section class="section" aria-labelledby="lab-cta">
-    <div class="panel reveal">
+    <div class="coaching-cta">
       <div>
-        <p class="section-eyebrow"><span class="hash">//</span> collaborate</p>
-        <h2 id="lab-cta">Building something adjacent?</h2>
-        <p>Gym software, trade operations, or agent tooling. If it is in my lane and the problem is interesting, I am listening.</p>
+        <p class="section-eyebrow"><span class="hash">//</span> field notes</p>
+        <h2 id="lab-cta">The systems make more sense in context.</h2>
+        <p>Field Notes covers the decisions, trade-offs, and operating lessons behind the work.</p>
       </div>
-      <a class="btn btn--primary" href="mailto:ac@accoworks.dev?subject=Project%20Inquiry">
-        Get in touch
+      <a class="btn btn--primary" href="/field-notes/">
+        Read Field Notes
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
       </a>
     </div>
   </section>
-
-  <script is:inline>
-    (function () {
-      var hero = document.querySelector('.grid-hero');
-      var bg = hero && hero.querySelector('.grid-backdrop');
-      if (!hero || !bg) return;
-      var raf = null, mx = 0, my = 0;
-      function apply() { raf = null; bg.style.setProperty('--mx', mx + 'px'); bg.style.setProperty('--my', my + 'px'); }
-      hero.addEventListener('pointermove', function (e) {
-        var r = bg.getBoundingClientRect();
-        mx = e.clientX - r.left;
-        my = e.clientY - r.top;
-        if (!raf) raf = requestAnimationFrame(apply);
-      });
-    })();
-  </script>
 </BaseLayout>

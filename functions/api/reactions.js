@@ -40,8 +40,9 @@ export async function onRequestPost({ request, env }) {
   }
 
   const slug = typeof body?.slug === 'string' ? body.slug : '';
-  const action = body?.action === 'unlike' ? 'unlike' : 'like';
+  const action = body?.action;
   if (!SLUG_RE.test(slug)) return json({ error: 'bad slug' }, 400);
+  if (action !== 'like' && action !== 'unlike') return json({ error: 'bad action' }, 400);
 
   const current = await readCount(env, slug);
   const next = action === 'unlike' ? Math.max(0, current - 1) : current + 1;
