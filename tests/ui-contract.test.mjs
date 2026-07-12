@@ -118,6 +118,7 @@ test('adds the approved field-manual graphic system without decorating the Links
   assert.match(css, /\.folio-number\s*\{/);
   assert.match(css, /\.chapter-band a:focus-visible/);
   assert.match(css, /\.featured-note a:focus-visible/);
+  assert.match(css, /\.featured-note h2 a\s*\{[^}]*text-decoration:\s*none/);
   assert.doesNotMatch(css, /#E5ECFD|opacity:\s*0\.82/);
   assert.match(home, /field-coach-480\.avif/);
   assert.match(home, /field-build-480\.avif/);

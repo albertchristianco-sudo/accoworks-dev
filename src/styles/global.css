@@ -714,7 +714,7 @@ p { text-wrap: pretty; }
 .featured-note__body { max-width: 760px; }
 .featured-note .tag { color: var(--accent-ink); background: rgba(251, 252, 254, 0.12); border-color: rgba(251, 252, 254, 0.38); }
 .featured-note h2 { max-width: 18ch; margin: 18px 0 14px; font-family: var(--font-display); font-size: clamp(2.4rem, 6vw, 4.8rem); line-height: 0.9; }
-.featured-note h2 a { color: var(--accent-ink); text-decoration-color: rgba(251, 252, 254, 0.55); }
+.featured-note h2 a { color: var(--accent-ink); text-decoration: none; }
 .featured-note p { max-width: 58ch; margin: 0; color: var(--accent-ink); font-size: 1.05rem; }
 .featured-note .cta-link { margin-top: 22px; color: var(--accent-ink); }
 .note-archive { margin-top: clamp(48px, 8vw, 88px); }
