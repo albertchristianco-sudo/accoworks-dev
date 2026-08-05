@@ -153,6 +153,24 @@ body.flat .reveal{opacity:1!important; transform:none!important; transition:none
 }
 :focus-visible{outline:2px solid var(--red); outline-offset:3px}
 
+/* mobile: no snap, no animation, document flow, charts become tables */
+.m-only{display:none}
+@media (max-width:760px){
+  .deck{height:100svh; scroll-snap-type:none}
+  .slide{min-height:0; scroll-snap-align:none; scroll-snap-stop:normal;
+    padding:64px 18px 36px; justify-content:flex-start}
+  .rail{height:40px; font-size:10px}
+  .rail .secs{display:none}
+  .m-only{display:block}
+  .d-only{display:none}
+  .mega{font-size:clamp(44px,13vw,80px)}
+  h2{font-size:clamp(28px,8vw,44px)}
+  .stampbox{font-size:clamp(30px,9.5vw,44px); border-width:2px; padding:8px 16px 4px}
+  table{font-size:12px}
+  th,td{padding:8px 8px}
+  .lane-strip{display:none}
+  .xh{display:none}
+}
 @media print{
   .rail,.grain,.scan{display:none}
   body{background:#0A0A0A; -webkit-print-color-adjust:exact; print-color-adjust:exact}
@@ -272,7 +290,19 @@ body.flat .reveal{opacity:1!important; transform:none!important; transition:none
 <section class="slide" data-sec="evidence">
   <div class="wrap stack">
     <h2 class="reveal">The growth front<br/>runs through Asia<span class="red">.</span></h2>
-    <div class="reveal" style="--i:1">
+    <div class="m-only reveal" style="--i:1">
+      <table aria-label="HYROX Asia-Pacific event participation">
+        <thead><tr><th>City</th><th>Athletes</th></tr></thead>
+        <tbody>
+          <tr><td><b>Melbourne</b></td><td class="n">~21,000 finishers, 2025</td></tr>
+          <tr><td><b>Hong Kong</b></td><td class="n">19,500 racers, May 2026 (~9,600 timed)</td></tr>
+          <tr><td><b>Sydney</b></td><td class="n">17,000+, 2025</td></tr>
+          <tr><td><b>Singapore</b></td><td class="n">14,500, Apr 2026 (13,213 timed)</td></tr>
+          <tr><td><b>Bangkok, Seoul, Perth, Brisbane</b></td><td class="n">6,000-10,000 per event</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="reveal d-only" style="--i:1">
       <div class="hbars" role="img" aria-label="Bar chart of HYROX Asia-Pacific event participation, 2025 to 2026">
         <div class="hbar"><span class="city">Melbourne</span><div class="track"><div class="bar" style="--w:72%"></div><span class="val" style="left:72%">~21,000 finishers, 2025</span></div></div>
         <div class="hbar"><span class="city">Hong Kong</span><div class="track"><div class="bar" style="--w:67%"></div><span class="val" style="left:67%">19,500 racers, May 2026 (~9,600 timed)</span></div></div>
@@ -351,7 +381,20 @@ body.flat .reveal{opacity:1!important; transform:none!important; transition:none
 <section class="slide" data-sec="market">
   <div class="wrap stack">
     <h2 class="reveal">Priced above Subtero.<br/>Settled by deposits<span class="red">.</span></h2>
-    <div class="plane reveal" style="--i:1" role="img" aria-label="Price map of Metro Cebu monthly gym rates, 0 to 6,000 pesos">
+    <div class="m-only reveal" style="--i:1">
+      <table aria-label="Metro Cebu monthly gym price map">
+        <thead><tr><th>Tier</th><th>Monthly</th></tr></thead>
+        <tbody>
+          <tr><td><b>Budget</b> (informal gyms)</td><td class="n">&#8369;600-999</td></tr>
+          <tr><td><b>Mid tier</b> (published)</td><td class="n">&#8369;1,700-2,500</td></tr>
+          <tr><td><b>Big-box chains</b></td><td class="n">&#8369;2,500-4,000</td></tr>
+          <tr><td><b>SUBTERO</b> (your base)</td><td class="n">&#8369;3,000-3,800</td></tr>
+          <tr><td><b>Hybrid club, IT Park</b> (published)</td><td class="n">&#8369;3,750-4,500</td></tr>
+          <tr class="hl"><td><b>THIS CLUB</b> &#8369;650-750/session</td><td class="n">&asymp;&#8369;3,300-4,500 at 5-6x; unlimited &#8369;4,500-5,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="plane reveal d-only" style="--i:1" role="img" aria-label="Price map of Metro Cebu monthly gym rates, 0 to 6,000 pesos">
       <div class="plot">
         <div class="gline" style="left:16.66%"></div><div class="gline" style="left:33.33%"></div>
         <div class="gline" style="left:50%"></div><div class="gline" style="left:66.66%"></div><div class="gline" style="left:83.33%"></div>
@@ -587,6 +630,10 @@ body.flat .reveal{opacity:1!important; transform:none!important; transition:none
   var splitNow=document.getElementById('splitNow');
   document.getElementById('splitTotal').textContent=String(slides.length).padStart(2,'0');
   if(new URLSearchParams(location.search).has('flat')){document.body.classList.add('flat');}
+  var mq=window.matchMedia('(max-width:760px)');
+  function syncFlat(){document.body.classList.toggle('flat',mq.matches||new URLSearchParams(location.search).has('flat'));}
+  syncFlat();
+  if(mq.addEventListener){mq.addEventListener('change',syncFlat);}
   var io=new IntersectionObserver(function(es){
     es.forEach(function(e){
       if(e.isIntersecting){
@@ -597,7 +644,7 @@ body.flat .reveal{opacity:1!important; transform:none!important; transition:none
         secEls.forEach(function(s){s.classList.toggle('on',s.getAttribute('data-sec')===sec);});
       }
     });
-  },{root:deck,threshold:.5});
+  },{root:deck,threshold:.25});
   slides.forEach(function(s){io.observe(s);});
   window.addEventListener('keydown',function(ev){
     if(ev.key!=='ArrowDown'&&ev.key!=='ArrowUp'&&ev.key!=='PageDown'&&ev.key!=='PageUp')return;
