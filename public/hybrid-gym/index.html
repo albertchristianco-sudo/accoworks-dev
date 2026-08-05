@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Subtero Hybrid: Feasibility Dossier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#0A0A0A; --panel:#111111; --panel-2:#161616;
+  --fg:#EAEAEA; --muted:#8F8A88; --faint:#5A5654;
+  --line:#242220; --line-2:#38342F;
+  --red:#E61919; --red-dim:rgba(230,25,25,.14);
+  --green:#4AF626;
+  --bar:#C8CFC8;
+  --display:"Archivo",sans-serif; --mono:"JetBrains Mono",monospace;
+  --pad:clamp(24px,5vw,84px);
+}
+*{margin:0;padding:0;box-sizing:border-box;border-radius:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg); color:var(--fg); font-family:var(--display); -webkit-font-smoothing:antialiased}
+::selection{background:var(--red); color:var(--bg)}
+
+/* analog degradation: fixed, non-scrolling, cheap */
+.grain{position:fixed; inset:0; z-index:60; pointer-events:none; opacity:.055;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.scan{position:fixed; inset:0; z-index:59; pointer-events:none; opacity:.5;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.14) 3px,rgba(0,0,0,.14) 4px)}
+
+.deck{height:100vh; overflow-y:auto; scroll-snap-type:y mandatory}
+.slide{position:relative; min-height:100vh; scroll-snap-align:start; scroll-snap-stop:always;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:clamp(76px,10vh,110px) var(--pad) clamp(52px,7vh,80px); overflow:hidden;
+  border-bottom:1px solid var(--line)}
+.wrap{width:100%; max-width:1300px; margin:0 auto; position:relative}
+
+/* rail */
+.rail{position:fixed; top:0; left:0; right:0; z-index:70; display:flex; align-items:center; gap:20px;
+  padding:0 var(--pad); height:46px; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--faint); background:var(--bg); border-bottom:1px solid var(--line)}
+.rail .secs{display:flex; gap:18px; flex-wrap:nowrap; overflow:hidden}
+.rail .sec.on{color:var(--fg)}
+.rail .split{margin-left:auto; color:var(--muted); white-space:nowrap}
+.rail .split b{color:var(--red); font-weight:700}
+
+/* typography */
+.mega{font-weight:900; font-stretch:125%; text-transform:uppercase; letter-spacing:-.03em; line-height:.88;
+  font-size:clamp(52px,11.5vw,168px)}
+h2{font-weight:900; font-stretch:125%; text-transform:uppercase; letter-spacing:-.025em; line-height:.92;
+  font-size:clamp(32px,5.4vw,80px)}
+.lede{font-size:clamp(15px,1.5vw,20px); line-height:1.55; max-width:64ch; font-weight:400; color:var(--fg)}
+.lede strong{font-weight:700}
+.body-sm{font-size:clamp(13px,1.05vw,15px); line-height:1.6; color:var(--muted); font-weight:400; max-width:72ch}
+.mono{font-family:var(--mono)}
+.tag{font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted)}
+.red{color:var(--red)}
+.src{font-family:var(--mono); font-size:10px; color:var(--faint); line-height:1.7; letter-spacing:.02em; max-width:none}
+.stack>*+*{margin-top:clamp(14px,2.3vh,28px)}
+
+/* 1px-gap grids */
+.gridwrap{background:var(--line); display:grid; gap:1px; border:1px solid var(--line)}
+.g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+@media (max-width:900px){.g3,.g4{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:620px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.cell{background:var(--panel); padding:clamp(16px,1.8vw,26px)}
+.cell--red{background:linear-gradient(180deg,var(--red-dim),var(--panel) 65%)}
+.cell .num{font-weight:900; font-stretch:118%; font-size:clamp(30px,3.8vw,56px); line-height:.9; letter-spacing:-.02em}
+.cell .num .unit{font-size:.42em; color:var(--muted); font-stretch:100%; font-weight:700; margin-left:2px}
+.cell .lab{font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-top:12px}
+.cell .sub{font-size:12.5px; color:var(--muted); margin-top:8px; line-height:1.55}
+.cell .sub b{color:var(--fg); font-weight:600}
+
+/* ledger rows */
+.ledger{border-top:2px solid var(--fg)}
+.lrow{display:grid; grid-template-columns:150px 1fr; gap:18px; padding:14px 0; border-bottom:1px solid var(--line); align-items:baseline}
+@media (max-width:620px){.lrow{grid-template-columns:1fr; gap:6px}}
+.lrow .st{font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.1em}
+.st--ok{color:var(--green)} .st--no{color:var(--red)} .st--dim{color:var(--muted)}
+.lrow p{font-size:clamp(13px,1.15vw,15.5px); line-height:1.5; color:var(--muted)}
+.lrow p b{color:var(--fg); font-weight:600}
+
+/* verdict frame */
+.stampbox{display:inline-block; border:3px solid var(--red); padding:10px 30px 6px;
+  font-weight:900; font-stretch:125%; text-transform:uppercase; letter-spacing:-.02em; line-height:.9;
+  font-size:clamp(44px,8vw,120px); color:var(--red)}
+
+/* bars */
+.hbars{display:flex; flex-direction:column; gap:8px}
+.hbar{display:grid; grid-template-columns:150px 1fr; align-items:center; gap:14px}
+@media (max-width:620px){.hbar{grid-template-columns:96px 1fr}}
+.hbar .city{font-family:var(--mono); font-size:11.5px; letter-spacing:.04em; color:var(--fg); text-align:right; line-height:1.3}
+.hbar .track{position:relative; height:26px; background:var(--panel)}
+.hbar .bar{position:absolute; left:0; top:0; bottom:0; width:0; background:var(--bar); transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.hbar .bar--band{background:transparent; border:1px solid var(--bar)}
+.hbar .val{position:absolute; top:50%; transform:translateY(-50%); font-family:var(--mono);
+  font-size:10.5px; color:var(--muted); white-space:nowrap; padding-left:8px}
+.is-active .hbar .bar{width:var(--w)}
+body.flat .hbar .bar{width:var(--w); transition:none}
+
+/* price lane */
+.plane{border:1px solid var(--line-2); background:var(--panel); padding:16px 16px 6px}
+.plot{position:relative; margin:0 6px}
+.gline{position:absolute; top:0; bottom:22px; width:1px; background:var(--line)}
+.rows{position:relative; margin:10px 0 6px; display:flex; flex-direction:column; gap:8px}
+.prow{position:relative; height:28px}
+.prow .range{position:absolute; top:4px; height:20px; background:var(--bar); opacity:.5}
+.prow .range.own{background:var(--fg); opacity:1}
+.prow .range.anchor{background:var(--bar); opacity:.85}
+.prow .range.you{background:repeating-linear-gradient(45deg,var(--red) 0 6px,rgba(230,25,25,.45) 6px 12px); opacity:1}
+.prow .plab{position:absolute; top:50%; transform:translateY(-50%); font-family:var(--mono);
+  font-size:10.5px; color:var(--fg); white-space:nowrap; padding-left:9px}
+.prow .plab small{color:var(--faint); font-size:9.5px}
+.prow .plab b{font-weight:700}
+.scale{position:relative; height:22px; border-bottom:2px solid var(--fg)}
+.tick{position:absolute; bottom:0; width:1px; height:8px; background:var(--line-2)}
+.tick span{position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+  font-family:var(--mono); font-size:9.5px; color:var(--faint); white-space:nowrap}
+
+/* tables */
+table{width:100%; border-collapse:collapse; font-size:clamp(12px,1.02vw,14px)}
+th{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--muted); text-align:left; padding:9px 12px; border-bottom:2px solid var(--fg); font-weight:500}
+td{padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.45; color:var(--muted)}
+td b{color:var(--fg); font-weight:600}
+td.n{font-family:var(--mono); font-size:.92em; color:var(--fg)}
+tr.hl td{background:var(--red-dim); color:var(--fg)}
+.tbl-note{font-family:var(--mono); font-size:10px; color:var(--faint); margin-top:10px; letter-spacing:.03em; line-height:1.6}
+.tbl-scroll{overflow-x:auto}
+
+/* steps */
+.steps{border-top:2px solid var(--fg)}
+.step{display:grid; grid-template-columns:70px 130px 1fr; gap:18px; padding:16px 0; border-bottom:1px solid var(--line); align-items:baseline}
+@media (max-width:720px){.step{grid-template-columns:50px 1fr}.step .when{grid-column:2}.step .stbody{grid-column:1/-1}}
+.step .n{font-weight:900; font-stretch:120%; font-size:clamp(26px,3vw,40px); line-height:1; color:var(--red)}
+.step .when{font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+.step h3{font-size:15px; font-weight:700; margin-bottom:4px; text-transform:none}
+.step p{font-size:13px; color:var(--muted); line-height:1.55}
+
+/* crosshairs (cover) */
+.xh{position:absolute; font-family:var(--mono); font-size:13px; color:var(--line-2); pointer-events:none}
+
+/* reveal */
+.reveal{opacity:0; transform:translateY(22px); transition:opacity .6s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.16,1,.3,1)}
+.is-active .reveal{opacity:1; transform:none; transition-delay:calc(var(--i,0)*70ms)}
+body.flat .reveal{opacity:1!important; transform:none!important; transition:none}
+@media (prefers-reduced-motion:reduce){
+  .reveal{opacity:1; transform:none; transition:none}
+  .hbar .bar{width:var(--w); transition:none}
+  html{scroll-behavior:auto}
+}
+:focus-visible{outline:2px solid var(--red); outline-offset:3px}
+
+@media print{
+  .rail,.grain,.scan{display:none}
+  body{background:#0A0A0A; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+  .deck{height:auto; overflow:visible}
+  .slide{min-height:0; page-break-after:always; padding:40px 48px}
+  .reveal{opacity:1!important; transform:none!important}
+  .hbar .bar{width:var(--w)}
+}
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<div class="scan" aria-hidden="true"></div>
+
+<nav class="rail" aria-hidden="true">
+  <div class="secs">
+    <span class="sec" data-sec="brief">Brief</span>
+    <span class="sec" data-sec="evidence">Evidence</span>
+    <span class="sec" data-sec="market">Market</span>
+    <span class="sec" data-sec="edge">Edge</span>
+    <span class="sec" data-sec="model">Model</span>
+    <span class="sec" data-sec="decision">Decision</span>
+  </div>
+  <div class="split">SPLIT <b id="splitNow">01</b>/<span id="splitTotal">17</span></div>
+</nav>
+
+<main class="deck" id="deck">
+
+<!-- 01 COVER -->
+<section class="slide" data-sec="brief">
+  <span class="xh" style="top:14%; left:6%">+</span>
+  <span class="xh" style="top:14%; right:6%">+</span>
+  <span class="xh" style="bottom:12%; left:6%">+</span>
+  <span class="xh" style="bottom:12%; right:6%">+</span>
+  <div class="wrap stack">
+    <div class="tag reveal">[ FEASIBILITY DOSSIER, REV 02, AUGUST 2026 ]</div>
+    <h1 class="mega reveal" style="--i:1">Subtero<br/>Hybrid<span class="red">.</span></h1>
+    <p class="lede reveal" style="--i:2">A premium, fully air-conditioned <strong>yoga + hybrid racing club</strong> beside
+      Subtero Underground, Capitol, Cebu City. Independent research, corrected inputs from Ac,
+      a working model, and a verdict.</p>
+    <p class="src reveal" style="--i:3">WORKING TITLE. PREPARED FOR AC, CROSSFIT SUBTERO. SUPERSEDES REV 01 AND THE CODEX CONCEPT DECK. FULL EVIDENCE: research/FINDINGS.md</p>
+  </div>
+</section>
+
+<!-- 02 VERDICT -->
+<section class="slide" data-sec="brief">
+  <div class="wrap stack">
+    <div class="tag reveal">THE VERDICT, UP FRONT</div>
+    <div class="reveal" style="--i:1"><span class="stampbox">Conditional Go</span></div>
+    <p class="lede reveal" style="--i:2">The wave is real, the space is next door, and the brand already exists.
+      The two unknowns are <strong>rent terms</strong> and <strong>whether the market pays &#8369;750 a session</strong>.
+      Sign nothing until the presale gate clears.</p>
+    <div class="gridwrap g3 reveal" style="--i:3">
+      <div class="cell">
+        <div class="num">40<span class="unit">to 60</span></div>
+        <div class="lab">Presold before lease</div>
+        <div class="sub">Founding buyers of 25 and 50-session packs at real prices, deposits refundable. Interest is not evidence. Deposits are.</div>
+      </div>
+      <div class="cell">
+        <div class="num">&#8369;350<span class="unit">/sqm cap</span></div>
+        <div class="lab">Rent condition</div>
+        <div class="sub">Expected terms for the unit: &#8369;250-350 per sqm, roughly &#8369;90-125k monthly at 350 sqm, aircon already installed. Walk if the ask lands far above the band.</div>
+      </div>
+      <div class="cell">
+        <div class="num">&lt;30<span class="unit">%</span></div>
+        <div class="lab">Wallet-share guard</div>
+        <div class="sub">Founders who are current Subtero members downgrading or splitting spend. Above that, this is reshuffling, not growth.</div>
+      </div>
+    </div>
+    <p class="src reveal" style="--i:4">WHAT MAKES THIS A NO: UNDER 40 DEPOSITS IN 90 DAYS, OR RENT LANDS FAR ABOVE THE &#8369;250-350/SQM EXPECTATION.</p>
+  </div>
+</section>
+
+<!-- 03 CONCEPT -->
+<section class="slide" data-sec="brief">
+  <div class="wrap stack">
+    <h2 class="reveal">One campus.<br/>Two engines<span class="red">.</span></h2>
+    <div class="gridwrap g2 reveal" style="--i:1">
+      <div class="cell">
+        <div class="lab" style="margin-top:0">Subtero Underground, existing</div>
+        <div class="sub" style="font-size:14px; margin-top:12px"><b>Strength.</b> CrossFit and strength and conditioning stay here, untouched. The technical, barbell-driven door of the campus.</div>
+      </div>
+      <div class="cell cell--red">
+        <div class="lab" style="margin-top:0">The new unit, beside it</div>
+        <div class="sub" style="font-size:14px; margin-top:12px"><b>Engine.</b> Hybrid racing and endurance training plus yoga recovery. Fully air-conditioned, coach-led, capped classes. No barbells, no CrossFit, no S&amp;C. Purely the racing product.</div>
+      </div>
+    </div>
+    <div class="gridwrap g4 reveal" style="--i:2">
+      <div class="cell"><div class="num" style="font-size:clamp(22px,2.4vw,34px)">200-400</div><div class="lab">sqm, air-conditioned</div></div>
+      <div class="cell"><div class="num" style="font-size:clamp(22px,2.4vw,34px)">Capitol</div><div class="lab">Cebu City, beside Underground</div></div>
+      <div class="cell"><div class="num" style="font-size:clamp(22px,2.4vw,34px)">Hybrid</div><div class="lab">session packs, 1 to 50</div></div>
+      <div class="cell"><div class="num" style="font-size:clamp(22px,2.4vw,34px)">Yoga</div><div class="lab">class packs, walk-in open</div></div>
+    </div>
+    <p class="lede reveal" style="--i:3">Priced premium: <strong>&#8369;750 a session, packs sliding to &#8369;600</strong>, against Subtero's
+      &#8369;3,000-3,800 monthly next door. The aircon, the racing format, and the Subtero name carry the step-up. That premium
+      is the hypothesis this dossier exists to test.</p>
+  </div>
+</section>
+
+<!-- 04 THE SPORT -->
+<section class="slide" data-sec="evidence">
+  <div class="wrap stack">
+    <h2 class="reveal">650 to 2,000,000<br/>in nine seasons<span class="red">.</span></h2>
+    <p class="body-sm reveal" style="--i:1">HYROX: 8 one-kilometer runs alternating with 8 fixed stations, identical worldwide,
+      so every finish time is a global benchmark. It sits between a road race and CrossFit. Anyone who trains can finish it.</p>
+    <div class="gridwrap g4">
+      <div class="cell reveal" style="--i:2"><div class="num">650</div><div class="lab">2017</div><div class="sub">One race, Hamburg.</div></div>
+      <div class="cell reveal" style="--i:3"><div class="num">175<span class="unit">k</span></div><div class="lab">2023</div><div class="sub">65 races worldwide.</div></div>
+      <div class="cell reveal" style="--i:4"><div class="num">779<span class="unit">k</span></div><div class="lab">2025 finishers</div><div class="sub">89 events, independent tally. HYROX's own season figure: about 550k.</div></div>
+      <div class="cell cell--red reveal" style="--i:5"><div class="num">2<span class="unit">M+</span></div><div class="lab">2026-27 expected</div><div class="sub">107 race weekends, six continents. Organizer projection.</div></div>
+    </div>
+    <p class="src reveal" style="--i:6">SOURCES: HYROX.COM, HYBRID FITNESS MEDIA SCORECARD JAN 2026, BOXLIFE SEASON 9 ANNOUNCEMENT. ORGANIZER-STATED FIGURES FLAGGED.</p>
+  </div>
+</section>
+
+<!-- 05 ASIA -->
+<section class="slide" data-sec="evidence">
+  <div class="wrap stack">
+    <h2 class="reveal">The growth front<br/>runs through Asia<span class="red">.</span></h2>
+    <div class="reveal" style="--i:1">
+      <div class="hbars" role="img" aria-label="Bar chart of HYROX Asia-Pacific event participation, 2025 to 2026">
+        <div class="hbar"><span class="city">Melbourne</span><div class="track"><div class="bar" style="--w:72%"></div><span class="val" style="left:72%">~21,000 finishers, 2025</span></div></div>
+        <div class="hbar"><span class="city">Hong Kong</span><div class="track"><div class="bar" style="--w:67%"></div><span class="val" style="left:67%">19,500 racers, May 2026 (~9,600 timed)</span></div></div>
+        <div class="hbar"><span class="city">Sydney</span><div class="track"><div class="bar" style="--w:58%"></div><span class="val" style="left:58%">17,000+, 2025</span></div></div>
+        <div class="hbar"><span class="city">Singapore</span><div class="track"><div class="bar" style="--w:50%"></div><span class="val" style="left:50%">14,500, Apr 2026 (13,213 timed)</span></div></div>
+        <div class="hbar"><span class="city">Bangkok, Seoul,<br/>Perth, Brisbane</span><div class="track"><div class="bar bar--band" style="--w:34%"></div><span class="val" style="left:34%">6,000-10,000 band per event</span></div></div>
+      </div>
+    </div>
+    <div class="gridwrap g3">
+      <div class="cell reveal" style="--i:2"><div class="num">250<span class="unit">k</span></div><div class="lab">AirAsia APAC target, 2026</div><div class="sub">Title partner target across 15 APAC cities.</div></div>
+      <div class="cell reveal" style="--i:3"><div class="num">3</div><div class="lab">New APAC markets, 2026</div><div class="sub">Taipei (Feb), Jakarta (Jun), Kuala Lumpur (Dec).</div></div>
+      <div class="cell reveal" style="--i:4"><div class="num">2&times;</div><div class="lab">Hong Kong year on year</div><div class="sub">Title sponsor Cigna: 2026 participation doubled 2025.</div></div>
+    </div>
+    <p class="src reveal" style="--i:5">SOURCES: HYBRID FITNESS MEDIA SCORECARD, CIGNA HK PRESS RELEASE, AIA HYROX SG COVERAGE, TRAINROX SEASON 9 CALENDAR, SWIMBIKERUN.PH.</p>
+  </div>
+</section>
+
+<!-- 06 PHILIPPINES -->
+<section class="slide" data-sec="evidence">
+  <div class="wrap stack">
+    <h2 class="reveal">On the runway,<br/>not on the map<span class="red">.</span></h2>
+    <div class="ledger reveal" style="--i:1">
+      <div class="lrow"><span class="st st--ok">[CONFIRMED]</span><p><b>No official PH race.</b> Manila is absent from the confirmed season calendar through end-2026.</p></div>
+      <div class="lrow"><span class="st st--ok">[CONFIRMED]</span><p><b>The groundwork exists.</b> Official @hyroxphi handle secured in 2024, dormant since. Official Training Clubs already operate in Manila, including a national big-box chain (names on file).</p></div>
+      <div class="lrow"><span class="st st--dim">[UNVERIFIED]</span><p><b>Manila race around 2027.</b> TriPhil is evaluating "Hyathlon" for its 2027 national pool, and press reports a larger PH HYROX365 event in planning. No announcement.</p></div>
+      <div class="lrow"><span class="st st--ok">[CONFIRMED]</span><p><b>The category is landing now.</b> Spartan DEKA launched PH on July 28, 2026. BENCH, ATHX, The Hybrid Games, and Sip Plus all ran local comps in 2026.</p></div>
+    </div>
+    <p class="lede reveal" style="--i:2"><strong>The window is the build-up.</strong> When a PH race is announced, every gym pivots
+      to hybrid overnight. The brand that is already the local authority collects the demand.</p>
+    <p class="src reveal" style="--i:3">SOURCES: TRAINROX CALENDAR, INSTAGRAM/HYROXPHI, SWIMBIKERUN.PH, SPARTAN.COM PH, BENCH.COM.PH, ATHXGAMES.COM, THEHYBRIDGAMES.COM, WHENINMANILA.COM.</p>
+  </div>
+</section>
+
+<!-- 07 CEBU -->
+<section class="slide" data-sec="evidence">
+  <div class="wrap stack">
+    <h2 class="reveal">The feeder base<br/>already runs<span class="red">.</span></h2>
+    <div class="gridwrap g4">
+      <div class="cell reveal" style="--i:1"><div class="num">11,529</div><div class="lab">Cebu Marathon 2026</div><div class="sub">Runners from 47 countries, Jan 11, SM Seaside. Up from ~8,800 in 2024.</div></div>
+      <div class="cell reveal" style="--i:2"><div class="num">1,400<span class="unit">+</span></div><div class="lab">IRONMAN 70.3 Lapu-Lapu</div><div class="sub">Continuing: 2026 edition runs Aug 9 at Mactan Newtown.</div></div>
+      <div class="cell reveal" style="--i:3"><div class="num">Feb 28</div><div class="lab">First HYROX event in Cebu</div><div class="sub">HYROX365 Training Club Edition, Hoops Dome. Press flags a larger PH event planned for 2027.</div></div>
+      <div class="cell reveal" style="--i:4"><div class="num">Weekly</div><div class="lab">Run clubs thriving</div><div class="sub">5-10k community runs and a dense local race calendar.</div></div>
+    </div>
+    <p class="lede reveal" style="--i:5">Run-fit endurance athletes convert best to hybrid: the engine is built, the strength layer is missing.
+      Yoga widens the same funnel to the recovery-minded.</p>
+    <p class="src reveal" style="--i:6">SOURCES: CEBU DAILY NEWS, PHILSTAR/FREEMAN, RUNSILOG.COM, AWAKEN OUTDOOR SERIES REGISTRATION.</p>
+  </div>
+</section>
+
+<!-- 08 COMPETITION -->
+<section class="slide" data-sec="market">
+  <div class="wrap stack">
+    <h2 class="reveal">The band is proven.<br/>The fight is product<span class="red">.</span></h2>
+    <div class="gridwrap g2 reveal" style="--i:1">
+      <div class="cell cell--red">
+        <div class="lab" style="margin-top:0">Gym B: an established affiliate nearby, the direct competitor</div>
+        <div class="num" style="font-size:clamp(24px,2.8vw,42px); margin-top:12px">Unpublished</div>
+        <div class="sub">A CrossFit-rooted gym now marketing hybrid class packs to the same CrossFit-adjacent audience, minutes away. Rates not public. This is who the presale has to beat, on product, not on price.</div>
+      </div>
+      <div class="cell">
+        <div class="lab" style="margin-top:0">Gym A: a hybrid club, IT Park, proof of the band</div>
+        <div class="num" style="font-size:clamp(24px,2.8vw,42px); margin-top:12px">&#8369;3,750-4,500<span class="unit">/mo</span></div>
+        <div class="sub">Official HYROX Training Club, opened 2026. Published rates reach &#8369;4,500 monthly and &#8369;800 per drop-in. Its public rate card proves Cebuanos already pay premium for hybrid.</div>
+      </div>
+    </div>
+    <div class="ledger reveal" style="--i:2">
+      <div class="lrow"><span class="st st--ok">[PROVEN]</span><p>Published premium hybrid rates in Cebu already reach <b>&#8369;4,500 a month and &#8369;800 a session</b>. The band is real. The ceiling above it is untested.</p></div>
+      <div class="lrow"><span class="st st--no">[THE FIGHT]</span><p>The direct competition shares the CrossFit lineage and the neighborhood. Win with <b>a dedicated racing product, aircon comfort, yoga, and the campus</b>, never with discounts.</p></div>
+      <div class="lrow"><span class="st st--dim">[POSTURE]</span><p>Cebu hybrid is small and friendly. Names stay out of the pitch: <b>grow the category, win on product.</b></p></div>
+    </div>
+    <p class="src reveal" style="--i:3">SOURCES: PUBLISHED COMPETITOR RATE CARDS AND PUBLIC PAGES, IDENTITIES ON FILE IN research/FINDINGS.md.</p>
+  </div>
+</section>
+
+<!-- 09 PRICE MAP -->
+<section class="slide" data-sec="market">
+  <div class="wrap stack">
+    <h2 class="reveal">Priced above Subtero.<br/>Settled by deposits<span class="red">.</span></h2>
+    <div class="plane reveal" style="--i:1" role="img" aria-label="Price map of Metro Cebu monthly gym rates, 0 to 6,000 pesos">
+      <div class="plot">
+        <div class="gline" style="left:16.66%"></div><div class="gline" style="left:33.33%"></div>
+        <div class="gline" style="left:50%"></div><div class="gline" style="left:66.66%"></div><div class="gline" style="left:83.33%"></div>
+        <div class="rows">
+          <div class="prow"><div class="range" style="left:10%; width:6.7%"></div><span class="plab" style="left:16.7%"><b>Budget</b> &#8369;600-999 <small>(informal gyms)</small></span></div>
+          <div class="prow"><div class="range" style="left:28.3%; width:13.4%"></div><span class="plab" style="left:41.7%"><b>Mid tier</b> &#8369;1,700-2,500 <small>(published)</small></span></div>
+          <div class="prow"><div class="range" style="left:41.6%; width:25%"></div><span class="plab" style="left:66.6%"><b>Big-box chains</b> &#8369;2,500-4,000</span></div>
+          <div class="prow"><div class="range own" style="left:50%; width:13.3%"></div><span class="plab" style="left:63.3%"><b>SUBTERO</b> &#8369;3,000-3,800 <small>(your base)</small></span></div>
+          <div class="prow"><div class="range anchor" style="left:62.5%; width:12.5%"></div><span class="plab" style="left:75%"><b>Hybrid club, IT Park</b> &#8369;3,750-4,500 <small>(published)</small></span></div>
+          <div class="prow"><div class="range you" style="left:55%; width:28.3%"></div><span class="plab" style="left:55%; padding-left:0; transform:translate(calc(-100% - 9px),-50%)"><b class="red">THIS CLUB &#8369;650-750/SESSION</b> <small>&asymp;&#8369;3,300-4,500 at 5-6x, unlimited &#8369;4,500-5,000</small></span></div>
+        </div>
+        <div class="scale">
+          <div class="tick" style="left:0"><span>&#8369;0</span></div>
+          <div class="tick" style="left:16.66%"><span>&#8369;1,000</span></div>
+          <div class="tick" style="left:33.33%"><span>&#8369;2,000</span></div>
+          <div class="tick" style="left:50%"><span>&#8369;3,000</span></div>
+          <div class="tick" style="left:66.66%"><span>&#8369;4,000</span></div>
+          <div class="tick" style="left:83.33%"><span>&#8369;5,000</span></div>
+          <div class="tick" style="left:99.9%"><span>&#8369;6,000</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="gridwrap g2 reveal" style="--i:2">
+      <div class="cell">
+        <div class="lab" style="margin-top:0">The yoga lane</div>
+        <div class="sub" style="font-size:13.5px">Cebu's largest yoga studio (published): <b>&#8369;350 drop-in, &#8369;2,500-3,500 monthly</b>. Cebu drop-ins generally &#8369;200-500. Our packs at <b>&#8369;300-500 per class</b>, open to walk-ins, sit inside the proven band and add a second revenue stream the gym comps ignore.</div>
+      </div>
+      <div class="cell">
+        <div class="lab" style="margin-top:0">The ceiling evidence</div>
+        <div class="sub" style="font-size:13.5px">Manila boutique studios run <b>&#8369;950-1,100 per class</b>; regulars pay &#8369;4,000-10,000+ monthly. Per-class premium group fitness is proven in PH, in richer catchments and at higher prices than ours. Whether &#8369;750 holds as the single-session anchor, only deposits can say.</div>
+      </div>
+    </div>
+    <p class="src reveal" style="--i:3">SOURCES: PUBLISHED RATE CARDS ON FILE (research/FINDINGS.md), SUGBO.PH, ROAMPADS.COM SURVEY NOV 2025, BOOKY.PH, SPOT.PH. SUBTERO BAND: INTERNAL.</p>
+  </div>
+</section>
+
+<!-- 10 THE POOL -->
+<section class="slide" data-sec="market">
+  <div class="wrap stack">
+    <h2 class="reveal">Thin. Real.<br/>Growing<span class="red">.</span></h2>
+    <div class="gridwrap g4">
+      <div class="cell reveal" style="--i:1"><div class="num">0.53<span class="unit">%</span></div><div class="lab">PH gym penetration</div><div class="sub">Share of Filipinos with any gym membership, vs ~3% in comparable LatAm markets.</div></div>
+      <div class="cell reveal" style="--i:2"><div class="num">47.5<span class="unit">%</span></div><div class="lab">Middle-income share</div><div class="sub">Up from 42% in 2012. 31% of Filipinos report spending more on fitness.</div></div>
+      <div class="cell reveal" style="--i:3"><div class="num">1.8<span class="unit">M+</span></div><div class="lab">Metro Cebu core</div><div class="sub">Cebu City 965k, Lapu-Lapu 498k, Mandaue 364k (2024 census).</div></div>
+      <div class="cell reveal" style="--i:4"><div class="num">+3.7<span class="unit">%</span></div><div class="lab">Central Visayas 2025</div><div class="sub">Cooled from +7.3% in 2024, the country's fastest. Supportive, softening.</div></div>
+    </div>
+    <p class="lede reveal" style="--i:5"><strong>The honest arithmetic:</strong> at 0.5-1% penetration, Metro Cebu's entire gym-going
+      population is roughly 9,000-18,000 people. A 160-member club needs about 1% of every gym-goer in the city.
+      Achievable for a strong brand. But this is share capture against named competitors, not a rising tide.</p>
+    <p class="src reveal" style="--i:6">SOURCES: FOXMONT CAPITAL, DSGCP.COM, PSA 2024 CENSUS, PSA RSSO07 GRDP. ARITHMETIC: THIS REPORT'S ESTIMATE.</p>
+  </div>
+</section>
+
+<!-- 11 EDGE -->
+<section class="slide" data-sec="edge">
+  <div class="wrap stack">
+    <h2 class="reveal">What no other gym<br/>holds<span class="red">.</span></h2>
+    <div class="gridwrap g3">
+      <div class="cell reveal" style="--i:1"><div class="lab" style="margin-top:0">Campus adjacency</div><div class="sub" style="font-size:13.5px">The unit sits beside Underground. Shared members walk between doors. No competitor owns two complementary products on one corner.</div></div>
+      <div class="cell reveal" style="--i:2"><div class="lab" style="margin-top:0">Brand and bench</div><div class="sub" style="font-size:13.5px">Subtero's name, community, and an L3-led coaching bench already programming toward HYROX. A 2026 startup has none of this.</div></div>
+      <div class="cell reveal" style="--i:3"><div class="lab" style="margin-top:0">National seat</div><div class="sub" style="font-size:13.5px">Country Manager, CrossFit Philippines: national credibility and a Visayas-Mindanao gym network.</div></div>
+      <div class="cell reveal" style="--i:4"><div class="lab" style="margin-top:0">HYROX APAC line</div><div class="sub" style="font-size:13.5px">Direct relationships with HYROX Asia-Pacific leadership: the warm channel for Training Club status and early race intelligence.</div></div>
+      <div class="cell reveal" style="--i:5"><div class="lab" style="margin-top:0">Event ops record</div><div class="sub" style="font-size:13.5px">Proven ability to stage competitions, race simulations, and community events: the retention layer hybrid clubs live on.</div></div>
+      <div class="cell reveal" style="--i:6"><div class="lab" style="margin-top:0">Campus logic</div><div class="sub" style="font-size:13.5px">Underground builds strength. This room builds engine. Yoga rebuilds. One funnel, two doors, one owner.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 SUBTERO QUESTION -->
+<section class="slide" data-sec="edge">
+  <div class="wrap stack">
+    <h2 class="reveal">Second membership,<br/>not a transfer<span class="red">.</span></h2>
+    <p class="lede reveal" style="--i:1">The quiet failure mode: Underground members downgrade or split spend, revenue moves sideways,
+      fixed costs double. The design fights it, and the presale measures it.</p>
+    <div class="ledger reveal" style="--i:2">
+      <div class="lrow"><span class="st st--ok">[DESIGN]</span><p><b>A different product.</b> Engine, racing, recovery. No barbells, no CrossFit. What this room sells, Underground does not.</p></div>
+      <div class="lrow"><span class="st st--ok">[DESIGN]</span><p><b>A different buyer.</b> Run-club converts, professionals put off by CrossFit's technicality, race-preppers, yoga walk-ins. Marketing never targets the Underground member list.</p></div>
+      <div class="lrow"><span class="st st--no">[GUARD]</span><p><b>Origin-tagged presale.</b> Every deposit tagged: Underground, run club, yoga, cold. Above 30% Underground downgrades: stop, redesign the split before capex.</p></div>
+      <div class="lrow"><span class="st st--dim">[UPSIDE]</span><p><b>The two-way funnel.</b> Race-prep athletes add strength cycles next door. Underground athletes add engine blocks here. Dual memberships raise ARPU across the campus.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 MODEL -->
+<section class="slide" data-sec="model">
+  <div class="wrap stack">
+    <h2 class="reveal">Packs or monthly?<br/>They cross at seven<span class="red">.</span></h2>
+    <div class="gridwrap g2" style="background:transparent; border:none; gap:clamp(14px,1.6vw,24px)">
+      <div class="reveal tbl-scroll" style="--i:1">
+        <table aria-label="Session pack ladder">
+          <thead><tr><th>Pack</th><th>Price</th><th>Per session</th><th>Job</th></tr></thead>
+          <tbody>
+            <tr><td><b>Single</b></td><td class="n">&#8369;750</td><td class="n">&#8369;750</td><td>Try the product. Full price, no friction.</td></tr>
+            <tr><td><b>5 sessions</b></td><td class="n">&#8369;3,600</td><td class="n">&#8369;720</td><td>The curious. Expires in 2 months.</td></tr>
+            <tr class="hl"><td><b>10 sessions</b></td><td class="n">&#8369;7,000</td><td class="n">&#8369;700</td><td>The expected core purchase.</td></tr>
+            <tr><td><b>25 sessions</b></td><td class="n">&#8369;16,500</td><td class="n">&#8369;660</td><td>The regulars. Founding presale tier.</td></tr>
+            <tr><td><b>50 sessions</b></td><td class="n">&#8369;30,000</td><td class="n">&#8369;600</td><td>The committed. Founding presale tier.</td></tr>
+          </tbody>
+        </table>
+        <p class="tbl-note">SINGLE SITS JUST UNDER THE PUBLISHED &#8369;800 DROP-IN ANCHOR. RACE-PREP COHORTS (&#8369;12,000-20,000) AND YOGA PACKS (&#8369;300-500) RIDE ON TOP. EXACT LADDER PRICES ARE THE PRESALE'S JOB TO SETTLE.</p>
+      </div>
+      <div class="reveal tbl-scroll" style="--i:2">
+        <table aria-label="Monthly scenario model, session-pack basis">
+          <thead><tr><th>Monthly</th><th>Bear</th><th>Base</th><th>Bull</th></tr></thead>
+          <tbody>
+            <tr><td>Paid hybrid sessions</td><td class="n">600</td><td class="n">1,080</td><td class="n">1,500</td></tr>
+            <tr><td>Blended rate</td><td class="n">&#8369;700</td><td class="n">&#8369;675</td><td class="n">&#8369;650</td></tr>
+            <tr><td>Hybrid revenue</td><td class="n">&#8369;420k</td><td class="n">&#8369;729k</td><td class="n">&#8369;975k</td></tr>
+            <tr><td>Yoga pack revenue</td><td class="n">&#8369;30k</td><td class="n">&#8369;70k</td><td class="n">&#8369;120k</td></tr>
+            <tr><td>Opex (rent, utilities, staff)</td><td class="n">&#8369;300k</td><td class="n">&#8369;325k</td><td class="n">&#8369;350k</td></tr>
+            <tr><td>Lean-capex amortization</td><td class="n">&#8369;27k</td><td class="n">&#8369;27k</td><td class="n">&#8369;27k</td></tr>
+            <tr class="hl"><td><b>Operating margin</b></td><td class="n"><b>+&#8369;123k</b></td><td class="n"><b>+&#8369;447k (56%)</b></td><td class="n"><b>+&#8369;718k</b></td></tr>
+          </tbody>
+        </table>
+        <p class="tbl-note">ESTIMATE ON AC'S INPUTS: OPEX &#8369;300-350K, RENT &#8369;250-350/SQM, AIRCON INHERITED, &#8369;1.6M LEAN EQUIPMENT OVER 5 YEARS. SCALE CHECK: 6 CLASSES A DAY, CAP 15, 26 DAYS = ~2,340 SEATS; BEAR IS 26% FILL, BASE 46%, BULL 64%. MARGINS MODEL ABOVE BOUTIQUE NORMS; TREAT THE EXCESS AS CUSHION.</p>
+      </div>
+    </div>
+    <div class="reveal tbl-scroll" style="--i:3">
+      <table aria-label="Side by side: session packs versus monthly unlimited">
+        <thead><tr><th style="width:22%">Side by side</th><th style="width:39%">Session packs, &#8369;750 anchor</th><th>Monthly unlimited, &#8369;4,500-5,000</th></tr></thead>
+        <tbody>
+          <tr><td><b>Base month</b></td><td class="n">1,080 sessions at &#8369;675 = &#8369;729k</td><td class="n">160 members at &#8369;4,800 = &#8369;768k</td></tr>
+          <tr><td><b>Break-even</b></td><td class="n">~520 sessions, 20 seats a day</td><td class="n">~73 members</td></tr>
+          <tr><td><b>Per-seat yield</b></td><td>&#8369;650-750 every visit, any frequency</td><td>&#8369;400 a seat at 3x a week, &#8369;1,200 at 1x a week</td></tr>
+          <tr><td><b>The trade</b></td><td>Revenue follows attendance; 25/50 packs prepay cash</td><td>Predictable recurring; 4-7% monthly churn risk</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="lede reveal" style="--i:4"><strong>Below 7 sessions a month packs collect more; above it the membership does.</strong>
+      Launch packs first at &#8369;750, presell a founding unlimited beside them, and let the deposit mix decide.</p>
+    <p class="src reveal" style="--i:4">OPEX, RENT, AND PRICING INTENT: AC'S INPUTS. BENCHMARKS: GLOFOX/ABC 2025, TWO-BRAIN BUSINESS 2025. BACKGROUND: FINDINGS.MD TRACK 4.</p>
+  </div>
+</section>
+
+<!-- 14 CAPEX -->
+<section class="slide" data-sec="model">
+  <div class="wrap stack">
+    <h2 class="reveal">Lean proves it.<br/>Full scales it<span class="red">.</span></h2>
+    <div class="reveal tbl-scroll" style="--i:1">
+      <table aria-label="Capex scenarios, lean versus full build">
+        <thead><tr><th>Line (PH vendor prices)</th><th>Lean build</th><th>Full build</th></tr></thead>
+        <tbody>
+          <tr><td><b>Treadmills</b> (&#8369;100-130k per unit, Ac's sourcing)</td><td class="n">4 units, &#8369;0.5M</td><td class="n">8 units, &#8369;0.9M</td></tr>
+          <tr><td><b>Ergs</b> (RowErg &#8369;80-90k, SkiErg &#8369;90-110k, Ac's channels; retail runs &#8369;111-140k)</td><td class="n">4+4, &#8369;0.7M</td><td class="n">6+6, &#8369;1.1M</td></tr>
+          <tr><td><b>Sleds, turf lane, wall balls, KBs, sandbags</b></td><td class="n">&#8369;0.4M</td><td class="n">&#8369;0.7M</td></tr>
+          <tr class="hl"><td><b>Equipment total</b></td><td class="n"><b>&asymp; &#8369;1.6M</b></td><td class="n"><b>&asymp; &#8369;2.7M</b></td></tr>
+        </tbody>
+      </table>
+      <p class="tbl-note">EQUIPMENT ONLY, THE SCOPE AC IS PITCHING. PRICED ON AC'S CHINA EQUIPMENT-PROVIDER CHANNEL, CROSS-CHECKED AGAINST PH RETAIL (THERACK.CO, METCONGROUPPH.COM, ALLOUTFITNESSPH.COM); LANDED COSTS LIKELY COME IN UNDER THESE BANDS. AIRCON IS INHERITED WITH THE UNIT; A SERVICE ASSESSMENT STILL COMES BEFORE ANY GO.</p>
+    </div>
+    <div class="gridwrap g2 reveal" style="--i:2">
+      <div class="cell">
+        <div class="lab" style="margin-top:0">The rule</div>
+        <div class="sub" style="font-size:13.5px"><b>Lean until the presale clears.</b> Full build only on waitlist evidence: a lean floor that sells out is the only argument for four more treadmills.</div>
+      </div>
+      <div class="cell">
+        <div class="lab" style="margin-top:0">HYROX affiliation</div>
+        <div class="sub" style="font-size:13.5px">Training Club license reported at <b>~US$130 monthly</b> (~US$1,500 a year): marketing rights, official finder listing, race sims. No equipment quota. Confirm PH terms in the application flow.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 15 RISKS -->
+<section class="slide" data-sec="decision">
+  <div class="wrap stack">
+    <h2 class="reveal">Tripwires,<br/>not paragraphs<span class="red">.</span></h2>
+    <div class="reveal tbl-scroll" style="--i:1">
+      <table aria-label="Risk register with signals and responses">
+        <thead><tr><th style="width:25%">Risk</th><th style="width:34%">Signal</th><th>Response</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td><b>Premium ceiling unproven</b></td><td>Under 40 founding-pack buyers in 90 days on the &#8369;650-750 ladder</td><td><b>Kill</b>, or deepen pack discounts. The published &#8369;800 drop-in anchor already sits above our single.</td></tr>
+          <tr><td><b>Rent lands above the band</b></td><td>Terms above the expected &#8369;250-350/sqm</td><td>Renegotiate, shrink the footprint, or hold. Never sign on projected members.</td></tr>
+          <tr><td><b>Wallet-share cannibalization</b></td><td>Over 30% of founders are Underground downgrades</td><td>Stop. Redesign the product split before capex.</td></tr>
+          <tr><td><b>Inherited aircon underperforms</b></td><td>Unit cannot hold temperature at class load, or power bills spike past ~&#8369;90k</td><td>Service assessment before opening, zoning and off-peak scheduling, replacement reserve in the budget.</td></tr>
+          <tr><td><b>A competitor formalizes hybrid</b></td><td>Dedicated hybrid space, program, or pricing push at the same audience</td><td>Ship first. Own the racing calendar, race-prep cohorts, and visible coaching quality. No discount war.</td></tr>
+          <tr><td><b>PH race never lands</b></td><td>No announcement through 2027</td><td>The club stands on training value. Race prep stays upside, never the base case.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 16 THE GATE -->
+<section class="slide" data-sec="decision">
+  <div class="wrap stack">
+    <h2 class="reveal">Presell it<br/>before you sign it<span class="red">.</span></h2>
+    <div class="steps reveal" style="--i:1">
+      <div class="step"><span class="n">01</span><span class="when">Weeks 1-4</span><div class="stbody"><h3>Pop-up sessions under the new brand</h3><p>Hybrid classes at Underground or a short-term room at real prices (&#8369;500-750 a session, yoga at &#8369;300-500). Free classes validate nothing.</p></div></div>
+      <div class="step"><span class="n">02</span><span class="when">Weeks 2-8</span><div class="stbody"><h3>Founding presale</h3><p>40-60 founding buyers of 25 and 50-session packs at founding rates, deposits refundable. Every deposit origin-tagged: Underground, run club, yoga, cold.</p></div></div>
+      <div class="step"><span class="n">03</span><span class="when">Weeks 1-6</span><div class="stbody"><h3>Study the market, price the build</h3><p>Visit the competing gyms and studios as a customer. Price the equipment list through the China channel, book the aircon service assessment, and write the differentiation memo from evidence.</p></div></div>
+      <div class="step"><span class="n">04</span><span class="when">Weeks 8-12</span><div class="stbody"><h3>Decide on numbers</h3><p>Gate passed: lock rent terms, order the lean build, set the open date. Gate failed: walk away, keep the presale list and the brand equity.</p></div></div>
+    </div>
+    <p class="lede reveal" style="--i:2"><strong>The gate:</strong> 40+ founding pack buyers, under 30% Underground overlap, rent inside
+      the &#8369;250-350/sqm expectation. Pass all three and this becomes a build order, not a bet.</p>
+  </div>
+</section>
+
+<!-- 17 DECISION + SOURCES -->
+<section class="slide" data-sec="decision">
+  <span class="xh" style="bottom:10%; left:6%">+</span>
+  <span class="xh" style="bottom:10%; right:6%">+</span>
+  <div class="wrap stack">
+    <h2 class="reveal">Real wave. Owned corner.<br/><span class="red">Presell first.</span></h2>
+    <div class="gridwrap g2 reveal" style="--i:1">
+      <div class="cell">
+        <div class="lab" style="margin-top:0">Why go</div>
+        <div class="sub" style="font-size:13.5px; line-height:1.6">The sport is heading to a 2M+ athlete season with Asia as its growth front. Cebu's feeder base is proven and already raced a HYROX-branded event. The space is beside your own gym, the brand is yours, and the model breaks even near 520 paid sessions a month, about 20 seats a day, on two revenue streams. Nobody else in Cebu holds the campus, the bench, and the APAC line together.</div>
+      </div>
+      <div class="cell">
+        <div class="lab" style="margin-top:0">Why the gate is mandatory</div>
+        <div class="sub" style="font-size:13.5px; line-height:1.6">Published premium rates in Cebu top out near &#8369;4,500 a month and &#8369;800 a session, and the ceiling above is untested. The unit's rent terms are not signed. The gym-going pool is 0.53% of the population, the regional economy cooled in 2025, and a nearby affiliate is chasing the same audience. Deposits, terms, and origin tags settle the unknowns for about &#8369;150k.</div>
+      </div>
+    </div>
+    <p class="lede reveal" style="--i:2"><strong>Next action:</strong> set the date for pop-up session one and open the founding list.
+      Everything else waits behind the gate.</p>
+    <div class="gridwrap g3 reveal" style="--i:3">
+      <div class="cell"><div class="lab" style="margin-top:0">Sport + APAC</div><div class="src">hyrox.com, Cigna HK PR, alvinology (AIA SG), Hybrid Fitness Media, trainrox S9, BoxLife, Turf Games, swimbikerun.ph</div></div>
+      <div class="cell"><div class="lab" style="margin-top:0">PH + Cebu</div><div class="src">PSA + RSSO07, Foxmont, befit.ph, published competitor and studio rate cards (identities on file), Cebu Daily News, Philstar/Freeman, sugbo.ph, roampads, spartan.com PH, Lamudi/OnePropertee Capitol listings</div></div>
+      <div class="cell"><div class="lab" style="margin-top:0">Economics</div><div class="src">therack.co, metcongroupph.com, alloutfitnessph.com, decoturf.com.ph, Carousell/Lazada treadmills, Colliers PH, Glofox/ABC 2025, Two-Brain 2025, wodify.com, ninjathlete</div></div>
+    </div>
+    <p class="src reveal" style="--i:4">CLAIM AUDIT VS CODEX DECK: HK 20K CONFIRMED (ORGANIZER COUNT), SG 14.5K CONFIRMED, 550K ATHLETES CONFIRMED, LAPU-LAPU HYROX365 CONFIRMED (TRAINING-CLUB EDITION), MANILA 2027 UNVERIFIED, COMPETITOR PREMIUM RATES CONFIRMED AND LOCATED IN CEBU. FULL TRAIL: research/FINDINGS.md</p>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var deck=document.getElementById('deck');
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var secEls=[].slice.call(document.querySelectorAll('.rail .sec'));
+  var splitNow=document.getElementById('splitNow');
+  document.getElementById('splitTotal').textContent=String(slides.length).padStart(2,'0');
+  if(new URLSearchParams(location.search).has('flat')){document.body.classList.add('flat');}
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(e.isIntersecting){
+        e.target.classList.add('is-active');
+        var i=slides.indexOf(e.target);
+        if(i>-1){splitNow.textContent=String(i+1).padStart(2,'0');}
+        var sec=e.target.getAttribute('data-sec');
+        secEls.forEach(function(s){s.classList.toggle('on',s.getAttribute('data-sec')===sec);});
+      }
+    });
+  },{root:deck,threshold:.5});
+  slides.forEach(function(s){io.observe(s);});
+  window.addEventListener('keydown',function(ev){
+    if(ev.key!=='ArrowDown'&&ev.key!=='ArrowUp'&&ev.key!=='PageDown'&&ev.key!=='PageUp')return;
+    ev.preventDefault();
+    var cur=Math.round(deck.scrollTop/window.innerHeight);
+    var next=cur+((ev.key==='ArrowDown'||ev.key==='PageDown')?1:-1);
+    next=Math.max(0,Math.min(slides.length-1,next));
+    slides[next].scrollIntoView({behavior:'smooth'});
+  });
+  window.addEventListener('beforeprint',function(){document.body.classList.add('flat');});
+})();
+</script>
+</body>
+</html>
