@@ -10,7 +10,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 >
   <section class="intake" aria-label="Remote coaching intake">
     <header class="intake-head">
-      <p class="kicker">Remote coaching</p>
       <p class="slot-flag"><span class="slot-dot" aria-hidden="true"></span><span class="slot-text">1 slot open for remote personalized coaching</span></p>
       <h1 class="intake-title">One athlete.<span class="accent">One program.</span></h1>
       <div class="intake-copy">
@@ -21,53 +20,74 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       </div>
     </header>
 
+    <div class="intake-offer">
+      <p class="offer-figure">$150 <span class="offer-unit offer-unit--prose">USD per month</span></p>
+      <span class="offer-unit offer-unit--prose">≈ ₱9,300 per month</span>
+      <p class="offer-terms">3-month commitment.</p>
+    </div>
+
     <form class="intake-form" id="intake-form" novalidate>
-      <div class="field-row">
-        <div class="field">
-          <label for="in-name">Name <span class="req" aria-hidden="true">*</span></label>
-          <input id="in-name" name="name" type="text" autocomplete="name" required maxlength="200" />
+      <fieldset class="fgroup">
+        <legend>Who you are</legend>
+        <div class="fgroup-fields">
+          <div class="field-row">
+            <div class="field">
+              <label for="in-name">Name</label>
+              <input id="in-name" name="name" type="text" autocomplete="name" required maxlength="200" />
+            </div>
+            <div class="field">
+              <label for="in-email">Email</label>
+              <input id="in-email" name="email" type="email" autocomplete="email" required maxlength="200" />
+            </div>
+          </div>
         </div>
-        <div class="field">
-          <label for="in-email">Email <span class="req" aria-hidden="true">*</span></label>
-          <input id="in-email" name="email" type="email" autocomplete="email" required maxlength="200" />
+      </fieldset>
+
+      <fieldset class="fgroup">
+        <legend>Where you are</legend>
+        <div class="fgroup-fields">
+          <div class="field">
+            <label for="in-experience">Experience level</label>
+            <select id="in-experience" name="experience">
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate" selected>Intermediate</option>
+              <option value="Advanced">Advanced</option>
+              <option value="Competitive athlete">Competitive athlete</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="in-training">Current training</label>
+            <textarea id="in-training" name="training" required maxlength="2000" placeholder="Current training load, and any injuries or limitations."></textarea>
+          </div>
         </div>
-      </div>
+      </fieldset>
 
-      <div class="field">
-        <label for="in-experience">Experience level</label>
-        <select id="in-experience" name="experience">
-          <option value="Beginner">Beginner</option>
-          <option value="Intermediate" selected>Intermediate</option>
-          <option value="Advanced">Advanced</option>
-          <option value="Competitive athlete">Competitive athlete</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label for="in-training">Current training <span class="req" aria-hidden="true">*</span></label>
-        <textarea id="in-training" name="training" required maxlength="2000" placeholder="Current training load, and any injuries or limitations."></textarea>
-      </div>
-
-      <div class="field">
-        <label for="in-goal">Goal <span class="req" aria-hidden="true">*</span></label>
-        <textarea id="in-goal" name="goal" required maxlength="2000" placeholder="What do you want to achieve?"></textarea>
-      </div>
-
-      <div class="field">
-        <label for="in-why">Why me</label>
-        <textarea id="in-why" name="why" maxlength="2000" placeholder="Why do you want to work with me?"></textarea>
-      </div>
+      <fieldset class="fgroup">
+        <legend>What you want</legend>
+        <div class="fgroup-fields">
+          <div class="field">
+            <label for="in-goal">Goal</label>
+            <textarea id="in-goal" name="goal" required maxlength="2000" placeholder="What do you want to achieve?"></textarea>
+          </div>
+          <div class="field">
+            <label for="in-why"><span>Why me</span><span class="opt">Optional</span></label>
+            <textarea id="in-why" name="why" maxlength="2000" placeholder="Why do you want to work with me?"></textarea>
+          </div>
+        </div>
+      </fieldset>
 
       <div class="field visually-hidden" aria-hidden="true">
         <label for="in-company">Company</label>
         <input id="in-company" name="company" type="text" tabindex="-1" autocomplete="off" />
       </div>
 
-      <button class="btn btn--primary" type="submit" data-submit>Apply for the slot</button>
-      <p class="form-status" data-status role="status" aria-live="polite"></p>
+      <div class="intake-submit">
+        <button class="btn btn--primary btn--submit" type="submit" data-submit>Apply for the slot</button>
+        <p class="form-status" data-status role="status" aria-live="polite"></p>
+      </div>
     </form>
 
-    <div class="intake-done" data-done hidden>
+    <div class="intake-done" data-done hidden tabindex="-1">
       <h2>Received.</h2>
       <p>I will reply within 48 hours. If it is a fit, we start with a call.</p>
     </div>
