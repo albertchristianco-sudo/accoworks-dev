@@ -15,6 +15,7 @@ interface Props {
   image?: string;
   ogType?: string;
   minimalNav?: boolean;
+  noindex?: boolean;
 }
 
 const {
@@ -23,6 +24,7 @@ const {
   image = '/og.png',
   ogType = 'website',
   minimalNav = false,
+  noindex = false,
 } = Astro.props;
 
 const site = Astro.site ?? new URL('https://accoworks.dev');
@@ -42,6 +44,7 @@ const year = new Date().getFullYear();
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonical} />
 
     <meta name="theme-color" content="#F5F7FB" />

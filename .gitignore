@@ -36,3 +36,6 @@ pnpm-debug.log*
 /design_handoff_logo/
 /docs/
 /pitch/
+
+# wrangler local env (never commit)
+.dev.vars
