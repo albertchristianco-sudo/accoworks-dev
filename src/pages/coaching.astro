@@ -1,0 +1,149 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  minimalNav
+  noindex
+  title="Ac — Remote Coaching | accoworks.dev"
+  description="Remote personalized coaching with Ac: one program written for one athlete, reviewed and adjusted every week. Apply through the intake form."
+>
+  <section class="intake" aria-label="Remote coaching intake">
+    <header class="intake-head">
+      <p class="slot-flag"><span class="slot-dot" aria-hidden="true"></span><span class="slot-text">1 slot open for remote personalized coaching</span></p>
+      <h1 class="intake-title">One athlete.<span class="accent">One program.</span></h1>
+      <div class="intake-copy">
+        <p>This is for athletes who take training seriously.</p>
+        <p>You get a program written for you: your history, your schedule, your weaknesses. It changes as you change.</p>
+        <p>I review your work, I ask questions, and I adjust. You show up and do the training.</p>
+        <p>If that sounds like what you want, fill out the form. I read every submission myself.</p>
+      </div>
+    </header>
+
+    <div class="intake-offer">
+      <p class="offer-figure">$150 <span class="offer-unit offer-unit--prose">USD per month</span></p>
+      <span class="offer-unit offer-unit--prose">≈ ₱9,300 per month</span>
+      <p class="offer-terms">3-month commitment.</p>
+    </div>
+
+    <form class="intake-form" id="intake-form" novalidate>
+      <fieldset class="fgroup">
+        <legend>Who you are</legend>
+        <div class="fgroup-fields">
+          <div class="field-row">
+            <div class="field">
+              <label for="in-name">Name</label>
+              <input id="in-name" name="name" type="text" autocomplete="name" required maxlength="200" />
+            </div>
+            <div class="field">
+              <label for="in-email">Email</label>
+              <input id="in-email" name="email" type="email" autocomplete="email" required maxlength="200" />
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="fgroup">
+        <legend>Where you are</legend>
+        <div class="fgroup-fields">
+          <div class="field">
+            <label for="in-experience">Experience level</label>
+            <select id="in-experience" name="experience">
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate" selected>Intermediate</option>
+              <option value="Advanced">Advanced</option>
+              <option value="Competitive athlete">Competitive athlete</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="in-training">Current training</label>
+            <textarea id="in-training" name="training" required maxlength="2000" placeholder="Current training load, and any injuries or limitations."></textarea>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="fgroup">
+        <legend>What you want</legend>
+        <div class="fgroup-fields">
+          <div class="field">
+            <label for="in-goal">Goal</label>
+            <textarea id="in-goal" name="goal" required maxlength="2000" placeholder="What do you want to achieve?"></textarea>
+          </div>
+          <div class="field">
+            <label for="in-why"><span>Why me</span><span class="opt">Optional</span></label>
+            <textarea id="in-why" name="why" maxlength="2000" placeholder="Why do you want to work with me?"></textarea>
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="field visually-hidden" aria-hidden="true">
+        <label for="in-company">Company</label>
+        <input id="in-company" name="company" type="text" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <div class="intake-submit">
+        <button class="btn btn--primary btn--submit" type="submit" data-submit>Apply for the slot</button>
+        <p class="form-status" data-status role="status" aria-live="polite"></p>
+      </div>
+    </form>
+
+    <div class="intake-done" data-done hidden tabindex="-1">
+      <h2>Received.</h2>
+      <p>I will reply within 48 hours. If it is a fit, we start with a call.</p>
+    </div>
+
+    <p class="intake-return"><a href="/">&larr; back to accoworks.dev</a></p>
+  </section>
+</BaseLayout>
+
+<script>
+  const form = document.getElementById('intake-form') as HTMLFormElement | null;
+  const done = document.querySelector<HTMLElement>('[data-done]');
+
+  if (form && done) {
+    const submitBtn = form.querySelector<HTMLButtonElement>('[data-submit]')!;
+    const status = form.querySelector<HTMLElement>('[data-status]')!;
+    const submitLabel = submitBtn.textContent;
+
+    const setStatus = (message: string, tone: 'neutral' | 'error') => {
+      status.textContent = message;
+      status.dataset.tone = tone;
+    };
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+
+      const data = new FormData(form);
+      const payload = {
+        name: String(data.get('name') || '').trim(),
+        email: String(data.get('email') || '').trim(),
+        experience: String(data.get('experience') || ''),
+        training: String(data.get('training') || '').trim(),
+        goal: String(data.get('goal') || '').trim(),
+        why: String(data.get('why') || '').trim(),
+        company: String(data.get('company') || ''),
+      };
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+      setStatus('Sending your application.', 'neutral');
+
+      try {
+        const response = await fetch('/api/coaching', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) throw new Error(`Intake request failed with ${response.status}`);
+        form.hidden = true;
+        done.hidden = false;
+        done.focus?.();
+      } catch {
+        setStatus('Something went wrong on the way to my inbox. Please try again, or email ac@accoworks.dev directly.', 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = submitLabel;
+      }
+    });
+  }
+</script>
