@@ -838,9 +838,11 @@ p { text-wrap: pretty; }
   font-size: 0.78rem;
   letter-spacing: 0.04em;
   max-width: 100%;
+  flex-wrap: wrap;
 }
 
 .slot-dot { position: relative; width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--accent); }
+.slot-text { min-width: 0; white-space: normal; }
 .slot-dot::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--accent); }
 
 @media (prefers-reduced-motion: no-preference) {
