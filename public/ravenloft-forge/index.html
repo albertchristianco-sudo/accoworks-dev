@@ -906,7 +906,7 @@ var RF_DATA = (function () {
     }
   };
 
-  /* ---------- CLASSES (2024 PHB, ch. 3), levels 1 to 3 ---------- */
+  /* ---------- CLASSES (2024 PHB, ch. 3), levels 1 to 4 ---------- */
   /* caster.slots is the level 4 spell slot table for that class.
      Warlock uses pact slots (all of the same level). */
 
@@ -953,7 +953,7 @@ var RF_DATA = (function () {
       hd: 8, primary: 'Charisma', saves: ['dex', 'cha'], skillCount: 3, skills: 'any',
       armorTraining: 'Light armor', weaponProf: 'Simple weapons',
       toolProf: 'Three Musical Instruments of your choice',
-      caster: { type: 'full', ability: 'cha', cantrips: 2, prepared: 7, slots: { 1: 4, 2: 3 }, focus: 'Musical Instrument', list: 'Bard' },
+      caster: { type: 'full', ability: 'cha', cantrips: 3, prepared: 7, slots: { 1: 4, 2: 3 }, focus: 'Musical Instrument', list: 'Bard' },
       blurb: 'Magic through music, dance, and verse. Bards inspire, soothe, dishearten, and deceive, and they know a little about everything.',
       equipment: [
         { label: 'A', armor: 'Leather Armor', shield: false, weapons: ['Dagger'], items: ['Leather Armor', '2 Daggers', 'Musical Instrument of your choice', "Entertainer's Pack"], gp: 19 },
@@ -961,7 +961,7 @@ var RF_DATA = (function () {
       ],
       features: [
         [1, 'Bardic Inspiration', 'As a Bonus Action, inspire a creature within 60 feet who can see or hear you. They gain a d6 to add to one failed D20 Test within the next hour. Uses equal to your Charisma modifier (minimum 1), regained on a Long Rest.'],
-        [1, 'Spellcasting', 'Charisma is your spellcasting ability. At level 4 you know 2 cantrips and have 7 prepared spells of levels 1 and 2 in any combination. A Musical Instrument is your Spellcasting Focus.'],
+        [1, 'Spellcasting', 'Charisma is your spellcasting ability. At level 4 you know 3 cantrips and have 7 prepared spells of levels 1 and 2 in any combination. A Musical Instrument is your Spellcasting Focus.'],
         [2, 'Expertise', 'You gain Expertise in two of your skill proficiencies of your choice.'],
         [2, 'Jack of All Trades', 'You can add half your Proficiency Bonus (rounded down, so +1 at level 4) to any ability check you make that uses a skill you lack proficiency in.']
       ],
@@ -989,14 +989,14 @@ var RF_DATA = (function () {
       hd: 8, primary: 'Wisdom', saves: ['wis', 'cha'], skillCount: 2,
       skills: ['History', 'Insight', 'Medicine', 'Persuasion', 'Religion'],
       armorTraining: 'Light and Medium armor, Shields', weaponProf: 'Simple weapons', toolProf: null,
-      caster: { type: 'full', ability: 'wis', cantrips: 3, prepared: 7, slots: { 1: 4, 2: 3 }, focus: 'Holy Symbol', list: 'Cleric' },
+      caster: { type: 'full', ability: 'wis', cantrips: 4, prepared: 7, slots: { 1: 4, 2: 3 }, focus: 'Holy Symbol', list: 'Cleric' },
       blurb: 'Clerics draw power from the realms of the gods and channel it to work miracles, bolstering the faithful and battling the profane.',
       equipment: [
         { label: 'A', armor: 'Chain Shirt', shield: true, weapons: ['Mace'], items: ['Chain Shirt', 'Shield', 'Mace', 'Holy Symbol', "Priest's Pack"], gp: 7 },
         { label: 'B', armor: 'None', shield: false, weapons: [], items: ['Nothing but coin'], gp: 110 }
       ],
       features: [
-        [1, 'Spellcasting', 'Wisdom is your spellcasting ability. At level 4 you know 3 cantrips and have 7 prepared spells of levels 1 and 2 in any combination. A Holy Symbol is your Spellcasting Focus.'],
+        [1, 'Spellcasting', 'Wisdom is your spellcasting ability. At level 4 you know 4 cantrips and have 7 prepared spells of levels 1 and 2 in any combination. A Holy Symbol is your Spellcasting Focus.'],
         [1, 'Divine Order', 'Choose Protector (proficiency with Martial weapons and training with Heavy armor) or Thaumaturge (one extra Cleric cantrip, and a bonus equal to your Wisdom modifier, minimum +1, on Intelligence (Arcana or Religion) checks).'],
         [2, 'Channel Divinity', 'Two uses at level 4, one regained on a Short Rest and all on a Long Rest. Divine Spark: as a Magic action, roll 1d8 plus your Wisdom modifier to heal a creature within 30 feet, or force a Constitution save for that much Necrotic or Radiant damage (half on a success). Turn Undead: as a Magic action, each Undead of your choice within 30 feet makes a Wisdom save or is Frightened and Incapacitated for 1 minute.']
       ],
@@ -1043,14 +1043,14 @@ var RF_DATA = (function () {
       hd: 8, primary: 'Wisdom', saves: ['int', 'wis'], skillCount: 2,
       skills: ['Arcana', 'Animal Handling', 'Insight', 'Medicine', 'Nature', 'Perception', 'Religion', 'Survival'],
       armorTraining: 'Light armor, Shields', weaponProf: 'Simple weapons', toolProf: 'Herbalism Kit',
-      caster: { type: 'full', ability: 'wis', cantrips: 2, prepared: 7, slots: { 1: 4, 2: 3 }, focus: 'Druidic Focus', list: 'Druid' },
+      caster: { type: 'full', ability: 'wis', cantrips: 3, prepared: 7, slots: { 1: 4, 2: 3 }, focus: 'Druidic Focus', list: 'Druid' },
       blurb: 'Druids call on the forces of nature: the magic of animals, plants, and the four elements. They heal, transform, and wield elemental destruction.',
       equipment: [
         { label: 'A', armor: 'Leather Armor', shield: true, weapons: ['Sickle', 'Quarterstaff'], items: ['Leather Armor', 'Shield', 'Sickle', 'Druidic Focus (Quarterstaff)', "Explorer's Pack", 'Herbalism Kit'], gp: 9 },
         { label: 'B', armor: 'None', shield: false, weapons: [], items: ['Nothing but coin'], gp: 50 }
       ],
       features: [
-        [1, 'Spellcasting', 'Wisdom is your spellcasting ability. At level 4 you know 2 cantrips and have 7 prepared spells of levels 1 and 2 in any combination. A Druidic Focus is your Spellcasting Focus.'],
+        [1, 'Spellcasting', 'Wisdom is your spellcasting ability. At level 4 you know 3 cantrips and have 7 prepared spells of levels 1 and 2 in any combination. A Druidic Focus is your Spellcasting Focus.'],
         [1, 'Druidic', 'You know Druidic, the secret language of Druids, and you always have Speak with Animals prepared. Druidic messages are spotted with a DC 15 Intelligence (Investigation) check and cannot be deciphered without magic.'],
         [1, 'Primal Order', 'Choose Magician (one extra Druid cantrip, and a bonus equal to your Wisdom modifier, minimum +1, on Intelligence (Arcana or Nature) checks) or Warden (proficiency with Martial weapons and training with Medium armor).'],
         [2, 'Wild Shape', 'As a Bonus Action, shape-shift into a Beast form you know. You know four forms with Challenge Rating 1/4 or lower and no Fly Speed. 2 uses at level 4, one regained on a Short Rest. You gain Temporary Hit Points equal to your Druid level (4) when you transform.'],
@@ -1160,7 +1160,7 @@ var RF_DATA = (function () {
       features: [
         [1, 'Martial Arts', 'While unarmed or wielding only Monk weapons and wearing no armor or Shield: you can make an Unarmed Strike as a Bonus Action, roll 1d6 in place of the normal damage of Unarmed Strikes and Monk weapons, and use Dexterity instead of Strength for their attack and damage rolls.'],
         [1, 'Unarmored Defense', 'While you are not wearing armor or wielding a Shield, your base Armor Class equals 10 plus your Dexterity and Wisdom modifiers.'],
-        [2, "Monk's Focus", '3 Focus Points at level 4, regained on a Short or Long Rest. Flurry of Blows: 1 point for two Unarmed Strikes as a Bonus Action. Patient Defense: Disengage as a Bonus Action, or 1 point for Disengage and Dodge. Step of the Wind: Dash as a Bonus Action, or 1 point for Disengage and Dash with doubled jump distance. Save DC equals 8 plus your Wisdom modifier and Proficiency Bonus.'],
+        [2, "Monk's Focus", '4 Focus Points at level 4, regained on a Short or Long Rest. Flurry of Blows: 1 point for two Unarmed Strikes as a Bonus Action. Patient Defense: Disengage as a Bonus Action, or 1 point for Disengage and Dodge. Step of the Wind: Dash as a Bonus Action, or 1 point for Disengage and Dash with doubled jump distance. Save DC equals 8 plus your Wisdom modifier and Proficiency Bonus.'],
         [2, 'Unarmored Movement', 'Your Speed increases by 10 feet while you are not wearing armor or wielding a Shield.'],
         [2, 'Uncanny Metabolism', 'When you roll Initiative, you can regain all expended Focus Points, roll your Martial Arts die, and regain Hit Points equal to your Monk level (4) plus the roll. Once per Long Rest.'],
         [3, 'Deflect Attacks', 'When an attack roll hits you and deals Bludgeoning, Piercing, or Slashing damage, you can take a Reaction to reduce the damage by 1d10 plus your Dexterity modifier and Monk level (4). If you reduce it to 0, you can spend 1 Focus Point to redirect the force at another creature.'],
@@ -1369,7 +1369,7 @@ var RF_DATA = (function () {
       hd: 8, primary: 'Charisma', saves: ['wis', 'cha'], skillCount: 2,
       skills: ['Arcana', 'Deception', 'History', 'Intimidation', 'Investigation', 'Nature', 'Religion'],
       armorTraining: 'Light armor', weaponProf: 'Simple weapons', toolProf: null,
-      caster: { type: 'pact', ability: 'cha', cantrips: 2, prepared: 5, pactSlots: 2, pactSlotLevel: 2, focus: 'Arcane Focus', list: 'Warlock' },
+      caster: { type: 'pact', ability: 'cha', cantrips: 3, prepared: 5, pactSlots: 2, pactSlotLevel: 2, focus: 'Arcane Focus', list: 'Warlock' },
       blurb: 'Warlocks quest for knowledge hidden in the fabric of the multiverse, bound into a pact with a powerful patron.',
       equipment: [
         { label: 'A', armor: 'Leather Armor', shield: false, weapons: ['Sickle', 'Dagger'], items: ['Leather Armor', 'Sickle', '2 Daggers', 'Arcane Focus (orb)', 'Book (occult lore)', "Scholar's Pack"], gp: 15 },
@@ -1377,7 +1377,7 @@ var RF_DATA = (function () {
       ],
       features: [
         [1, 'Eldritch Invocations', 'Pieces of forbidden knowledge that grant lasting abilities. You have 3 invocations at level 4, and you can swap one whenever you gain a Warlock level.'],
-        [1, 'Pact Magic', 'Charisma is your spellcasting ability. At level 4 you know 2 cantrips and have 5 prepared spells. You have 2 spell slots, both of level 2, and all your level 1+ spells are cast at level 2. Slots return on a Short or Long Rest.'],
+        [1, 'Pact Magic', 'Charisma is your spellcasting ability. At level 4 you know 3 cantrips and have 5 prepared spells. You have 2 spell slots, both of level 2, and all your level 1+ spells are cast at level 2. Slots return on a Short or Long Rest.'],
         [2, 'Magical Cunning', 'Perform a 1-minute rite to regain expended Pact Magic spell slots, up to half your maximum (round up, so 1 slot at level 4). Once per Long Rest.']
       ],
       /* Each option carries its text plus the extra choice it requires.
@@ -1700,7 +1700,7 @@ var RF_APP = (function (D) {
 
   var STORE_KEY = 'ravenloft-forge-v1';
   var LEVEL = 4;
-  var PB = 3;
+  var PB = 2;
 
   function $(sel, root) { return (root || document).querySelector(sel); }
   function $$(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
@@ -2545,7 +2545,7 @@ var RF_APP = (function (D) {
     if (id === 'level4') {
       if (!st.asiMode) out.push('Choose how to spend your Level 4 improvement.');
       else if (st.asiMode === 'plus2' && !st.asiBumpA) out.push('Choose which ability gets +2.');
-      else if (st.asiMode === 'plus1plus1' && (!st.asiBumpA || !st.asiBumpB)) out.push('Choose two different abilities for +1 each.');
+      else if (st.asiMode === 'plus1plus1' && (!st.asiBumpA || !st.asiBumpB || st.asiBumpA === st.asiBumpB)) out.push('Choose two different abilities for +1 each.');
       else if (st.asiMode === 'feat' && !st.asiFeat) out.push('Choose your Level 4 feat.');
     }
     if (id === 'class') {
@@ -2640,7 +2640,7 @@ var RF_APP = (function (D) {
     }
     if (id === 'equipment') {
       if (!st.equipChoice) out.push('Choose a starting equipment package.');
-      if (st.hpMode === 'roll' && st.hpRolls.length !== LEVEL - 1) out.push('Roll your hit points for levels 2 and 3.');
+      if (st.hpMode === 'roll' && st.hpRolls.length !== LEVEL - 1) out.push('Roll your hit points for levels 2, 3, and 4.');
     }
     if (id === 'spells') {
       /* Spells you always have prepared never occupy one of your prepared
@@ -3256,13 +3256,13 @@ var RF_APP = (function (D) {
 
       if (ci.spellbook) {
         h += '<h3 style="margin-top:22px">Spellbook ' + counterHTML(S.spellbook.length, ci.spellbook) + '</h3>' +
-          '<p class="muted small">Six level 1 spells at level 1, then two more at each of levels 2, 3, and 4. At most three of them can be level 2, because you gained a third level 2 slot at level 4.</p>';
+          '<p class="muted small">Six level 1 spells at level 1, then two more at each of levels 2, 3, and 4. At most four of them can be level 2: you cannot add 2nd-level spells until level 3, then you add two at level 3 and two at level 4.</p>';
         var lvl2count = S.spellbook.filter(function (n) { return spellByName(n) && spellByName(n).l === 2; }).length;
         h += '<div class="spelllist">';
         [1, 2].forEach(function (lv) {
           spellsFor(ci.list, lv).forEach(function (sp) {
             var mine = has(S.spellbook, sp.n);
-            var blocked = !mine && (S.spellbook.length >= ci.spellbook || (lv === 2 && lvl2count >= 2));
+            var blocked = !mine && (S.spellbook.length >= ci.spellbook || (lv === 2 && lvl2count >= 4));
             h += spellCardHTML(sp, mine, 'spellbook', blocked);
           });
         });
@@ -3390,7 +3390,7 @@ var RF_APP = (function (D) {
         '<div class="field"><label>+1 to</label><select data-sel="asiBumpB">' + optionList(D.ABILITIES.filter(function (a) { return a.key !== S.asiBumpA; }).map(function (a) { return a.key; }), S.asiBumpB) + '</select></div>' +
         '</div>';
     } else if (S.asiMode === 'feat') {
-      var held = featList(S).map(function (f) { return f.name; });
+      var held = featList(S).filter(function (f) { return f.source !== 'Level 4 feat'; }).map(function (f) { return f.name; });
       var feats = Object.keys(D.ORIGIN_FEATS).filter(function (f) { return held.indexOf(f) === -1; });
       h += '<div class="field"><label>Feat</label><select data-sel="asiFeat">' +
         '<option value="">Choose a feat</option>' +
@@ -3971,7 +3971,10 @@ var RF_APP = (function (D) {
           var p = key.split('.');
           S[p[0]][p[1]] = val;
           if (p[0] === 'bgAssign' && p[1] === 'two' && S.bgAssign.one === val) S.bgAssign.one = '';
-        } else { S[key] = val; }
+        } else {
+          S[key] = val;
+          if (key === 'asiBumpA' && val && S.asiBumpB === val) S.asiBumpB = '';
+        }
         render(); return;
       }
       if (el.hasAttribute && el.hasAttribute('data-mi')) {
