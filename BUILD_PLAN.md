@@ -99,8 +99,31 @@ Keeps the `/ravenloft-forge/` URL path (no route change).
 - Multi-host repo: `git fetch origin` + confirm not behind before work; commit clean each session.
 
 ## Operational reference
-- Builder: `public/ravenloft-forge/index.html` (306 KB, ~4069 lines).
-- Runtime harness: `/tmp/forge-runtime-test.js` (24 checks, currently all-green for L4).
+- Builder: `public/ravenloft-forge/index.html` (single-file, ~4,500 lines).
+- Runtime harness: `/tmp/forge-math-harness.js` (197 checks, all green levels 1-6).
 - Astro check: `npx astro check` (repo root). Build: `npm run build` (repo root).
 - Render: headless Chrome screenshot of the built file.
 - Deploy: push to `main` → GitHub Actions → Cloudflare Pages → accoworks.dev/ravenloft-forge/.
+
+## Shipped (2026-08-18) + known follow-up
+SHIPPED: generic "Character Forge" rebrand (Ravenloft stripped), level selector 1-6
+(level 4 default), accoworks branding (light, cobalt #2563EB, blueprint grid),
+generic Trait/Ideal/Bond/Flaw, three Codex review rounds applied. Deployed to
+accoworks.dev/ravenloft-forge/ (HTTP 200 verified). Merge commit 537e9da.
+
+KNOWN FOLLOW-UP (does not affect the current level-4 Theros party; all level-5/6
+or out-of-roster subclasses). Fix if/when the builder is touched next:
+1. Level-3 spell-list errors in the ~52 recalled entries: Aura of Vitality wrongly on
+   Cleric; Summon Fey offered to all Wizards (Illusionist-only here); Summon Undead
+   wrongly on Wizard; Wall of Water not in 2024 class lists (Ranger should have
+   Conjure Barrage instead).
+2. Savant bug: at Wizard 5 the picker allows all three Savant spells at level 3; the
+   original two must stay level 2 or lower.
+3. Invocation data: Eldritch Smite knocks Huge-or-smaller prone (not Large); Gaze of
+   Two Minds is a Bonus Action with 60-ft range and BA renewal; only 4 of 8 PHB
+   level-5 invocations present (missing Ascendant Step, Investment of the Chain
+   Master, Master of Myriad Forms, One with Shadows).
+4. Phantasmal Creatures text: one shared Long-Rest slot-free cast (either spell),
+   not one free cast of each.
+5. Spell-data additions (52 level-3 entries) came from recall; spot-check names,
+   class lists, and schools (school matters for Wizard Savant) against the 2024 PHB.
