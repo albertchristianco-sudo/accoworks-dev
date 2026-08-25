@@ -1,0 +1,1241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex,nofollow,noarchive" />
+<title>Clearway Phase 1 — Build Plan (Internal)</title>
+<style>
+:root{
+  color-scheme: light;
+  --page:#F6F7F9; --surface:#FFFFFF; --surface-2:#FAFBFC; --surface-3:#F1F3F6;
+  --ink:#151B23; --ink-2:#404B58; --ink-3:#6E7A88; --ink-4:#98A2AE;
+  --line:#E5E9EE; --line-2:#D3D9E1;
+  --cobalt:#1748C4; --cobalt-700:#0F3494; --cobalt-100:#DCE6FC; --cobalt-50:#EDF2FE;
+  --amber:#B26A00; --amber-mark:#E9970C; --amber-50:#FDF3E3;
+  --red:#B5301F; --red-mark:#D0402C; --red-50:#FBECE9;
+  --green:#0F6B45; --green-mark:#1A8A5A; --green-50:#E9F4EE;
+  --r:6px;
+  --sans:"Geist","Geist Sans",ui-sans-serif,-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --mono:"Geist Mono",ui-monospace,"SF Mono","SFMono-Regular","JetBrains Mono",Menlo,Consolas,monospace;
+  --shadow-panel:0 1px 2px rgba(21,27,35,.04), 0 12px 32px rgba(21,27,35,.10);
+}
+*{box-sizing:border-box}
+html{font-size:clamp(13px,.5vw + 7.6px,19px)}
+html,body{height:100%}
+body{
+  margin:0;background:var(--page);color:var(--ink);font-family:var(--sans);
+  line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow:hidden;
+}
+button{background:none;border:0;padding:0;cursor:pointer;font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--cobalt);outline-offset:2px;border-radius:3px}
+::selection{background:var(--cobalt-100)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.lbl{font-size:.68rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-4)}
+.muted{color:var(--ink-3)}
+b,strong{font-weight:620}
+code{font-family:var(--mono);font-size:.92em;font-variant-numeric:tabular-nums;background:var(--surface-3);border:1px solid var(--line);border-radius:3px;padding:0 .28em;white-space:nowrap}
+
+/* ---------- deck chrome ---------- */
+.deck{height:100vh;display:flex;flex-direction:column}
+.topbar{
+  height:44px;flex:0 0 44px;background:var(--surface);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:12px;padding:0 16px;
+}
+.tb-brand{display:flex;align-items:baseline;gap:9px;min-width:0}
+.tb-brand b{font-size:.9rem;font-weight:650;letter-spacing:-.015em;white-space:nowrap}
+.tb-brand span{font-size:.74rem;color:var(--ink-4);border-left:1px solid var(--line-2);padding-left:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:9px}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:var(--r);
+  border:1px solid var(--line-2);background:var(--surface);font-size:.78rem;font-weight:500;color:var(--ink-2);
+  transition:background .12s ease,border-color .12s ease;white-space:nowrap;
+}
+.btn:hover{background:var(--surface-3);border-color:#C2CAD4}
+.kbd{font-family:var(--mono);font-size:.62rem;padding:1px 4px;border:1px solid var(--line-2);border-radius:3px;color:var(--ink-4);background:var(--surface-2);line-height:1.5}
+.counter{font-family:var(--mono);font-size:.78rem;color:var(--ink-3);font-variant-numeric:tabular-nums;white-space:nowrap}
+.progress{height:2px;flex:0 0 2px;background:var(--line);position:relative}
+.progress i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--cobalt);transition:width .25s ease}
+.stage{flex:1;min-height:0;position:relative}
+.botbar{
+  height:32px;flex:0 0 32px;background:var(--surface);border-top:1px solid var(--line);
+  display:flex;align-items:center;gap:12px;padding:0 16px;font-size:.7rem;color:var(--ink-4);
+}
+.conf{display:inline-flex;align-items:center;gap:6px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;font-size:.64rem;color:var(--amber)}
+.conf .sq{width:6px;height:6px;border-radius:1px;background:var(--amber-mark)}
+.keys{margin-left:auto;display:none;white-space:nowrap}
+@media (min-width:900px){.keys{display:block}}
+.navbtns{display:flex;gap:4px}
+.navbtn{width:26px;height:24px;border:1px solid var(--line-2);border-radius:4px;background:var(--surface);color:var(--ink-3);display:grid;place-items:center;font-size:.8rem;line-height:1}
+.navbtn:hover{background:var(--surface-3);color:var(--ink)}
+
+/* ---------- slides ---------- */
+.slide{position:absolute;inset:0;overflow:auto;opacity:0;visibility:hidden;transition:opacity .16s ease;background:var(--page)}
+.slide.on{opacity:1;visibility:visible;z-index:1}
+.si{max-width:78rem;margin:0 auto;padding:2rem 2.6rem 2.6rem;min-height:100%;display:flex;flex-direction:column}
+.kicker{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--cobalt);margin-bottom:.5rem}
+h1{font-size:1.72rem;font-weight:660;letter-spacing:-.022em;line-height:1.12;margin:0 0 .45rem}
+.lead{font-size:.98rem;color:var(--ink-2);max-width:62rem;margin:0 0 1.25rem;line-height:1.55}
+.lead b{color:var(--ink)}
+h3{font-size:.86rem;font-weight:640;letter-spacing:-.008em;margin:0 0 .5rem}
+p{margin:0 0 .6rem}
+ul{margin:0;padding-left:1.1rem}
+li{margin:0 0 .32rem}
+
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.9rem}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.9rem}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8rem}
+@media (max-width:980px){.grid3,.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:1fr}}
+
+.pnl{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:.85rem 1rem;min-width:0}
+.pnl.tint{background:var(--surface-2)}
+.pnl .lbl{display:block;margin-bottom:.45rem}
+.pnl-h{display:flex;align-items:baseline;gap:.55rem;margin-bottom:.45rem}
+.pnl-h .bn{font-family:var(--mono);font-size:.76rem;font-weight:700;color:var(--cobalt)}
+.pnl-h h3{margin:0}
+.pnl p,.pnl li{font-size:.82rem;line-height:1.5;color:var(--ink-2)}
+.pnl p b,.pnl li b{color:var(--ink)}
+.pnl p:last-child{margin-bottom:0}
+
+.brief{border-left:2px solid var(--cobalt);background:linear-gradient(90deg,var(--cobalt-50),rgba(237,242,254,0) 62%)}
+.warnbox{border-left:2px solid var(--amber-mark);background:linear-gradient(90deg,var(--amber-50),rgba(253,243,227,0) 62%)}
+
+.chip{
+  display:inline-flex;align-items:center;gap:5px;height:1.5em;padding:0 .55em;border-radius:3px;
+  font-size:.72rem;font-weight:600;letter-spacing:.015em;border:1px solid transparent;white-space:nowrap;
+}
+.chip .sq{width:5px;height:5px;border-radius:1px}
+.chip.ok{background:var(--green-50);color:var(--green);border-color:#CFE6DA}.chip.ok .sq{background:var(--green-mark)}
+.chip.warn{background:var(--amber-50);color:var(--amber);border-color:#F2DEBB}.chip.warn .sq{background:var(--amber-mark)}
+.chip.crit{background:var(--red-50);color:var(--red);border-color:#F1D2CC}.chip.crit .sq{background:var(--red-mark)}
+.chip.info{background:var(--cobalt-50);color:var(--cobalt-700);border-color:#CFDDFA}.chip.info .sq{background:var(--cobalt)}
+.chip.flat{background:var(--surface-3);color:var(--ink-3);border-color:var(--line)}.chip.flat .sq{background:var(--ink-4)}
+.chiprow{display:flex;flex-wrap:wrap;gap:.35rem}
+
+.tbl{width:100%;border-collapse:collapse;font-size:.8rem;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.tbl th{
+  text-align:left;font-size:.64rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-4);
+  padding:.5rem .7rem;border-bottom:1px solid var(--line);background:var(--surface-2);
+}
+.tbl td{padding:.5rem .7rem;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink-2);line-height:1.45}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td b{color:var(--ink)}
+.tbl td.mono,.tbl .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tblwrap{overflow-x:auto;border-radius:var(--r)}
+
+pre.code{
+  font-family:var(--mono);font-size:.78rem;line-height:1.62;color:var(--ink);
+  background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r);
+  padding:.9rem 1.1rem;margin:0;overflow-x:auto;font-variant-numeric:tabular-nums;
+}
+pre.code .cm{color:var(--ink-4)}
+
+.fn{font-size:.74rem;color:var(--ink-3);line-height:1.5}
+.fn b{color:var(--ink-2)}
+.spacer{flex:1}
+.mt{margin-top:.9rem}
+.mtl{margin-top:1.3rem}
+
+/* flow rows (writers → spine) */
+.flowrow{display:flex;align-items:stretch;gap:.5rem;flex-wrap:wrap}
+.flowrow .fx{flex:1;min-width:7rem}
+.fx-arr{display:grid;place-items:center;color:var(--ink-4);font-family:var(--mono);font-size:.95rem;flex:0 0 auto;padding:0 .1rem}
+
+/* layer diagram */
+.layers{display:grid;grid-template-columns:minmax(0,1.6fr) auto minmax(0,1fr);gap:.9rem;align-items:stretch}
+.layercol{display:flex;flex-direction:column;gap:0}
+.layer{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:.8rem 1rem}
+.layer .lt{display:flex;align-items:baseline;gap:.5rem;margin-bottom:.3rem}
+.layer .lt h3{margin:0}
+.layer .lt .tag{margin-left:auto;font-size:.64rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-4)}
+.layer p{font-size:.8rem;color:var(--ink-2);margin:0 0 .45rem}
+.dn-arr{display:flex;align-items:center;gap:.55rem;padding:.34rem .2rem .34rem 1rem;color:var(--ink-3);font-size:.74rem}
+.dn-arr .ar{font-family:var(--mono);color:var(--cobalt);font-size:.9rem}
+.never{
+  border:1px dashed #F1D2CC;background:var(--red-50);border-radius:var(--r);
+  padding:.55rem .8rem;font-size:.76rem;color:var(--red);font-weight:550;
+}
+
+/* svg diagrams */
+.svgwrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:1rem 1.1rem}
+.svgwrap svg{width:100%;height:auto;display:block}
+svg text{font-family:var(--sans)}
+svg .nk{font-family:var(--mono);font-size:13px;font-weight:700;fill:var(--cobalt-700)}
+svg .nn{font-size:10.5px;fill:var(--ink-2)}
+svg .nb{fill:var(--surface);stroke:var(--line-2);stroke-width:1.2;rx:6}
+svg .nb.lane{fill:var(--cobalt-50);stroke:#CFDDFA}
+svg .edge{stroke:var(--ink-4);stroke-width:1.3;fill:none}
+svg .edge.dash{stroke-dasharray:4 4;stroke:var(--line-2);stroke-width:1.3}
+svg .badge{font-size:9px;font-weight:700;letter-spacing:.06em;fill:var(--amber)}
+svg .cap{font-size:10px;fill:var(--ink-4)}
+
+/* title slide */
+.title-si{justify-content:center;max-width:70rem}
+.title-si h1{font-size:2.6rem;letter-spacing:-.028em;margin:0 0 .8rem}
+.title-si .lead{font-size:1.08rem;max-width:52rem}
+.tmeta{display:flex;gap:1.8rem;flex-wrap:wrap;margin-top:2rem;padding-top:1.2rem;border-top:1px solid var(--line)}
+.tmeta .k{font-size:.64rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-4)}
+.tmeta .v{font-size:.86rem;margin-top:.2rem;color:var(--ink-2)}
+
+/* toc overlay */
+.toc{position:fixed;inset:0;background:rgba(21,27,35,.3);z-index:50;display:none;align-items:center;justify-content:center;padding:4vh 5vw}
+.toc.on{display:flex}
+.toc-panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow-panel);max-width:62rem;width:100%;max-height:88vh;overflow:auto;padding:1.3rem 1.5rem 1.5rem}
+.toc-head{display:flex;align-items:baseline;gap:.7rem;margin-bottom:.6rem}
+.toc-head h2{font-size:1rem;font-weight:650;letter-spacing:-.015em;margin:0}
+.toc-head .muted{font-size:.76rem;margin-left:auto}
+.toc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px 1.5rem}
+@media (max-width:820px){.toc-grid{grid-template-columns:1fr}}
+.toc-it{display:flex;gap:.7rem;align-items:baseline;padding:.4rem .55rem;border-radius:5px;text-align:left;font-size:.85rem;color:var(--ink-2);width:100%}
+.toc-it:hover{background:var(--surface-3)}
+.toc-it.cur{background:var(--cobalt-50);color:var(--cobalt-700);font-weight:600}
+.toc-n{font-family:var(--mono);font-size:.68rem;color:var(--ink-4);flex:0 0 1.5rem;font-variant-numeric:tabular-nums}
+.toc-it.cur .toc-n{color:var(--cobalt)}
+
+/* print */
+@media print{
+  html{font-size:12px}
+  body{overflow:visible;background:#fff}
+  .topbar,.botbar,.progress,.toc{display:none !important}
+  .deck{height:auto;display:block}
+  .stage{position:static}
+  .slide{position:static;opacity:1;visibility:visible;overflow:visible;page-break-after:always;min-height:96vh}
+  .si{min-height:0;padding:1.2rem 1.4rem}
+}
+</style>
+</head>
+<body>
+<div class="deck">
+  <header class="topbar">
+    <div class="tb-brand"><b>Andar</b><span>Clearway — Phase 1 build plan · internal</span></div>
+    <div class="tb-right">
+      <button class="btn" id="tocBtn" type="button">Contents <span class="kbd">C</span></button>
+      <span class="counter" id="counter">01 / 22</span>
+    </div>
+  </header>
+  <div class="progress"><i id="pfill"></i></div>
+
+  <main class="stage" id="stage">
+
+  <!-- 1 · Title -->
+  <section class="slide" data-title="Title">
+    <div class="si title-si">
+      <div class="kicker">Andar · Internal build plan · Confidential</div>
+      <h1>Clearway — Phase 1</h1>
+      <p class="lead">Shipment lifecycle, customs monitoring and exception management for customs brokers.
+      Phase 1 is a <b>zero-integration tracker</b> that replaces the client&rsquo;s Excel sheet — built on the
+      architecture every later phase plugs into.</p>
+      <div class="chiprow">
+        <span class="chip info"><span class="sq"></span>Repo: andar-clearway (private)</span>
+        <span class="chip flat"><span class="sq"></span>Supersedes the earlier draft plan</span>
+        <span class="chip warn"><span class="sq"></span>Not for the client — a separate deck exists</span>
+      </div>
+      <div class="tmeta">
+        <div><div class="k">Stack</div><div class="v">Next.js (App Router) · TypeScript strict · Tailwind v4 · Supabase Postgres + RLS</div></div>
+        <div><div class="k">Pattern source</div><div class="v"><span class="mono">techisland-tdoc</span> — proven in production, same stack</div></div>
+        <div><div class="k">Open client questions</div><div class="v">Live in <span class="mono">HANDOFF.md</span>, not in this plan</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · Approach -->
+  <section class="slide" data-title="Approach — load-bearing decisions">
+    <div class="si">
+      <div class="kicker">Approach</div>
+      <h1>Four load-bearing decisions</h1>
+      <p class="lead">Everything else in the plan hangs off these. If one of them bends during implementation, stop and flag it.</p>
+      <div class="grid2">
+        <div class="pnl">
+          <div class="pnl-h"><span class="bn">01</span><h3>Semantics sit between vocabulary and the engines</h3></div>
+          <p>Tenant status vocabulary maps to product-owned semantics; semantics stamp milestones. SLA, rules,
+          dashboards and reports read <b>semantics and milestones — never tenant statuses</b>. A broker can rename or
+          restructure their workflow and the engines never notice.</p>
+        </div>
+        <div class="pnl">
+          <div class="pnl-h"><span class="bn">02</span><h3>One mutation spine: SQL RPCs</h3></div>
+          <p>Every shipment mutation goes through <code>security invoker</code> RPCs (RLS applies): state change,
+          milestone stamps and the event append happen in <b>one transaction</b>, with <code>source</code> and actor
+          recorded. Phase 2–4 integrations become additional callers of the same spine — no Phase 1 rewrite.</p>
+        </div>
+        <div class="pnl">
+          <div class="pnl-h"><span class="bn">03</span><h3>Attention is materialized, not computed on read</h3></div>
+          <p><code>attention_item</code> rows reconciled by a rule evaluator. Items need lifecycle (opened, auto-resolve,
+          snooze), stable ordering, and Phase 2+ alerts need edge-triggering — read-time computation can provide none
+          of that. Summary tiles stay computed on read.</p>
+        </div>
+        <div class="pnl">
+          <div class="pnl-h"><span class="bn">04</span><h3>Copy tdoc conventions — with three exceptions</h3></div>
+          <p><b>Copied:</b> <code>@supabase/ssr</code> four-client pattern, session-refresh proxy, timestamped additive
+          migrations with <code>security definer stable</code> RLS helpers, zod server actions, magic-link auth with
+          email→membership linking, check scripts, ephemeral-Docker localdb harness.</p>
+          <p><b>Not copied:</b> Postgres enums for workflow statuses (exactly wrong here), the single-tenant role model,
+          and permissive-baseline-then-harden RLS — <b>multi-tenant isolation is strict from migration one</b>.</p>
+        </div>
+      </div>
+      <div class="pnl tint mt">
+        <p class="fn"><b>Design carries forward from the pitch prototype</b> (rail + topbar shell, panel/chip/urgency-bar
+        vocabulary, cobalt/amber/red/green tokens, mono tabular figures, slideover detail, board cards).
+        Its data model — a single 8-stage kanban — is <b>discarded</b>: it cannot carry three status axes, lane,
+        exceptions, location, handler and SLA instrumentation.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Three-layer status architecture -->
+  <section class="slide" data-title="Three-layer status architecture">
+    <div class="si">
+      <div class="kicker">Architecture</div>
+      <h1>The three-layer status design</h1>
+      <p class="lead">The fix for the highest-risk problem in the requirements: per-broker configurable statuses that must still drive a shared SLA engine, rule catalog and reporting.</p>
+      <div class="layers">
+        <div class="layercol">
+          <div class="layer">
+            <div class="lt"><h3>1 · Tenant vocabulary</h3><span class="tag">data · tenant-owned</span></div>
+            <p><code>status_definition</code> — what the broker&rsquo;s team sees and clicks. Rename (label edit, identity
+            and history untouched), add (new row mapped to a semantic), remove (<code>active=false</code>, never
+            hard-delete). <code>sort_order</code> is display and suggestion only — <b>no enforced state machines in v1</b>.</p>
+            <div class="chiprow"><span class="chip flat">Selected</span><span class="chip flat">Final</span><span class="chip flat">Debited</span><span class="chip flat">Released</span></div>
+          </div>
+          <div class="dn-arr"><span class="ar">↓</span>maps to — every tenant status → exactly one semantic</div>
+          <div class="layer">
+            <div class="lt"><h3>2 · Semantics</h3><span class="tag">product-owned · fixed</span></div>
+            <p><code>status_semantic</code> — the meaning layer, seeded by migration, read-only to tenants.
+            Coarse fallbacks (<code>processing</code>, <code>*_other</code>) absorb simple or custom workflows.</p>
+            <div class="chiprow"><span class="chip info">examination</span><span class="chip info">assessment</span><span class="chip info">payment</span><span class="chip ok">released</span></div>
+          </div>
+          <div class="dn-arr"><span class="ar">↓</span>stamps — only when the field is currently null</div>
+          <div class="layer">
+            <div class="lt"><h3>3 · Milestones</h3><span class="tag">timestamps on shipment</span></div>
+            <p><code>arrived_at</code> · <code>lodgement_at</code> · <code>target_release_at</code> ·
+            <code>actual_release_at</code> · <code>delivered_at</code> · <code>closed_at</code>.
+            Corrections only via <code>correct_milestone</code>, with an audit event.</p>
+          </div>
+        </div>
+        <div class="fx-arr">→</div>
+        <div class="layercol">
+          <div class="layer" style="flex:1">
+            <div class="lt"><h3>Consumers</h3><span class="tag">read layers 2 + 3 only</span></div>
+            <ul>
+              <li>SLA engine</li>
+              <li>Rule evaluator / attention engine</li>
+              <li>Dashboard tiles</li>
+              <li>Reports (lane timing, attribution split)</li>
+              <li>Phase 5 client-facing view</li>
+              <li>Phase 3–4 integration normalizers (they <b>write</b> semantics too)</li>
+            </ul>
+          </div>
+          <div class="never mt">Consumers never read tenant statuses. A naive <code>status_definition</code> lookup cannot answer &ldquo;which status means Released?&rdquo; per tenant — rename or split a status and SLA computation silently breaks. Here, vocabulary changes are invisible to the engines by construction.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · Axes & semantic seed -->
+  <section class="slide" data-title="Status axes and the semantic seed">
+    <div class="si">
+      <div class="kicker">Architecture</div>
+      <h1>Three axes, one shipment</h1>
+      <p class="lead">Carrier, customs and operational state move independently — the client was explicit that carrier states are not a mandatory sequential customs stage. Semantics marked <span class="chip info" style="vertical-align:1px">→ field</span> stamp that milestone.</p>
+      <div class="grid3">
+        <div class="pnl">
+          <span class="lbl">Carrier axis</span>
+          <div class="chiprow">
+            <span class="chip flat">expected</span><span class="chip flat">not_departed</span><span class="chip flat">departed</span>
+            <span class="chip flat">in_transit</span><span class="chip flat">transshipment</span><span class="chip flat">arriving</span>
+            <span class="chip info">arrived → arrived_at</span><span class="chip flat">discharged</span>
+            <span class="chip warn">delayed</span><span class="chip flat">carrier_other</span>
+          </div>
+        </div>
+        <div class="pnl">
+          <span class="lbl">Customs axis</span>
+          <div class="chiprow">
+            <span class="chip flat">pre_lodgement</span><span class="chip info">lodged → lodgement_at</span>
+            <span class="chip flat">processing</span><span class="chip flat">examination</span>
+            <span class="chip flat">assessment</span><span class="chip flat">payment</span>
+            <span class="chip ok">released → actual_release_at</span><span class="chip flat">customs_other</span>
+          </div>
+          <p class="fn mt">DCA mapping: <b>Selected</b> → <code>examination</code>, <b>Final</b> → <code>assessment</code>,
+          <b>Debited</b> → <code>payment</code>. <code>processing</code> is the coarse fallback for simple brokers.</p>
+        </div>
+        <div class="pnl">
+          <span class="lbl">Operational axis</span>
+          <div class="chiprow">
+            <span class="chip flat">op_expected</span><span class="chip flat">documentation</span><span class="chip flat">port_ops</span>
+            <span class="chip flat">delivery</span><span class="chip info">delivered → delivered_at</span>
+            <span class="chip flat">billing</span><span class="chip ok">closed → closed_at</span><span class="chip flat">op_other</span>
+          </div>
+        </div>
+      </div>
+      <div class="grid2 mt">
+        <div class="pnl tint">
+          <p class="fn"><b><code>delayed</code> is a real carrier status</b>, not an overlay flag — it matches the client&rsquo;s
+          list and the sheet. The rule engine separately detects <i>implicit</i> delays via time-in-status. An overlay
+          flag was rejected for v1: two sources of truth for one axis.</p>
+        </div>
+        <div class="pnl tint">
+          <p class="fn"><b>Lane semantics</b> (<code>green</code>, <code>yellow</code>, <code>orange</code>, <code>red</code>,
+          <code>lane_other</code>) live as a check constraint on <code>lane_definition.semantic</code> — no table needed.
+          Lane is a first-class field, not a status axis.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · Configurability contract -->
+  <section class="slide" data-title="Configurability contract">
+    <div class="si">
+      <div class="kicker">Architecture</div>
+      <h1>The contract implementers must not break</h1>
+      <div class="grid3 mt">
+        <div class="pnl">
+          <div class="pnl-h"><span class="bn">C1</span><h3>Vocabulary is mutable, identity is not</h3></div>
+          <ul>
+            <li><b>Rename</b> = label edit; row identity and history untouched.</li>
+            <li><b>Add</b> = new row mapped to a semantic.</li>
+            <li><b>Remove</b> = <code>active=false</code>, never hard-delete — historical events still reference it.</li>
+            <li><code>sort_order</code> is display/suggestion only; axes are not sequential state machines in v1. Manual ops must be able to correct mistakes freely; the event trail preserves what actually happened.</li>
+          </ul>
+        </div>
+        <div class="pnl">
+          <div class="pnl-h"><span class="bn">C2</span><h3>Every status maps to exactly one semantic</h3></div>
+          <ul>
+            <li>One-to-one rather than tag sets — admins must be able to comprehend the mapping screen.</li>
+            <li><code>*_other</code> absorbs genuinely custom statuses; they then don&rsquo;t drive milestones or semantic rules — correct behavior.</li>
+            <li>Grouping lives consumer-side as semantic sets in code, e.g. <code>IN_CUSTOMS = {lodged, processing, examination, assessment, payment}</code>.</li>
+          </ul>
+        </div>
+        <div class="pnl">
+          <div class="pnl-h"><span class="bn">C3</span><h3>Milestones stamp once</h3></div>
+          <ul>
+            <li>Semantics with a <code>milestone</code> mapping stamp timestamps via <code>apply_status_change</code> — <b>only when null</b>. Re-applying a status never rewrites history.</li>
+            <li>Corrections go through <code>correct_milestone</code> with an audit event.</li>
+            <li>SLA, reporting and the Phase 5 client view read <b>milestones and semantics only</b>.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="pnl warnbox mt">
+        <p class="fn"><b>Why the naive lookup fails, concretely:</b> with label-only statuses, &ldquo;average release time by
+        lane&rdquo; requires knowing which status means <i>released</i> per tenant. Every rule and report would need
+        per-tenant status-ID configuration, and a renamed or split status silently breaks SLA computation.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · Data model map -->
+  <section class="slide" data-title="Data model — table map">
+    <div class="si">
+      <div class="kicker">Data model</div>
+      <h1>Table map</h1>
+      <p class="lead">All tenant-scoped tables: <code>id uuid pk</code>, <code>tenant_id</code>, <code>created_at</code>/<code>updated_at</code> with a <code>set_updated_at()</code> trigger — and the composite-FK hardening on the next slide.</p>
+      <div class="grid3">
+        <div class="pnl">
+          <span class="lbl">Global · product-owned</span>
+          <ul>
+            <li><code>status_semantic</code> — the meaning layer; seeded by migration; select-only to authenticated.</li>
+          </ul>
+          <span class="lbl mt" style="display:block">Tenancy &amp; people</span>
+          <ul>
+            <li><code>tenant</code> — name, slug, <code>branding jsonb</code>, active</li>
+            <li><code>membership</code> — roles <code>owner|admin|staff</code>; invited-email linking trigger, tenant-scoped</li>
+            <li><code>department</code> — seeded: documentation, lodgement, operations, releasing, delivery, finance</li>
+            <li><code>member_department</code></li>
+            <li><code>client</code> — the broker&rsquo;s customers</li>
+            <li><code>location</code> — Cebu, Manila, Davao, CDO, GenSan, Iloilo seeds</li>
+            <li><code>handler</code> — agent / remote handler at a remote port (not a system user)</li>
+          </ul>
+        </div>
+        <div class="pnl">
+          <span class="lbl">Vocabulary · tenant-owned</span>
+          <ul>
+            <li><code>status_definition</code> — axis, key, label, <b>semantic (not null)</b>, tone, sort, terminal, active; unique <code>(tenant_id, axis, key)</code>; CHECK axis matches the semantic&rsquo;s axis</li>
+            <li><code>lane_definition</code> — key, label, semantic, sort, active</li>
+            <li><code>exception_category</code> — default severity/attribution + a fixed <code>semantic</code> so rules and reports survive renames</li>
+            <li><code>sla_policy</code> — one row per tenant; <b>both undefined parameters are columns, not constants</b></li>
+            <li><code>holiday</code> — seed PH national holidays 2026–2027</li>
+          </ul>
+        </div>
+        <div class="pnl">
+          <span class="lbl">Core record</span>
+          <ul>
+            <li><code>shipment</code> — the record (next slide)</li>
+            <li><code>container</code> — carrier status stays at shipment level in v1; per-container events are a Phase 4 concern the table already accommodates</li>
+            <li><code>shipment_event</code> — append-only, generalized (not just status changes)</li>
+            <li><code>exception</code> — severity, attribution, owning department, due date</li>
+          </ul>
+          <span class="lbl mt" style="display:block">Attention engine</span>
+          <ul>
+            <li><code>rule</code> — tenant instance of a code-owned rule type; <code>params jsonb</code>, severity, enabled</li>
+            <li><code>attention_item</code> — materialized findings with lifecycle</li>
+          </ul>
+          <span class="lbl mt" style="display:block">Import provenance</span>
+          <ul>
+            <li><code>import_batch</code> — counts, skipped rows, who, when</li>
+            <li><code>integration_run</code> / <code>vasp_credential</code> — <b>not created in Phase 1</b>; land with Phase 3</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · Hardening & RLS -->
+  <section class="slide" data-title="Tenant isolation — constraints and RLS">
+    <div class="si">
+      <div class="kicker">Data model</div>
+      <h1>Isolation at the constraint level, then the policy level</h1>
+      <div class="grid2">
+        <div>
+          <div class="pnl">
+            <span class="lbl">Composite-FK hardening — every tenant-scoped table</span>
+            <pre class="code">unique (tenant_id, id)
+<span class="cm">-- children attach through the pair:</span>
+(tenant_id, parent_id)
+  references parent (tenant_id, id)</pre>
+            <p class="fn mt">Cross-tenant row attachment becomes impossible at the constraint level, not just the policy
+            level. Cheap now, unretrofittable later.</p>
+          </div>
+          <div class="pnl mt">
+            <span class="lbl">RLS helpers · security definer stable</span>
+            <p class="fn"><code>app_member_tenant_ids()</code> · <code>app_is_member(t)</code> ·
+            <code>app_tenant_role(t)</code> · <code>app_is_owner_or_admin(t)</code> — with the email fallback for
+            not-yet-linked invites.</p>
+          </div>
+          <div class="pnl mt">
+            <span class="lbl">Indexes that matter</span>
+            <p class="fn"><code>shipment (tenant_id, current_department_id) where closed_at is null</code> · per-axis status
+            indexes · <code>(tenant_id, bl_number)</code> · partial unique on <code>boc_entry_no</code> ·
+            <code>(tenant_id, client_id)</code> · <code>(tenant_id, lodgement_at) where actual_release_at is null</code>
+            (SLA sweep working set) · <code>shipment_event (tenant_id, shipment_id, occurred_at desc)</code> ·
+            open-exception partial · <code>attention_item</code> partial unique +
+            <code>(tenant_id, severity desc, opened_at) where resolved_at is null</code> · all FKs indexed.</p>
+          </div>
+        </div>
+        <div>
+          <div class="pnl">
+            <span class="lbl">Policy shape — uniform across tenant-scoped tables</span>
+            <ul>
+              <li><b>select</b> — <code>app_is_member(tenant_id)</code></li>
+              <li><b>insert</b> — member; vocabulary/settings/rule tables require owner/admin</li>
+              <li><b>update</b> — member for operational tables; owner/admin for vocabulary, <code>sla_policy</code>, <code>holiday</code>, <code>rule</code>, <code>membership</code>, <code>tenant</code></li>
+              <li><b>delete</b> — <b>none</b> on <code>shipment</code>, <code>shipment_event</code>, <code>exception</code>, <code>attention_item</code>, <code>import_batch</code> — append / soft-deactivate model</li>
+              <li><code>status_semantic</code> — select only, no writes</li>
+              <li><code>attention_item</code> — select for members; <b>no insert/update for authenticated</b> — written only by the reconciler through service role, plus a column-guarded owner/admin update for <code>snoozed_until</code> alone</li>
+            </ul>
+          </div>
+          <div class="pnl warnbox mt">
+            <p class="fn"><b>Deliberate choice, flagged for Ac:</b> reads are tenant-wide for all members — the whole
+            brokerage works one shared board today, and department-scoped read fences would fight the workflow.
+            Department scoping in v1 is <i>routing</i> (queues, required <code>current_department_id</code>), not access
+            control. <b>Reversible cheaply before S1, expensively after.</b></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · Shipment record -->
+  <section class="slide" data-title="The shipment record">
+    <div class="si">
+      <div class="kicker">Data model</div>
+      <h1>The shipment record</h1>
+      <div class="grid3">
+        <div class="pnl">
+          <span class="lbl">Identity</span>
+          <p class="fn"><code>client_id</code> · <code>client_ref</code> · <code>bl_number</code> ·
+          <code>boc_entry_no</code> (null until lodged; <b>partial unique</b>
+          <code>(tenant_id, boc_entry_no) where not null</code>) · <code>registry_no</code> ·
+          <code>mode</code> (<code>sea|air</code>) · <code>origin_country</code> · <code>cargo_desc</code> ·
+          <code>vessel</code> · <code>voyage</code> · <code>vasp</code>
+          (<code>intercommerce|cdec|ekonek</code>, per-shipment — the client uses all three)</p>
+        </div>
+        <div class="pnl">
+          <span class="lbl">Classification &amp; status</span>
+          <p class="fn"><code>lane_id</code> · <code>location_id</code> · <code>handler_id</code></p>
+          <p class="fn"><code>carrier_status_id</code> · <code>customs_status_id</code> ·
+          <code>operational_status_id</code> — nullable FKs to <code>status_definition</code>, composite-FK&rsquo;d through tenant.</p>
+          <span class="lbl mt" style="display:block">Ownership</span>
+          <p class="fn"><code>current_department_id not null</code> · <code>assigned_membership_id null</code> —
+          department required, named staff optional, exactly per the client&rsquo;s Q4 answer.</p>
+        </div>
+        <div class="pnl">
+          <span class="lbl">Milestones &amp; SLA</span>
+          <p class="fn"><code>eta</code> · <code>arrived_at</code> · <code>lodgement_at</code> ·
+          <code>target_release_at</code> · <code>actual_release_at</code> · <code>delivered_at</code> · <code>closed_at</code></p>
+          <p class="fn"><code>delay_reason</code> · <code>delay_attribution</code> —
+          <code>broker|customs|sps|carrier|client|documentation|other</code></p>
+          <span class="lbl mt" style="display:block">Parking</span>
+          <p class="fn"><code>import_extra jsonb</code> — unmapped sheet columns; anything living there long-term becomes a migration.</p>
+        </div>
+      </div>
+      <div class="grid2 mt">
+        <div class="pnl brief">
+          <p class="fn"><b><code>delay_attribution</code> is a fixed analytical dimension, deliberately not tenant
+          vocabulary.</b> It must be comparable across tenants, and it is exactly what tells the owner whether a missed
+          target was his to fix — the broker-controlled vs external split is the report the client actually wants.</p>
+        </div>
+        <div class="pnl tint">
+          <p class="fn"><b><code>container</code></b> — <code>shipment_id</code> (composite FK), <code>container_no</code>,
+          <code>size_type</code>. Carrier status stays at shipment level in v1; the table already accommodates
+          per-container events for Phase 4.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 · Events & exceptions -->
+  <section class="slide" data-title="Events and exceptions">
+    <div class="si">
+      <div class="kicker">Data model</div>
+      <h1>One append-only trail, one exception record</h1>
+      <div class="grid2">
+        <div class="pnl">
+          <div class="pnl-h"><h3><code>shipment_event</code> — append-only</h3></div>
+          <p class="fn"><b>kinds:</b> <code>created</code> · <code>status_change</code> · <code>lane_change</code> ·
+          <code>handoff</code> · <code>milestone_correction</code> · <code>exception_opened</code> ·
+          <code>exception_updated</code> · <code>exception_resolved</code> · <code>note</code> ·
+          <code>field_update</code> · <code>attention</code> · <code>imported</code> · <code>integration</code></p>
+          <p class="fn"><b>sources:</b> <code>manual</code> · <code>import</code> · <code>system</code> ·
+          <code>viber</code> · <code>vasp:intercommerce</code> · <code>vasp:cdec</code> · <code>vasp:ekonek</code> ·
+          <code>carrier</code> — the Phase 1 hook every later integration writes through.</p>
+          <p class="fn">Carries <code>axis</code>, <code>from_status_id</code>/<code>to_status_id</code>,
+          <code>detail jsonb</code>, <code>note</code>, <code>actor_membership_id</code>,
+          <code>actor_department_id</code>, <code>occurred_at</code>.</p>
+          <p class="fn"><b>No update or delete policies at all — insert-only for everyone, including admins.</b></p>
+        </div>
+        <div class="pnl">
+          <div class="pnl-h"><h3><code>exception</code></h3></div>
+          <p class="fn"><code>shipment_id</code> · <code>category_id</code> · <code>severity</code> ·
+          <code>attribution</code> · <code>department_id</code> (resolution owner) ·
+          <code>assigned_membership_id</code> · <code>due_at</code> · <code>opened_at</code> ·
+          <code>resolved_at</code> · <code>resolution_note</code>. Partial index on open exceptions.</p>
+          <p class="fn">Severity, ownership and due date exist because the attention engine needs ranking inputs —
+          the earlier draft lacked all three.</p>
+          <p class="fn mt"><b><code>exception_category</code></b> carries a fixed <code>semantic</code>
+          (<code>sps</code> · <code>examination</code> · <code>documents</code> · <code>valuation</code> ·
+          <code>permit</code> · <code>carrier</code> · <code>client</code> · <code>payment</code> ·
+          <code>telex</code> · <code>other</code>) so rules and reports survive category renames — same principle
+          as the status layer.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 · RPC spine -->
+  <section class="slide" data-title="The RPC mutation spine">
+    <div class="si">
+      <div class="kicker">Mutation spine</div>
+      <h1>Every writer goes through the same door</h1>
+      <div class="flowrow">
+        <div class="pnl fx" style="text-align:center"><span class="lbl" style="display:block;margin:0">Phase 1</span><b style="font-size:.85rem">UI · server actions</b></div>
+        <div class="pnl fx" style="text-align:center"><span class="lbl" style="display:block;margin:0">Phase 1</span><b style="font-size:.85rem">Sheet import</b></div>
+        <div class="pnl fx" style="text-align:center;opacity:.75"><span class="lbl" style="display:block;margin:0">Phase 2</span><b style="font-size:.85rem">Viber bot</b></div>
+        <div class="pnl fx" style="text-align:center;opacity:.75"><span class="lbl" style="display:block;margin:0">Phase 3</span><b style="font-size:.85rem">VASP adapters</b></div>
+        <div class="pnl fx" style="text-align:center;opacity:.75"><span class="lbl" style="display:block;margin:0">Phase 4</span><b style="font-size:.85rem">Carrier feed</b></div>
+      </div>
+      <div style="text-align:center;color:var(--ink-4);font-family:var(--mono);padding:.3rem 0">↓ ↓ ↓ ↓ ↓</div>
+      <div class="pnl brief">
+        <span class="lbl">SQL RPCs · security invoker — RLS applies · one transaction each</span>
+        <div class="grid2 mt" style="gap:.5rem 1.4rem">
+          <p class="fn"><code>apply_status_change(p_shipment, p_axis, p_status_id, p_note, p_source)</code> —
+          validates the status belongs to tenant+axis and is active; updates the axis column; looks up the semantic&rsquo;s
+          milestone; <b>stamps it only if currently null</b> (and stamps <code>target_release_at</code> from
+          <code>sla_policy</code> when stamping <code>lodgement_at</code>); inserts the event. One code path for UI,
+          import, and every future integration.</p>
+          <p class="fn"><code>correct_milestone(p_shipment, p_field, p_new_value, p_reason)</code> — owner/admin only;
+          writes <code>milestone_correction</code> with old/new in <code>detail</code>; recomputes
+          <code>target_release_at</code> when <code>lodgement_at</code> changes and no manual override is set.</p>
+          <p class="fn"><code>set_lane(…)</code> — lane + <code>lane_change</code> event; the event timestamp feeds
+          lane-timing reports.<br /><code>handoff_department(…)</code> — handoff event.</p>
+          <p class="fn"><code>open_exception</code> / <code>update_exception</code> / <code>resolve_exception</code><br />
+          <code>seed_tenant_defaults(p_tenant)</code> — <code>security definer</code>, service-role only.</p>
+        </div>
+      </div>
+      <p class="fn mt">Inside the transaction: validate → update state → stamp milestones → append
+      <code>shipment_event</code> with <code>source</code> and actor. Nothing mutates a shipment outside this spine —
+      that invariant is what makes Phases 2–4 additive callers instead of rewrites.</p>
+    </div>
+  </section>
+
+  <!-- 11 · SLA machinery -->
+  <section class="slide" data-title="SLA machinery">
+    <div class="si">
+      <div class="kicker">Domain logic</div>
+      <h1>The five-day target, as configuration</h1>
+      <p class="lead">Two parameters the client has not yet defined are <b>columns, not constants</b>. Provisional seeds ship flagged; the question to him stands.</p>
+      <div class="grid2">
+        <div class="pnl">
+          <span class="lbl">sla_policy · one row per tenant</span>
+          <div class="tblwrap"><table class="tbl">
+            <tr><td class="mono">target_days</td><td>default <b>5</b></td></tr>
+            <tr><td class="mono">day_basis</td><td><code>working | calendar</code> — seed <code>working</code>, <b>provisional</b></td></tr>
+            <tr><td class="mono">approaching_days</td><td>seed <b>2</b>, <b>provisional</b></td></tr>
+            <tr><td class="mono">working_weekdays</td><td><code>int[]</code> default <code>{1,2,3,4,5}</code></td></tr>
+          </table></div>
+          <p class="fn mt"><code>holiday</code> table seeded with PH national holidays 2026–2027. Both day bases are
+          implemented and check-scripted regardless of which the client picks.</p>
+        </div>
+        <div class="pnl">
+          <span class="lbl">S3 domain library · pure TS, zero DB imports</span>
+          <pre class="code">computeSla(...) → {
+  targetDate,
+  daysElapsed,
+  daysRemaining,
+  band   <span class="cm">// within | approaching | beyond</span>
+}</pre>
+          <p class="fn mt">Working/calendar-day math over <code>sla_policy</code> + holidays; semantic-set constants;
+          rule catalog, evaluator and reconciler diff logic — all pure data-in/data-out, with pinned check cases:
+          holiday spans, weekend masks, month boundaries, snooze, idempotent re-evaluation.</p>
+        </div>
+      </div>
+      <p class="fn mt"><code>target_release_at</code> is stamped from <code>sla_policy</code> when
+      <code>lodgement_at</code> stamps, and recomputed by <code>correct_milestone</code> when lodgement is corrected
+      and no manual override is set. The <code>sla_beyond</code> rule also enforces the &ldquo;reason for delay&rdquo;
+      requirement by flagging empty <code>delay_reason</code>/<code>delay_attribution</code>.</p>
+    </div>
+  </section>
+
+  <!-- 12 · Attention engine + catalog -->
+  <section class="slide" data-title="Attention engine — rule catalog">
+    <div class="si">
+      <div class="kicker">Attention engine</div>
+      <h1>Rule types are code; rule instances are tenant data</h1>
+      <p class="lead">A TS catalog in <code>src/lib/rules/</code>, each type a pure function
+      <code>(snapshot, params, ctx: {now, slaPolicy, holidays}) → Finding | null</code>.
+      No user-defined predicate DSL in v1 — unbounded scope and injection surface. Q16 configurability is satisfied by
+      enabling/disabling instances and editing params, severity and labels.</p>
+      <div class="grid3">
+        <div class="pnl"><div class="pnl-h"><span class="bn">1</span><h3 class="mono" style="font-size:.8rem">sla_approaching</h3></div><p>Lodged, not released, days remaining ≤ <code>approaching_days</code>.</p></div>
+        <div class="pnl"><div class="pnl-h"><span class="bn">2</span><h3 class="mono" style="font-size:.8rem">sla_beyond</h3></div><p>Past target, not released; escalates severity; also flags empty delay reason/attribution — the requirement enforces itself.</p></div>
+        <div class="pnl"><div class="pnl-h"><span class="bn">3</span><h3 class="mono" style="font-size:.8rem">stuck_in_status</h3></div><p>Time since last <code>status_change</code> into a semantic set &gt; <code>params.days</code>. Seeded: transshipment delay, not-departed-too-long, examination too long, payment-not-released.</p></div>
+        <div class="pnl"><div class="pnl-h"><span class="bn">4</span><h3 class="mono" style="font-size:.8rem">arrived_not_lodged</h3></div><p>The &ldquo;For Lodgement&rdquo; pileup.</p></div>
+        <div class="pnl"><div class="pnl-h"><span class="bn">5</span><h3 class="mono" style="font-size:.8rem">open_exception</h3></div><p>Severity from category; params can scope to category semantics — an always-on SPS instance is seeded, per Q13.</p></div>
+        <div class="pnl"><div class="pnl-h"><span class="bn">6</span><h3 class="mono" style="font-size:.8rem">released_not_delivered</h3></div><p>Cleared but sitting.</p></div>
+        <div class="pnl"><div class="pnl-h"><span class="bn">7</span><h3 class="mono" style="font-size:.8rem">delivered_not_closed</h3></div><p>Billing / closure lag.</p></div>
+        <div class="pnl"><div class="pnl-h"><span class="bn">8</span><h3 class="mono" style="font-size:.8rem">missing_data</h3></div><p>Lodged with no lane, no entry number, no ETA. Data hygiene keeps the dashboard trustworthy.</p></div>
+        <div class="pnl"><div class="pnl-h"><span class="bn">9</span><h3 class="mono" style="font-size:.8rem">carrier_delayed</h3></div><p>Explicit carrier delay status.</p></div>
+      </div>
+      <p class="fn mt">Optional filters on any instance (lane semantics, mode, location) cover &ldquo;Red lane cases&rdquo;-style
+      instances without new rule types.</p>
+    </div>
+  </section>
+
+  <!-- 13 · Evaluation & reconciler -->
+  <section class="slide" data-title="Attention engine — evaluation and reconciliation">
+    <div class="si">
+      <div class="kicker">Attention engine</div>
+      <h1>Write-triggered, plus swept — reconciled, never recomputed away</h1>
+      <div class="grid3">
+        <div class="pnl">
+          <span class="lbl">Evaluation</span>
+          <p><b>(a) On write:</b> every mutating server action evaluates that one shipment against enabled rules and
+          reconciles — synchronous, milliseconds.</p>
+          <p><b>(b) Sweep:</b> an idempotent route handler (<code>/api/internal/sweep</code>,
+          <code>CRON_SECRET</code> bearer) evaluates all non-closed shipments per tenant — because time makes rules
+          true with no write. Hourly via Vercel cron; day-granularity SLAs need nothing faster.</p>
+          <p class="fn">Scheduler deliberately swappable to Supabase <code>pg_cron</code> + <code>pg_net</code> hitting
+          the same URL — zero code change.</p>
+        </div>
+        <div class="pnl">
+          <span class="lbl">Reconciler · service-role · src/lib/rules/reconcile.ts</span>
+          <ul>
+            <li>Diff findings against open items</li>
+            <li><b>Insert new</b> — this edge is the Phase 2 alert hook</li>
+            <li>Refresh severity / <code>last_evaluated_at</code> / detail</li>
+            <li><b>Auto-resolve</b> cleared conditions and closed shipments (<code>condition_cleared</code> · <code>rule_disabled</code> · <code>shipment_closed</code>)</li>
+            <li>Snoozed items stay open but hidden until <code>snoozed_until</code></li>
+            <li><b>No dismiss-forever</b> — the product&rsquo;s contract is that it nags until the condition clears</li>
+          </ul>
+        </div>
+        <div class="pnl">
+          <span class="lbl">Determinism</span>
+          <p>Evaluators are pure and check-scripted against a pinned scenario table including working-day boundaries and
+          holiday spans.</p>
+          <p><b>Re-running the sweep with no state change must produce zero writes — asserted in checks.</b></p>
+          <p class="fn mt">Uniqueness is structural: partial unique
+          <code>(tenant_id, shipment_id, rule_id) where resolved_at is null</code>.</p>
+        </div>
+      </div>
+      <div class="pnl tint mt">
+        <p class="fn"><b>Surfacing.</b> Owner dashboard: ranked open items (severity, then age) with shipment context and
+        one click to the detail slideover — plus read-computed tiles: arriving containers, vessels not departed,
+        in-customs count, approaching/beyond target, lane counts, open SPS, ready for delivery. Department users see
+        their queue with attention badges. <b>Dashboard-only per Q6</b> — the edge-trigger sits unused until Phase 2.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14 · Slice graph -->
+  <section class="slide" data-title="Implementation slices — dependency graph">
+    <div class="si">
+      <div class="kicker">Implementation</div>
+      <h1>Ten slices, four parallel lanes</h1>
+      <div class="svgwrap">
+        <svg viewBox="0 0 1060 452" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Slice dependency graph">
+          <defs>
+            <marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0 L8 4 L0 8 z" fill="#98A2AE"></path>
+            </marker>
+          </defs>
+          <!-- edges -->
+          <path class="edge" d="M130 227 H166" marker-end="url(#ah)"></path>
+          <path class="edge" d="M290 215 L326 137" marker-end="url(#ah)"></path>
+          <path class="edge" d="M290 239 L326 317" marker-end="url(#ah)"></path>
+          <path class="edge" d="M450 137 L486 215" marker-end="url(#ah)"></path>
+          <path class="edge" d="M450 317 L486 239" marker-end="url(#ah)"></path>
+          <path class="edge" d="M610 213 L646 97" marker-end="url(#ah)"></path>
+          <path class="edge" d="M610 227 H646" marker-end="url(#ah)"></path>
+          <path class="edge" d="M610 235 L646 315" marker-end="url(#ah)"></path>
+          <path class="edge" d="M610 241 L646 405" marker-end="url(#ah)"></path>
+          <path class="edge" d="M770 85 H856" marker-end="url(#ah)"></path>
+          <path class="edge" d="M770 327 H856" marker-end="url(#ah)"></path>
+          <path class="edge dash" d="M770 100 L856 312" marker-end="url(#ah)"></path>
+          <path class="edge dash" d="M450 330 C 560 380, 760 220, 856 110" marker-end="url(#ah)"></path>
+          <path class="edge dash" d="M770 415 L856 345" marker-end="url(#ah)"></path>
+          <!-- nodes: x,y = top-left; 120x46 -->
+          <g><rect class="nb" x="10" y="204" width="120" height="46" rx="6"></rect>
+             <text class="nk" x="70" y="223" text-anchor="middle">S0</text>
+             <text class="nn" x="70" y="239" text-anchor="middle">Repo bootstrap</text></g>
+          <g><rect class="nb" x="170" y="204" width="120" height="46" rx="6"></rect>
+             <text class="nk" x="230" y="223" text-anchor="middle">S1</text>
+             <text class="nn" x="230" y="239" text-anchor="middle">Schema · RLS · seeds</text></g>
+          <text class="badge" x="230" y="196" text-anchor="middle">GATES EVERYTHING</text>
+          <g><rect class="nb" x="330" y="114" width="120" height="46" rx="6"></rect>
+             <text class="nk" x="390" y="133" text-anchor="middle">S2</text>
+             <text class="nn" x="390" y="149" text-anchor="middle">Shell · tenancy</text></g>
+          <g><rect class="nb" x="330" y="294" width="120" height="46" rx="6"></rect>
+             <text class="nk" x="390" y="313" text-anchor="middle">S3</text>
+             <text class="nn" x="390" y="329" text-anchor="middle">Domain library</text></g>
+          <text class="cap" x="390" y="352" text-anchor="middle">parallel with S2 · deps S0 only</text>
+          <g><rect class="nb" x="490" y="204" width="120" height="46" rx="6"></rect>
+             <text class="nk" x="550" y="223" text-anchor="middle">S4</text>
+             <text class="nn" x="550" y="239" text-anchor="middle">Shipment core</text></g>
+          <g><rect class="nb" x="650" y="62" width="120" height="46" rx="6"></rect>
+             <text class="nk" x="710" y="81" text-anchor="middle">S5</text>
+             <text class="nn" x="710" y="97" text-anchor="middle">Exceptions</text></g>
+          <g><rect class="nb" x="860" y="62" width="120" height="46" rx="6"></rect>
+             <text class="nk" x="920" y="81" text-anchor="middle">S6</text>
+             <text class="nn" x="920" y="97" text-anchor="middle">Attention engine</text></g>
+          <text class="cap" x="920" y="120" text-anchor="middle">also needs S3</text>
+          <g><rect class="nb lane" x="650" y="204" width="120" height="46" rx="6"></rect>
+             <text class="nk" x="710" y="223" text-anchor="middle">S7</text>
+             <text class="nn" x="710" y="239" text-anchor="middle">Reporting</text></g>
+          <text class="cap" x="710" y="262" text-anchor="middle">also needs S5</text>
+          <g><rect class="nb lane" x="650" y="294" width="120" height="46" rx="6"></rect>
+             <text class="nk" x="710" y="313" text-anchor="middle">S8</text>
+             <text class="nn" x="710" y="329" text-anchor="middle">Settings</text></g>
+          <g><rect class="nb lane" x="650" y="384" width="120" height="46" rx="6"></rect>
+             <text class="nk" x="710" y="403" text-anchor="middle">S9a</text>
+             <text class="nn" x="710" y="419" text-anchor="middle">Import dry-run</text></g>
+          <text class="cap" x="710" y="442" text-anchor="middle">immediately after S4 — never committed</text>
+          <g><rect class="nb" x="860" y="294" width="120" height="46" rx="6"></rect>
+             <text class="nk" x="920" y="313" text-anchor="middle">S9b</text>
+             <text class="nn" x="920" y="329" text-anchor="middle">Sheet import</text></g>
+          <text class="cap" x="920" y="352" text-anchor="middle">deps S5 + S8 · runs last</text>
+          <!-- legend -->
+          <g transform="translate(10,10)">
+            <path class="edge" d="M0 8 H30" marker-end="url(#ah)"></path><text class="cap" x="38" y="12">dependency</text>
+            <path class="edge dash" d="M120 8 H150" marker-end="url(#ah)"></path><text class="cap" x="158" y="12">additional dependency</text>
+            <rect class="nb lane" x="290" y="0" width="16" height="16" rx="4"></rect><text class="cap" x="314" y="12">parallel worktree lane</text>
+          </g>
+        </svg>
+      </div>
+      <p class="fn mt"><b>Order:</b> S0 → S1 → {S2, S3} → S4 → {S5→S6}, {S7}, {S8}, {S9a} in parallel lanes
+      (S7/S8/S9a in worktrees) → S9b last. <b>Nothing in Phase 1 is blocked on unanswered client questions.</b>
+      Ten slices, not the draft&rsquo;s nine — the draft lacked a repo bootstrap, a pure domain-library slice and a settings
+      slice, its attention dashboard had no engine behind it, and import needed an early dry-run to de-risk the model.</p>
+    </div>
+  </section>
+
+  <!-- 15 · Slices S0–S4 -->
+  <section class="slide" data-title="Slices S0–S4">
+    <div class="si">
+      <div class="kicker">Implementation</div>
+      <h1>Slices S0–S4</h1>
+      <div class="tblwrap"><table class="tbl">
+        <tr><th style="width:9%">Slice</th><th style="width:42%">Scope</th><th style="width:37%">Accept</th><th>Deps</th></tr>
+        <tr>
+          <td class="mono"><b>S0</b><br />Bootstrap</td>
+          <td>Next (App Router) + TS strict + Tailwind v4 + <code>@supabase/ssr</code> pinned near tdoc&rsquo;s versions;
+          four-client pattern; <code>proxy.ts</code> session refresh + login gate; magic-link auth; <code>/login</code>;
+          envs per tdoc <code>.env.example</code>; gates wired; <code>scripts/localdb/</code> harness ported;
+          <code>AGENTS.md</code> with handoff and no-real-client-data rules.</td>
+          <td>Fresh clone → <code>pnpm i</code> → three gates pass; <code>/</code> redirects to <code>/login</code>;
+          localdb runner passes on an empty-assertion baseline.</td>
+          <td class="mono">—</td>
+        </tr>
+        <tr>
+          <td class="mono"><b>S1</b><br />Schema, RLS, seeds</td>
+          <td>All of the data model: tables, composite-FK hardening, helpers, policies, RPCs, <code>status_semantic</code>
+          seed, <code>seed_tenant_defaults</code> with the DCA template (<b>terms only — no real client names, volumes or
+          figures in any committed seed or fixture</b>), PH holidays, default rule instances. localdb assertions: two fake
+          tenants; per-table isolation proof including cross-tenant child attachment; RPC behavior (milestone stamps once,
+          target computed, events written, wrong-axis rejected); event immutability; attention write fence.</td>
+          <td><code>run.sh</code> green, assertion count pinned. <b>Gates everything.</b></td>
+          <td class="mono">S0</td>
+        </tr>
+        <tr>
+          <td class="mono"><b>S2</b><br />Shell, tenancy</td>
+          <td>Tenant resolution from membership (picker only if &gt;1), server-side tenant context, ported design system
+          (tokens, rail nav with counts, topbar, panels, chips, slideover skeleton), membership/invite admin.</td>
+          <td>Two seeded users in different tenants each see only their own; invited-then-signed-up user lands linked.</td>
+          <td class="mono">S1</td>
+        </tr>
+        <tr>
+          <td class="mono"><b>S3</b><br />Domain library</td>
+          <td><code>src/lib/domain/</code>: working/calendar-day math (both bases); <code>computeSla</code>; semantic-set
+          constants; rule catalog, evaluator, reconciler diff — all pure TS. Check scripts with pinned cases.</td>
+          <td>All check scripts pass; <b>zero DB imports in the module</b>.</td>
+          <td class="mono">S0 · ∥ S2</td>
+        </tr>
+        <tr>
+          <td class="mono"><b>S4</b><br />Shipment core</td>
+          <td>Create/edit (zod server actions), containers, list + board (board by any chosen axis, columns = active tenant
+          statuses in sort order; filters: department, client, location, lane, mode, status, SLA band; search across
+          ref/BL/entry/container/vessel), detail slideover with three-axis status controls, lane control, department
+          handoff, milestone display + owner correction, event timeline, SLA badge throughout. All mutations via S1 RPCs.</td>
+          <td>A full lifecycle through the UI produces the correct event trail and milestone stamps; a renamed status
+          re-labels everywhere with history intact; the board renders from vocabulary, not constants.</td>
+          <td class="mono">S2 + S3</td>
+        </tr>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- 16 · Slices S5–S9 -->
+  <section class="slide" data-title="Slices S5–S9b">
+    <div class="si">
+      <div class="kicker">Implementation</div>
+      <h1>Slices S5–S9b</h1>
+      <div class="tblwrap"><table class="tbl">
+        <tr><th style="width:9%">Slice</th><th style="width:42%">Scope</th><th style="width:37%">Accept</th><th>Deps</th></tr>
+        <tr>
+          <td class="mono"><b>S5</b><br />Exceptions</td>
+          <td>Open/update/resolve with category, severity, attribution, owning department, due date; delay reason and
+          attribution on the shipment; exceptions surface on card, detail and filters.</td>
+          <td>Lifecycle fully evented; resolved exceptions leave the trail intact.</td>
+          <td class="mono">S4</td>
+        </tr>
+        <tr>
+          <td class="mono"><b>S6</b><br />Attention wiring</td>
+          <td>Snapshot query, on-write hook, sweep endpoint + cron, reconciler, owner dashboard (ranked list + tiles),
+          snooze, department-queue badges.</td>
+          <td>Seeded scenarios produce the expected item set; clearing a condition auto-resolves; re-sweep is a no-op;
+          snooze hides until expiry; tiles match hand-counted values.</td>
+          <td class="mono">S4+S5+S3</td>
+        </tr>
+        <tr>
+          <td class="mono"><b>S7</b><br />Reporting</td>
+          <td>Lane counts/percentages and average lodgement→release by lane; SLA performance over time; exception
+          frequency by category; <b>delay-attribution split (broker-controlled vs external) — the report the client
+          actually wants</b>. Date-range and location filters.</td>
+          <td>Every figure reproducible by hand from seed data; empty states render.</td>
+          <td class="mono">S4+S5 · ∥</td>
+        </tr>
+        <tr>
+          <td class="mono"><b>S8</b><br />Settings</td>
+          <td>Vocabulary CRUD (semantic picker, tone, reorder, deactivate), lanes, exception categories, SLA policy (both
+          undefined parameters exposed), holidays, rules (enable, params, severity), departments/locations/handlers,
+          members. Owner/admin gated in RLS <b>and</b> UI.</td>
+          <td>A vocabulary edit round-trips through board, detail and reports with no code change; staff role blocked.</td>
+          <td class="mono">S4 · ∥</td>
+        </tr>
+        <tr>
+          <td class="mono"><b>S9a</b><br />Import dry-run</td>
+          <td>Spike, immediately after S4: parse the real sheet export locally (<b>never committed</b>), map columns to
+          the model, report unmappable columns and values. Cheapest possible test of the whole data model; gaps feed back
+          before S6–S8 harden.</td>
+          <td>Gap report produced against the real export.</td>
+          <td class="mono">S4 · ∥</td>
+        </tr>
+        <tr>
+          <td class="mono"><b>S9b</b><br />Sheet import</td>
+          <td>Import UI/CLI with preview, <code>import_batch</code> provenance, idempotent re-import (match on entry no,
+          else BL + client ref), status-text → vocabulary mapping table (a gitignored data file — it carries real client
+          vocabulary), leftovers into <code>import_extra</code>.</td>
+          <td>Re-running the same file is a no-op; every created shipment carries an <code>imported</code> event with
+          batch id.</td>
+          <td class="mono">S5+S8 · last</td>
+        </tr>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- 17 · Gates -->
+  <section class="slide" data-title="Verification gates">
+    <div class="si">
+      <div class="kicker">Verification</div>
+      <h1>Gates — every slice, and once on the integrated result</h1>
+      <div class="grid2">
+        <div>
+          <pre class="code">./node_modules/.bin/tsc --noEmit
+pnpm lint
+pnpm build
+./scripts/localdb/run.sh
+<span class="cm"># migration chain + RLS/RPC assertions,</span>
+<span class="cm"># ephemeral Docker PG, ON_ERROR_STOP,</span>
+<span class="cm"># pinned assertion counts</span>
+node --experimental-strip-types \
+  --import ./scripts/checks/_alias-loader.mjs \
+  scripts/checks/&lt;lib&gt;.check.ts</pre>
+        </div>
+        <div>
+          <div class="pnl">
+            <ul>
+              <li><b>House verification pattern</b> — check scripts + localdb harness. No test framework introduced.</li>
+              <li><b>Independent Codex review on S1 and S6 at minimum</b> — greenfield build with real multi-tenant RLS falls under the workspace high-risk rule.</li>
+              <li><b>Deploy is manual</b>: <code>npx vercel --prod --yes</code>, region <code>sin1</code>, no auto-deploy.</li>
+            </ul>
+          </div>
+          <div class="pnl warnbox mt">
+            <span class="lbl" style="color:var(--amber)">Confidentiality — repo rules</span>
+            <ul>
+              <li>Invented data only in committed seeds and fixtures — <b>no real client names, volumes or figures</b>.</li>
+              <li>Import mapping files and real sheet exports are gitignored; only a sanitized spec enters the repo.</li>
+              <li>Repo in <code>.stignore</code> before first commit (Syncthing/git divergence incident); fetch-first rule applies.</li>
+              <li>The reviewer checks for leaks as part of every pass.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 18 · Integration spine -->
+  <section class="slide" data-title="Integration architecture — ingestion and VASP">
+    <div class="si">
+      <div class="kicker">Phases 2–4 · designed now, built later</div>
+      <h1>Integration architecture: the ingestion spine</h1>
+      <p class="lead">Phase 1 builds exactly two hooks — the RPC spine with <code>source</code>/actor on every event, and materialized attention items (the edge-trigger for alerts). Everything below is additive.</p>
+      <div class="flowrow">
+        <div class="pnl fx"><span class="lbl">1 · Raw</span><p class="fn"><code>integration_event</code> rows — provider, payload jsonb, dedupe key, received_at. Tables land with Phase 3.</p></div>
+        <div class="fx-arr">→</div>
+        <div class="pnl fx"><span class="lbl">2 · Normalize</span><p class="fn">Provider states map to <b>semantics</b> — per-broker vocabulary never enters adapter code. The per-broker × per-VASP matrix stays a config problem, not a code problem.</p></div>
+        <div class="fx-arr">→</div>
+        <div class="pnl fx"><span class="lbl">3 · Resolve</span><p class="fn">Find the tenant status carrying that semantic.</p></div>
+        <div class="fx-arr">→</div>
+        <div class="pnl fx"><span class="lbl">4 · Apply</span><p class="fn"><code>apply_status_change</code> / <code>open_exception</code> with <code>source='vasp:*'</code> or <code>'carrier'</code> — the same Phase 1 spine.</p></div>
+      </div>
+      <div class="grid2 mt">
+        <div class="pnl">
+          <span class="lbl">VASP adapters · Phase 3</span>
+          <p class="fn">One TS interface — <code>checkEntry(ref) → NormalizedEntryStatus</code>, <code>capabilities</code> —
+          three implementations (InterCommerce, CDEC, eKonek). Priority per Q11: official API → authorized feed → portal
+          automation → manual. Which mode each VASP supports is the Phase 0/3 spike; <b>build the highest-volume VASP
+          first</b> (open item with the client).</p>
+        </div>
+        <div class="pnl warnbox">
+          <span class="lbl" style="color:var(--amber)">Portal automation · the Q11 hard constraint</span>
+          <p class="fn">Headless-browser login <b>cannot run in Vercel functions</b> — separate worker host (small VPS or Fly
+          machine, fixed egress IP). Broker credentials <b>never enter the product database</b>:
+          <code>vasp_credential</code> holds provider, username hint, <code>vault_ref</code>, status,
+          <code>last_verified_at</code> only; secrets live in the worker&rsquo;s secret store. Rails: per-VASP kill switch;
+          hard stop + owner notification after N auth failures (never risk locking the broker&rsquo;s real account — that is
+          the accreditation risk); session reuse; every access logged to <code>integration_run</code>; VASP sub-accounts
+          where supported; and <b>written authorization from the broker before any automated login runs — a plan gate,
+          not a plan step</b>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 19 · Viber, carrier, client view -->
+  <section class="slide" data-title="Integration architecture — Viber, carrier, client view">
+    <div class="si">
+      <div class="kicker">Phases 2–5 · designed now, built later</div>
+      <h1>Viber, carrier tracking, client-facing view</h1>
+      <div class="grid3">
+        <div class="pnl">
+          <span class="lbl">Viber bot · Phase 2</span>
+          <ul>
+            <li>Webhook route handler; structured menu first, free text second (Q5).</li>
+            <li>Identity binding via a linking-code table mapping Viber user id → membership, with tdoc&rsquo;s rule carried over verbatim: <b>the Viber user id comes from the webhook envelope, never from message content</b>.</li>
+            <li>Writes go through the same RPCs with <code>source='viber'</code> and a narrow operation allowlist.</li>
+            <li>Owner exception alerts subscribe to <code>attention_item</code> inserts — the edge built in Phase 1.</li>
+          </ul>
+        </div>
+        <div class="pnl">
+          <span class="lbl">Carrier tracking · Phase 4</span>
+          <ul>
+            <li>Source entirely unscoped — an open item with the client (carrier APIs, aggregator, email/EDI advices).</li>
+            <li>The isolating boundary: carrier data is just another <code>integration_event</code> producer writing carrier-axis semantics.</li>
+            <li><code>container</code> already exists for per-container granularity.</li>
+            <li><b>No Phase 1 code assumes a source.</b></li>
+          </ul>
+        </div>
+        <div class="pnl">
+          <span class="lbl">Client-facing view · Phase 5</span>
+          <ul>
+            <li>The public six-stage view is a <b>pure function of semantics + milestones</b> — already buildable against Phase 1 data.</li>
+            <li>Blocked on the Trackify question resolving (see risk register); <b>no architecture commitment to Trackify is made or needed now</b>.</li>
+            <li>Nothing in Phases 1–4 depends on the answer.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 20 · Risk register -->
+  <section class="slide" data-title="Risk register">
+    <div class="si">
+      <div class="kicker">Risks</div>
+      <h1>Risk register</h1>
+      <div class="tblwrap"><table class="tbl" style="font-size:.75rem">
+        <tr><th style="width:4%">#</th><th style="width:34%">Risk</th><th>Design answer now</th></tr>
+        <tr><td class="mono">1</td><td><b>Cross-tenant leak</b> — the product promise is &ldquo;completely segregated&rdquo;</td><td>RLS from migration one, composite FKs, no-delete event trail, attention write fence, two-tenant isolation assertions with pinned counts, Codex review on S1</td></tr>
+        <tr><td class="mono">2</td><td><b>Semantic layer misfit</b> — a broker status spans two semantics</td><td>Coarse fallbacks (<code>processing</code>, <code>*_other</code>); semantics extendable by product migration; onboarding review per tenant. Accepted residual: v1 statuses are single-valued per axis</td></tr>
+        <tr><td class="mono">3</td><td><b>Sheet import exposes model gaps late</b></td><td>S9a dry-run pulled forward to just after S4; <code>import_extra</code> parking; feedback window before S6–S8 harden</td></tr>
+        <tr><td class="mono">4</td><td><b>Staff adoption / data-entry burden</b> — three axes + lane + exceptions vs one sheet row</td><td>Vocabulary preserved verbatim in seeds; board plus quick controls in the detail panel; department queues; import brings history so day one isn&rsquo;t blank. <b>Watch at pilot — this kills the product faster than any bug</b></td></tr>
+        <tr><td class="mono">5</td><td><b>SLA computed wrong</b> (working days, holidays, thresholds)</td><td>Both undefined parameters are config; holiday table; both day-bases implemented and check-scripted; provisional seeds flagged to the client</td></tr>
+        <tr><td class="mono">6</td><td><b>VASP automation breaks credentials or accreditation</b></td><td>Worker isolation, no secrets in the product DB, kill switch, lockout guard, audit trail, written authorization as a hard gate</td></tr>
+        <tr><td class="mono">7</td><td><b>Vercel cron tier limits the sweep</b></td><td>One idempotent secured endpoint; scheduler swappable to pg_cron with zero code change</td></tr>
+        <tr><td class="mono">8</td><td><b>Confidential data leaks into the repo</b> (seeds, fixtures, import mappings, screenshots)</td><td>Repo rule in <code>AGENTS.md</code>: invented data only in fixtures; import mapping and real exports gitignored; sanitized spec only; reviewer checks for it</td></tr>
+        <tr><td class="mono">9</td><td><b>Trackify overlap invalidates Phase 5 assumptions</b></td><td>Client-facing layer isolated behind semantics; nothing in Phases 1–4 depends on the answer; confidentiality agreement escalated</td></tr>
+        <tr><td class="mono">10</td><td><b>Scope creep from the five-layer vision into Phase 1</b></td><td>Phase 1 is explicitly zero-integration; integration surface reduced to the <code>source</code> column plus the RPC spine</td></tr>
+        <tr><td class="mono">11</td><td><b>Syncthing vs git divergence</b> (the recorded workspace incident)</td><td>Repo in <code>.stignore</code> before first commit; fetch-first rule applies</td></tr>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- 21 · Decisions & exclusions -->
+  <section class="slide" data-title="Decisions needed · deliberately not in Phase 1">
+    <div class="si">
+      <div class="kicker">Scope control</div>
+      <h1>Decisions needed, and what Phase 1 deliberately is not</h1>
+      <div class="grid2">
+        <div class="pnl brief">
+          <span class="lbl" style="color:var(--cobalt)">Needs Ac&rsquo;s decision</span>
+          <ul>
+            <li><s>Product/repo name</s> — settled: <code>andar-clearway</code>.</li>
+            <li><b>Confirm tenant-wide member reads</b> vs department-fenced. Cheap to reverse before S1, expensive after.</li>
+            <li><b>Confirm the Phase 1 settings surface (S8)</b> vs deferring config to SQL-by-Ac.</li>
+            <li><b>Provisional SLA seeds</b> (<code>working</code>, approaching = 2) — fine to ship configurable, but the question to the client should go out now.</li>
+            <li><b>Phase 3 automated-login work must not start without the client&rsquo;s written authorization</b> — which also carries the confidentiality-agreement dependency.</li>
+          </ul>
+        </div>
+        <div class="pnl">
+          <span class="lbl">Deliberately not in Phase 1</span>
+          <ul>
+            <li>Document management / checklist module — never asked for in the answers; likely a Phase 2 request; the &ldquo;Missing Documents&rdquo; exception category covers the tracking need meanwhile</li>
+            <li>Field dispatch (demo-only) · command palette · AI briefing</li>
+            <li>Billing/invoicing — Billed/Closed is a milestone, not an AR feature</li>
+            <li>Notifications of any kind — Q6: dashboard-only</li>
+            <li>Client portal and Trackify (Phase 5)</li>
+            <li>Per-container carrier status · status-transition state machines</li>
+            <li>Any <code>techisland-tdoc</code> changes — it is a pattern source only</li>
+          </ul>
+        </div>
+      </div>
+      <div class="pnl tint mt">
+        <p class="fn"><b>Reference.</b> Patterns to copy:
+        <code>techisland-tdoc/supabase/migrations/20260616120000_hardening.sql</code> (RLS helpers) ·
+        <code>techisland-tdoc/src/lib/supabase/</code> (client pattern) ·
+        <code>techisland-tdoc/scripts/localdb/run.sh</code> and <code>scripts/checks/</code> (verification harness) ·
+        design tokens: <code>index.html</code> lines 9–200 in this folder.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 22 · Close -->
+  <section class="slide" data-title="Where to start">
+    <div class="si title-si">
+      <div class="kicker">Next</div>
+      <h1>Start at S0. S1 gates everything.</h1>
+      <p class="lead">The plan is ordered so that every slice is independently verifiable and nothing waits on the
+      client. Open questions to him live in <span class="mono">HANDOFF.md</span>; open decisions for Ac are on the
+      previous slide. If the plan turns out wrong mid-build, stop and say so — don&rsquo;t quietly improvise a replacement.</p>
+      <div class="chiprow">
+        <span class="chip info"><span class="sq"></span>S0 — bootstrap, gates wired</span>
+        <span class="chip info"><span class="sq"></span>S1 — schema + RLS, Codex-reviewed</span>
+        <span class="chip flat"><span class="sq"></span>Then the parallel lanes open</span>
+      </div>
+      <div class="tmeta">
+        <div><div class="k">Deck</div><div class="v">deck-internal.html — Andar internal, confidential</div></div>
+        <div><div class="k">Source</div><div class="v"><span class="mono">BUILD_PLAN.md</span> in this folder is the authority; this deck presents it</div></div>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+  <footer class="botbar">
+    <span class="conf"><span class="sq"></span>Confidential — Andar internal</span>
+    <span class="keys">← → navigate · Space next · C contents · printable</span>
+    <div class="navbtns" style="margin-left:12px">
+      <button class="navbtn" id="prevBtn" type="button" aria-label="Previous slide">←</button>
+      <button class="navbtn" id="nextBtn" type="button" aria-label="Next slide">→</button>
+    </div>
+  </footer>
+</div>
+
+<div class="toc" id="toc" role="dialog" aria-label="Contents">
+  <div class="toc-panel">
+    <div class="toc-head"><h2>Contents</h2><span class="muted">click to jump · Esc to close</span></div>
+    <div class="toc-grid" id="tocGrid"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var counter = document.getElementById('counter');
+  var pfill = document.getElementById('pfill');
+  var toc = document.getElementById('toc');
+  var tocGrid = document.getElementById('tocGrid');
+  var cur = 0;
+
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+
+  function render(){
+    slides.forEach(function(s, i){ s.classList.toggle('on', i === cur); });
+    counter.textContent = pad(cur + 1) + ' / ' + pad(slides.length);
+    pfill.style.width = (((cur + 1) / slides.length) * 100) + '%';
+    var its = tocGrid.children;
+    for (var i = 0; i < its.length; i++) its[i].classList.toggle('cur', i === cur);
+    slides[cur].scrollTop = 0;
+  }
+  function go(n){
+    if (n < 0 || n >= slides.length) return;
+    cur = n; render();
+  }
+
+  slides.forEach(function(s, i){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'toc-it';
+    b.innerHTML = '<span class="toc-n">' + pad(i + 1) + '</span><span>' +
+      (s.getAttribute('data-title') || 'Slide ' + (i + 1)) + '</span>';
+    b.addEventListener('click', function(){ closeToc(); go(i); });
+    tocGrid.appendChild(b);
+  });
+
+  function openToc(){ toc.classList.add('on'); }
+  function closeToc(){ toc.classList.remove('on'); }
+  function tocOpen(){ return toc.classList.contains('on'); }
+
+  document.getElementById('tocBtn').addEventListener('click', function(){
+    tocOpen() ? closeToc() : openToc();
+  });
+  toc.addEventListener('click', function(e){ if (e.target === toc) closeToc(); });
+  document.getElementById('prevBtn').addEventListener('click', function(){ go(cur - 1); });
+  document.getElementById('nextBtn').addEventListener('click', function(){ go(cur + 1); });
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'Escape'){ closeToc(); return; }
+    if (e.key === 'c' || e.key === 'C' || e.key === 'i' || e.key === 'I'){
+      tocOpen() ? closeToc() : openToc(); e.preventDefault(); return;
+    }
+    if (tocOpen()) return;
+    switch (e.key){
+      case 'ArrowRight': case 'PageDown': go(cur + 1); e.preventDefault(); break;
+      case ' ': go(e.shiftKey ? cur - 1 : cur + 1); e.preventDefault(); break;
+      case 'ArrowLeft': case 'PageUp': go(cur - 1); e.preventDefault(); break;
+      case 'Home': go(0); e.preventDefault(); break;
+      case 'End': go(slides.length - 1); e.preventDefault(); break;
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
