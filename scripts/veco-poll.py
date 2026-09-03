@@ -260,14 +260,21 @@ def cycle(force=False):
     at = posted_at(post['creation_time'])
     health = {'latestPostId': post['post_id'], 'latestPostAt': at, 'pinned': post['pinned']}
 
+    # A heartbeat that never reached Cloudflare is not a check. Reporting success on it
+    # would let the site go stale with the dead-man's switch still showing green, so the
+    # outcome of put_health decides the outcome of the cycle.
     if post['post_id'] == load_state().get('post_id') and not force:
-        put_health('unchanged', **health)
+        status, body = put_health('unchanged', **health)
+        if status != 200:
+            return fail_cycle(post, status, body)
         ping()
         log('unchanged', post)
         return 0
 
     if not is_advisory(post['text']):
-        put_health('skipped', detail='not an advisory', **health)
+        status, body = put_health('skipped', detail='not an advisory', **health)
+        if status != 200:
+            return fail_cycle(post, status, body)
         save_state(post)
         ping()
         log('skipped', post, 'not an advisory')
@@ -295,6 +302,14 @@ def cycle(force=False):
 
     detail = f'rotational {status}' if status else f"rotational unreachable: {body.get('error')}"
     put_health('error', detail=detail[:300])
+    ping('/fail', detail)
+    log('error', post, detail)
+    return 1
+
+
+def fail_cycle(post, status, body):
+    """A cycle that could not reach accoworks.dev: alert, and leave state for a retry."""
+    detail = f'health {status}' if status else f"health unreachable: {body.get('error')}"
     ping('/fail', detail)
     log('error', post, detail)
     return 1
