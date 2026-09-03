@@ -49,6 +49,30 @@ export async function readHealth(env) {
   }
 }
 
+/**
+ * Write one health record. `result: 'error'` keeps the previous check and post so
+ * staleness stays honest; every other result is a real read of the page, so it advances
+ * checkedAt and carries the previous error stamp forward for the admin view.
+ */
+export async function writeHealth(env, { result, latestPostId, latestPostAt, detail, pinned }) {
+  if (!env.REACTIONS) return { ...EMPTY };
+  const now = new Date().toISOString();
+  const previous = await readHealth(env);
+  const health = result === 'error'
+    ? { ...previous, detail: detail || '', lastErrorAt: now }
+    : {
+      checkedAt: now,
+      latestPostId: latestPostId || previous.latestPostId,
+      latestPostAt: latestPostAt || previous.latestPostAt,
+      result,
+      detail: detail || '',
+      pinned: Boolean(pinned),
+      lastErrorAt: previous.lastErrorAt,
+    };
+  await env.REACTIONS.put(HEALTH_KEY, JSON.stringify(health));
+  return health;
+}
+
 export async function onRequestGet({ env }) {
   return json(await readHealth(env || {}));
 }
@@ -78,24 +102,12 @@ export async function onRequestPut({ request, env }) {
     return json({ error: 'latestPostAt must be an ISO date' }, 400);
   }
   const detail = String(body.detail || '').trim().slice(0, MAX_DETAIL);
-  const now = new Date().toISOString();
-  const previous = await readHealth(env);
-
-  // An error keeps the last good check and post so staleness stays honest; everything else
-  // is a real read of the page, so it advances checkedAt and carries the previous error
-  // stamp forward for the admin view.
-  const health = result === 'error'
-    ? { ...previous, detail, lastErrorAt: now }
-    : {
-      checkedAt: now,
-      latestPostId: latestPostId || null,
-      latestPostAt: latestPostAt || null,
-      result,
-      detail,
-      pinned: Boolean(body.pinned),
-      lastErrorAt: previous.lastErrorAt,
-    };
-
-  await env.REACTIONS.put(HEALTH_KEY, JSON.stringify(health));
+  const health = await writeHealth(env, {
+    result,
+    latestPostId,
+    latestPostAt,
+    detail,
+    pinned: body.pinned,
+  });
   return json({ ok: true, health });
 }

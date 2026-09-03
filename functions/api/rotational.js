@@ -16,6 +16,7 @@
 // Bindings: REACTIONS (existing KV namespace), ROTATIONAL_TOKEN (secret).
 
 import { parseAdvisoryText } from '../../src/scripts/veco-post.mjs';
+import { writeHealth } from './rotational-health.js';
 
 export const KEY = 'rotational:current';
 const MAX_TEXT = 24 * 1024;
@@ -97,6 +98,17 @@ export async function onRequestPost({ request, env }) {
 
   const log = { updated: new Date().toISOString(), source, items: kept };
   await env.REACTIONS.put(KEY, JSON.stringify(log));
+
+  // A stored advisory means someone read Facebook just now — the poller, or Ac pasting.
+  // Recording it here keeps /power from warning that updates may be missing while the
+  // manual route is the only one running. The poller still writes its own heartbeat on
+  // cycles that store nothing, which is what detects a silent failure.
+  await writeHealth(env, {
+    result: 'stored',
+    latestPostAt: postedAt || null,
+    detail: `${items.length} slots via ${via}`,
+  });
+
   return json({ stored: kept.length, added: items.length, items: kept, warnings });
 }
 

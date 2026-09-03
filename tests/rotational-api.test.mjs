@@ -162,3 +162,28 @@ test('reports a never-checked feed when KV is empty', async () => {
     lastErrorAt: null,
   });
 });
+
+test('a stored advisory counts as a Facebook check', async () => {
+  const { env, writes } = environment();
+  await onRequestPost({
+    request: post({ text: ADVISORY, via: 'paste', postedAt: '2026-09-03T13:29:30+08:00' }),
+    env,
+  });
+
+  // Both the log and the health record are written, so /power does not warn that updates
+  // may be missing while the paste route is the only one running.
+  assert.deepEqual(writes.map((write) => write.key), ['rotational:current', 'rotational:health']);
+  const health = JSON.parse(writes[1].value);
+  assert.equal(health.result, 'stored');
+  assert.equal(health.latestPostAt, '2026-09-03T13:29:30+08:00');
+  assert.equal(health.detail, '2 slots via paste');
+  assert.ok(Number.isFinite(Date.parse(health.checkedAt)));
+});
+
+test('a rejected advisory does not claim Facebook was read', async () => {
+  const { env, writes } = environment();
+  const response = await onRequestPost({ request: post({ text: 'Pay your bill online.' }), env });
+
+  assert.equal(response.status, 422);
+  assert.deepEqual(writes, []);
+});
