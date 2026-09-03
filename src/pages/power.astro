@@ -45,7 +45,9 @@ const description =
     </header>
 
     <div class="verdict" data-verdict data-tone="idle" aria-live="polite">
-      <div class="verdict-mark" data-verdict-mark aria-hidden="true"></div>
+      <div class="verdict-mark" data-verdict-mark aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M16.2 16.2 21 21"/></svg>
+      </div>
       <div class="verdict-body">
         <p class="verdict-head" data-verdict-head>Loading today’s advisories…</p>
         <p class="verdict-detail" data-verdict-detail>Reading Visayan Electric’s published schedule.</p>
@@ -54,7 +56,7 @@ const description =
       </div>
     </div>
 
-    <div class="toolbar" role="group" aria-label="Filter the schedule">
+    <div class="toolbar" data-toolbar role="group" aria-label="Filter the schedule" hidden>
       <div class="chips" data-chips></div>
       <label class="switch">
         <input type="checkbox" data-hide-done checked />
@@ -69,12 +71,19 @@ const description =
     <div class="feed" data-feed></div>
 
     <div class="note" data-empty hidden>
-      <h2 class="note-head">Nothing scheduled for that area</h2>
       <p>
         No advisory in the next 14 days mentions it. Try the barangay name on its own, or clear the
         filter to read the whole franchise schedule.
       </p>
       <button type="button" class="btn btn-ghost" data-clear>Clear filters</button>
+    </div>
+
+    <div class="note" data-failed hidden>
+      <p>
+        Nothing was reachable just now — this page reads Visayan Electric’s own site and their
+        Facebook posts, and one of them did not answer.
+      </p>
+      <button type="button" class="btn btn-primary" data-retry>Try again</button>
     </div>
 
     <footer class="outage-foot">
@@ -324,6 +333,10 @@ const description =
     border-top: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
   }
+
+  /* `display: flex` outranks the UA's [hidden] rule, so say it here or the toolbar keeps
+     showing two switches that filter nothing while the feed is empty or unreachable. */
+  .outage .toolbar[hidden] { display: none; }
 
   .outage .chips {
     display: flex;
@@ -718,6 +731,9 @@ const description =
   const feed = el('[data-feed]');
   const emptyNote = el('[data-empty]');
   const clearBtn = el<HTMLButtonElement>('[data-clear]');
+  const toolbar = el('[data-toolbar]');
+  const failedNote = el('[data-failed]');
+  const retryBtn = el<HTMLButtonElement>('[data-retry]');
   const updated = el('[data-updated]');
 
   const AREA_KEY = 'accoworks:power:area';
@@ -1192,6 +1208,10 @@ const description =
     loading = true;
     try {
       const moved = await load();
+      // A reload that succeeds after a failed first read is a recovery: clear the failure
+      // note and bring the filters back rather than waiting for a manual retry.
+      failedNote.hidden = true;
+      toolbar.hidden = entries.length === 0;
       renderStaleNotice();
       if (moved) {
         renderChips();
@@ -1208,8 +1228,6 @@ const description =
     }
   }
 
-  feed.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
-
   const saved = localStorage.getItem(AREA_KEY);
   if (saved) {
     // A remembered city restores as the chip filter; anything else as the search term.
@@ -1218,19 +1236,41 @@ const description =
     setHint('Using the area you checked last time.');
   }
 
-  try {
-    await load();
-    renderChips();
-    renderStaleNotice();
-    render();
-  } catch (error) {
-    feed.innerHTML = '';
-    emptyNote.hidden = true;
-    renderStaleNotice();
-    renderVerdict();
-    updated.textContent = 'Advisory feed unreachable.';
-    console.error(error);
+  async function boot() {
+    failedNote.hidden = true;
+    feed.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+    try {
+      await load();
+      renderChips();
+      renderStaleNotice();
+      render();
+      toolbar.hidden = entries.length === 0;
+    } catch (error) {
+      // One voice for one failure: the verdict says the schedule could not be read, so the
+      // staleness notice (which blames the Facebook poller) would be a second, wronger
+      // explanation of the same outage. The toolbar filters nothing, so it goes too.
+      feed.innerHTML = '';
+      emptyNote.hidden = true;
+      toolbar.hidden = true;
+      verdictStale.hidden = true;
+      verdictStale.textContent = '';
+      renderVerdict();
+      failedNote.hidden = false;
+      updated.textContent = 'Advisory feed unreachable.';
+      console.error(error);
+    }
   }
+
+  retryBtn.addEventListener('click', () => {
+    retryBtn.setAttribute('aria-busy', 'true');
+    retryBtn.disabled = true;
+    void boot().finally(() => {
+      retryBtn.removeAttribute('aria-busy');
+      retryBtn.disabled = false;
+    });
+  });
+
+  await boot();
 
   // The tick ages the badges and the rail; once the payload itself is old it gets re-read,
   // and a tab coming back into view always does. Installed even if the first read failed,
