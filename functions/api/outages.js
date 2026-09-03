@@ -16,6 +16,7 @@ import {
   sortEntries,
 } from '../../src/scripts/outages.mjs';
 import { readLog } from './rotational.js';
+import { readHealth } from './rotational-health.js';
 
 const SITEMAP = 'https://www.visayanelectric.com/blog-posts-sitemap.xml';
 const POST_PREFIX = 'https://www.visayanelectric.com/post/';
@@ -96,11 +97,14 @@ export async function onRequestGet({ env }) {
     payload.warnings.push(`Advisory source unavailable: ${error.message}`);
   }
 
-  // Rotational brownouts are pasted in from /power/update and land in KV; they change by
-  // the hour, which is why this response is not cached as a whole. The upstream fetches
-  // above carry their own 15-minute edge cache, so a page load stays cheap.
+  // Rotational brownouts come from Facebook — the uther-mini poller or a paste on
+  // /power/update — and land in KV; they change by the hour, which is why this response
+  // is not cached as a whole. The upstream fetches above carry their own 15-minute edge
+  // cache, so a page load stays cheap. ingest says when Facebook was last read, so the
+  // page can admit it may be missing an update instead of implying all-clear.
   const log = await readLog(env || {});
   payload.rotationalUpdated = log.updated;
+  payload.ingest = await readHealth(env || {});
   for (const item of log.items) {
     const entry = fromManual(item);
     if (entry) payload.entries.push(entry);

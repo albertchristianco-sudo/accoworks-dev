@@ -48,6 +48,7 @@ const description =
       <div class="verdict-body">
         <p class="verdict-head" data-verdict-head>Loading today’s advisories…</p>
         <p class="verdict-detail" data-verdict-detail>Reading Visayan Electric’s published schedule.</p>
+        <p class="verdict-stale" data-verdict-stale hidden></p>
         <p class="verdict-meta" data-verdict-meta hidden></p>
       </div>
     </div>
@@ -82,6 +83,7 @@ const description =
         <a href="https://www.visayanelectric.com/newsroom-blog" rel="noopener" target="_blank">Visayan Electric advisories</a>
         and their
         <a href="https://www.facebook.com/visayanelectriccompany" rel="noopener" target="_blank">Facebook announcements</a>.
+        Rotational brownout posts are picked up from Facebook automatically every 15 minutes.
         Schedules get moved, extended and cancelled — confirm on the official channels before you
         plan a day around one.
       </p>
@@ -260,6 +262,16 @@ const description =
     color: var(--ink-2);
     font-size: var(--text-body);
     font-variant-numeric: tabular-nums;
+  }
+
+  /* Shown when the Facebook poller has gone quiet: the schedule on screen may be
+     missing rotational updates, and the page has to say so rather than imply all-clear. */
+  .outage .verdict-stale {
+    margin: 10px 0 0;
+    color: var(--wait);
+    font-size: var(--text-label);
+    font-weight: 500;
+    line-height: 1.5;
   }
 
   .outage .verdict-meta {
@@ -647,6 +659,8 @@ const description =
     sourceTitle: string;
     map?: string;
     possible?: boolean;
+    via?: string;
+    postedAt?: string | null;
   };
 
   const el = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
@@ -659,6 +673,7 @@ const description =
   const verdictMark = el('[data-verdict-mark]');
   const verdictHead = el('[data-verdict-head]');
   const verdictDetail = el('[data-verdict-detail]');
+  const verdictStale = el('[data-verdict-stale]');
   const verdictMeta = el('[data-verdict-meta]');
   const chipBox = el('[data-chips]');
   const hideDone = el<HTMLInputElement>('[data-hide-done]');
@@ -669,6 +684,9 @@ const description =
   const updated = el('[data-updated]');
 
   const AREA_KEY = 'accoworks:power:area';
+  // Three missed 15-minute poller cycles. Judged against the feed's own timestamp, not
+  // Date.now(), so a tab left open overnight does not invent a staleness warning.
+  const INGEST_STALE_MS = 45 * 60 * 1000;
 
   const ICONS = {
     out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/><path d="M3 3l18 18"/></svg>',
@@ -709,6 +727,8 @@ const description =
   let entries: Entry[] = [];
   let city = '';
   let detected = '';
+  let ingest: { checkedAt: string | null; latestPostAt: string | null } | undefined;
+  let fetchedAt = Date.now();
 
   const esc = (value: string) =>
     value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
@@ -746,6 +766,31 @@ const description =
       return true;
     });
   };
+
+  // Facebook is the only source of rotational brownouts, so an unread feed is a hole in
+  // the answer, not a detail. A missing `ingest` (old payload, or the feed itself failed)
+  // counts as stale: the honest default.
+  const ingestStale = () =>
+    !ingest?.checkedAt || fetchedAt - Date.parse(ingest.checkedAt) > INGEST_STALE_MS;
+
+  const whenChecked = () => {
+    if (!ingest?.checkedAt) return 'never';
+    const at = new Date(ingest.checkedAt);
+    const sameDay = dayKey(ingest.checkedAt) === manilaDate(fetchedAt);
+    return sameDay ? `${clock.format(at)} today` : `${dayFull.format(at)}, ${clock.format(at)}`;
+  };
+
+  function renderStaleNotice() {
+    if (!ingestStale()) {
+      verdictStale.hidden = true;
+      verdictStale.textContent = '';
+      return;
+    }
+    verdictStale.hidden = false;
+    verdictStale.textContent =
+      `Rotational brownout updates from Facebook may be missing: last automatic check ${whenChecked()}. ` +
+      'Confirm on Visayan Electric’s Facebook page.';
+  }
 
   function renderVerdict() {
     const now = Date.now();
@@ -812,6 +857,11 @@ const description =
       head = `No — nothing scheduled for ${label}`;
       detail = 'No interruption is published for that area in the next 14 days.';
     }
+
+    // A green "nothing scheduled" is not honest while the Facebook feed is unread: the
+    // rotational advisories live only there. A confirmed live outage stays 'out' — that is
+    // true whatever the poller is doing.
+    if (ingestStale() && tone === 'clear') tone = 'wait';
 
     // The verdict is an aria-live region: reassigning identical text still announces, so
     // every write is guarded and the entrance animation only replays on a real change.
@@ -920,7 +970,7 @@ const description =
           <p class="row-area">${esc(entry.area)}</p>
           ${entry.streets ? `<p class="row-streets">${esc(entry.streets)}</p>` : ''}
           ${tags ? `<p class="row-streets">${esc(tags)}</p>` : ''}
-          ${entry.purpose ? `<details><summary>${CHEVRON}Why</summary><p>${esc(entry.purpose)}</p>${entry.map ? `<p><a href="${esc(entry.map)}" rel="noopener" target="_blank">See the affected-area map</a></p>` : ''}${entry.source ? `<p><a href="${esc(entry.source)}" rel="noopener" target="_blank">Read the advisory</a></p>` : ''}</details>` : ''}
+          ${entry.purpose ? `<details><summary>${CHEVRON}Why</summary><p>${esc(entry.purpose)}</p>${entry.map ? `<p><a href="${esc(entry.map)}" rel="noopener" target="_blank">See the affected-area map</a></p>` : ''}${entry.source ? `<p><a href="${esc(entry.source)}" rel="noopener" target="_blank">Read the advisory</a></p>` : ''}${entry.postedAt ? `<p>Posted by Visayan Electric ${clock.format(new Date(entry.postedAt))}</p>` : ''}</details>` : ''}
         </div>
         <span class="row-state" data-state="${state}"${entry.possible ? ' data-possible' : ''}>${STATE_ICONS[iconState] || ''}${badge}</span>
       </article>`;
@@ -1122,6 +1172,8 @@ const description =
     if (!response.ok) throw new Error(`feed responded ${response.status}`);
     const data = await response.json();
     entries = (data.entries || []) as Entry[];
+    ingest = data.ingest;
+    fetchedAt = Date.parse(data.updated) || Date.now();
 
     const saved = localStorage.getItem(AREA_KEY);
     if (saved) {
@@ -1132,6 +1184,7 @@ const description =
     }
 
     renderChips();
+    renderStaleNotice();
     render();
 
     const stamp = new Intl.DateTimeFormat('en-PH', {
@@ -1140,7 +1193,13 @@ const description =
       timeStyle: 'short',
     }).format(new Date(data.updated));
     const advisories = (data.posts || []).map((post: { title: string }) => post.title).join(' · ');
-    updated.textContent = `Checked ${stamp} · ${entries.length} interruptions${advisories ? ` · ${advisories}` : ''}`;
+    const facebook = ingestStale()
+      ? ` · Facebook not checked since ${whenChecked()}`
+      : ` · Facebook checked ${clock.format(new Date(ingest!.checkedAt!))}`;
+    const latest = ingest?.latestPostAt
+      ? ` · latest VECO post ${clock.format(new Date(ingest.latestPostAt))}`
+      : '';
+    updated.textContent = `Checked ${stamp} · ${entries.length} interruptions${facebook}${latest}${advisories ? ` · ${advisories}` : ''}`;
 
     setInterval(refresh, 60000);
     document.addEventListener('visibilitychange', () => {
@@ -1149,6 +1208,7 @@ const description =
   } catch (error) {
     feed.innerHTML = '';
     emptyNote.hidden = true;
+    renderStaleNotice();
     renderVerdict();
     updated.textContent = 'Advisory feed unreachable.';
     console.error(error);

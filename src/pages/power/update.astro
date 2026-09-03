@@ -11,10 +11,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <section class="paste" aria-labelledby="paste-title">
     <h1 id="paste-title">Log a rotational brownout</h1>
     <p class="lede">
-      Copy the Facebook advisory text and paste it here. Time slots, cities, barangays and map
-      links are read out of it and go live on <a href="/power/">/power</a> immediately — no
-      deploy. Pasting an hourly update keeps the earlier slots and replaces repeats.
+      The poller on uther-mini normally picks these up from Facebook every 15 minutes. This form
+      is the manual override: paste the advisory text and its time slots, cities, barangays and map
+      links go live on <a href="/power/">/power</a> immediately — no deploy. Pasting an hourly
+      update keeps the earlier slots and replaces repeats.
     </p>
+
+    <p class="ingest" data-ingest role="status">Checking auto-ingest…</p>
 
     <form data-form>
       <label for="token">Token</label>
@@ -169,6 +172,21 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   .paste .switch input { width: 16px; height: 16px; min-height: 0; accent-color: var(--accent); }
 
+  .paste .ingest {
+    margin: 0 0 24px;
+    padding: 12px 14px;
+    color: var(--ink-2);
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-meta);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.6;
+  }
+
+  .paste .ingest[data-tone='error'] { color: var(--out); background: var(--out-soft); }
+  .paste .ingest[data-tone='ok'] { color: var(--clear); background: var(--clear-soft); }
+
   .paste .status {
     margin: 16px 0 0;
     min-height: 1.4em;
@@ -216,6 +234,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   const status = document.querySelector<HTMLElement>('[data-status]')!;
   const result = document.querySelector<HTMLElement>('[data-result]')!;
   const list = document.querySelector<HTMLElement>('[data-list]')!;
+  const ingestLine = document.querySelector<HTMLElement>('[data-ingest]')!;
 
   const TOKEN_KEY = 'accoworks:power:token';
   token.value = localStorage.getItem(TOKEN_KEY) || '';
@@ -225,12 +244,43 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     status.dataset.tone = tone;
   };
 
-  const show = (items: { date: string; start: string; end: string; area: string }[]) => {
+  const show = (items: { date: string; start: string; end: string; area: string; via?: string }[]) => {
     result.hidden = items.length === 0;
     list.innerHTML = items
-      .map((item) => `<li>${item.date} ${item.start}–${item.end} · ${item.area}</li>`)
+      .map((item) => `<li>${item.date} ${item.start}–${item.end} · ${item.area} · ${item.via || 'paste'}</li>`)
       .join('');
   };
+
+  const STALE_MS = 45 * 60 * 1000;
+  const hhmm = (iso: string | null) =>
+    iso ? new Date(iso).toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit' }) : 'never';
+
+  type Health = {
+    checkedAt: string | null;
+    latestPostId: string | null;
+    latestPostAt: string | null;
+    result: string | null;
+    detail: string;
+    pinned: boolean;
+    lastErrorAt: string | null;
+  };
+
+  function showIngest(health: Health) {
+    const checked = health.checkedAt ? Date.parse(health.checkedAt) : 0;
+    const errored = health.lastErrorAt ? Date.parse(health.lastErrorAt) > checked : false;
+    const stale = !checked || Date.now() - checked > STALE_MS;
+    // On an error the record keeps the last successful `result` and swaps `detail` for the
+    // error text, so the detail belongs to the "errored" clause, not to "last result".
+    const parts = [
+      `Auto-ingest: checked ${hhmm(health.checkedAt)}`,
+      `latest VECO post ${hhmm(health.latestPostAt)}`,
+      `last result ${health.result || 'none'}${!errored && health.detail ? ` (${health.detail})` : ''}`,
+    ];
+    if (errored) parts.push(`errored ${hhmm(health.lastErrorAt)}${health.detail ? ` (${health.detail})` : ''}`);
+    if (health.pinned) parts.push('VECO has a pinned post; automatic pickup may lag');
+    ingestLine.textContent = parts.join(' · ');
+    ingestLine.dataset.tone = stale || errored || health.result === 'rejected' ? 'error' : 'ok';
+  }
 
   async function send(method: 'POST' | 'DELETE') {
     if (!token.value.trim()) return say('Token first.', 'error');
@@ -246,7 +296,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         method,
         headers: { 'content-type': 'application/json', authorization: `Bearer ${token.value.trim()}` },
         body: method === 'POST'
-          ? JSON.stringify({ text: text.value, source: source.value.trim(), replace: replace.checked })
+          ? JSON.stringify({ text: text.value, source: source.value.trim(), replace: replace.checked, via: 'paste' })
           : undefined,
       });
       const data = await response.json();
@@ -288,4 +338,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       if (data.updated) say(`Log last updated ${new Date(data.updated).toLocaleString('en-PH', { timeZone: 'Asia/Manila' })}.`);
     })
     .catch(() => {});
+
+  fetch('/api/rotational-health')
+    .then((r) => r.json())
+    .then(showIngest)
+    .catch(() => {
+      ingestLine.textContent = 'Auto-ingest: status unavailable.';
+      ingestLine.dataset.tone = 'error';
+    });
 </script>

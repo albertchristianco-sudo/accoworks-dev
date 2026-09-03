@@ -39,3 +39,6 @@ pnpm-debug.log*
 
 # wrangler local env (never commit)
 .dev.vars
+
+# Python bytecode from scripts/veco-poll.py
+__pycache__/

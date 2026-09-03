@@ -315,7 +315,10 @@ export function entryStatus(entry, nowMs = Date.now()) {
   return { state: 'upcoming', minutes: Math.ceil((start - nowMs) / 60000) };
 }
 
-/** Manually logged rotational brownouts -> the same entry shape as parsed ones. */
+/**
+ * Rotational brownouts logged from a Facebook post — picked up by the poller or pasted by
+ * hand — into the same entry shape as the parsed advisories.
+ */
 export function fromManual(item) {
   const [y, m, d] = String(item.date || '').split('-').map(Number);
   if (!y || !m || !d) return null;
@@ -337,6 +340,10 @@ export function fromManual(item) {
     map: item.map || '',
     // A weekly "POSSIBLE ROTATIONAL BROWNOUT" slot is a plan, not an outage in progress.
     possible: Boolean(item.possible),
+    // Where this slot came from: 'auto' is the poller, 'paste' a human. Entries stored
+    // before provenance existed have neither, and were all pasted.
+    via: item.via || 'paste',
+    postedAt: item.postedAt || null,
   };
 }
 

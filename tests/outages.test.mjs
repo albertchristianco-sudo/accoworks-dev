@@ -130,7 +130,22 @@ test('normalizes a hand-logged rotational brownout', () => {
   assert.equal(entry.start, '2026-09-03T09:00:00+08:00');
   assert.equal(entry.hours, 1);
   assert.equal(entry.area, 'Talamban, Cebu City');
+  assert.equal(entry.via, 'paste');
+  assert.equal(entry.postedAt, null);
   assert.equal(fromManual({ start: '9:00 AM', end: '10:00 AM' }), null);
+});
+
+test('carries poller provenance through to the entry', () => {
+  const entry = fromManual({
+    date: '2026-09-03',
+    start: '1:00 PM',
+    end: '3:30 PM',
+    area: 'Portion of Bakilid, Mandaue City',
+    via: 'auto',
+    postedAt: '2026-09-03T13:29:30+08:00',
+  });
+  assert.equal(entry.via, 'auto');
+  assert.equal(entry.postedAt, '2026-09-03T13:29:30+08:00');
 });
 
 test('anchors dates to Cebu time, not the runtime timezone', () => {
