@@ -30,7 +30,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <textarea id="text" name="text" data-text rows="14" placeholder="ONGOING ROTATIONAL BROWNOUT&#10;11:00AM-12:00PM | SEPTEMBER 3, 2026&#10;Portion of Cebu City: Calamba, Capitol Site, Guadalupe&#10;View the map here: https://tinyurl.com/…"></textarea>
 
       <div class="actions">
-        <button type="submit" class="btn btn-primary" data-submit>Parse and publish</button>
+        <button type="button" class="btn btn-primary" data-quick>Paste and publish</button>
+        <button type="submit" class="btn btn-quiet" data-submit>Publish what is in the box</button>
         <label class="switch"><input type="checkbox" data-replace /> <span>Replace the whole log</span></label>
         <button type="button" class="btn btn-ghost" data-clear>Clear log</button>
       </div>
@@ -146,6 +147,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .paste .btn-primary:hover { background: #1D4FD0; border-color: #1D4FD0; }
   .paste .btn-primary:active { background: #1A44B8; border-color: #1A44B8; }
 
+  .paste .btn-quiet {
+    color: var(--ink-2);
+    background: transparent;
+    border: 1px solid var(--line);
+  }
+
+  .paste .btn-quiet:hover { color: var(--ink); background: var(--surface-hover); }
+
   .paste .btn-ghost {
     margin-left: auto;
     color: var(--ink);
@@ -231,6 +240,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   const replace = document.querySelector<HTMLInputElement>('[data-replace]')!;
   const submit = document.querySelector<HTMLButtonElement>('[data-submit]')!;
   const clear = document.querySelector<HTMLButtonElement>('[data-clear]')!;
+  const quick = document.querySelector<HTMLButtonElement>('[data-quick]')!;
   const status = document.querySelector<HTMLElement>('[data-status]')!;
   const result = document.querySelector<HTMLElement>('[data-result]')!;
   const list = document.querySelector<HTMLElement>('[data-list]')!;
@@ -282,13 +292,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     ingestLine.dataset.tone = stale || errored || health.result === 'rejected' ? 'error' : 'ok';
   }
 
-  async function send(method: 'POST' | 'DELETE') {
+  async function send(method: 'POST' | 'DELETE', from?: HTMLButtonElement) {
     if (!token.value.trim()) return say('Token first.', 'error');
     localStorage.setItem(TOKEN_KEY, token.value.trim());
-    const active = method === 'DELETE' ? clear : submit;
+    const active = from || (method === 'DELETE' ? clear : submit);
     active.setAttribute('aria-busy', 'true');
     submit.disabled = true;
     clear.disabled = true;
+    quick.disabled = true;
     say(method === 'DELETE' ? 'Clearing…' : 'Parsing…');
 
     try {
@@ -319,6 +330,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       active.removeAttribute('aria-busy');
       submit.disabled = false;
       clear.disabled = false;
+      quick.disabled = false;
     }
   }
 
@@ -329,6 +341,28 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   clear.addEventListener('click', () => {
     if (confirm('Clear every logged rotational brownout?')) void send('DELETE');
+  });
+
+  // The phone path: copy the post in the Facebook app, open this page, one tap. iOS shows
+  // its own paste confirmation, so the clipboard is never read without an explicit gesture.
+  quick.addEventListener('click', async () => {
+    if (!navigator.clipboard?.readText) {
+      say('This browser will not hand over the clipboard. Paste into the box instead.', 'error');
+      text.focus();
+      return;
+    }
+    try {
+      const pasted = (await navigator.clipboard.readText()).trim();
+      if (!pasted) {
+        say('Clipboard is empty — copy the advisory text first.', 'error');
+        return;
+      }
+      text.value = pasted;
+      await send('POST', quick);
+    } catch {
+      say('Clipboard permission was declined. Paste into the box instead.', 'error');
+      text.focus();
+    }
   });
 
   fetch('/api/rotational')

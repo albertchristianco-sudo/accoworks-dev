@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  iOS Shortcut: "Log VECO advisory" — the human fallback for /power when the poller on
+  uther-mini is down or has missed a post.
+
+  Copy the advisory text in the Facebook app (post ⋯ menu > Copy text, or long-press >
+  Select All > Copy), then trigger this. It POSTs the clipboard to
+  /api/rotational with via:'paste' and shows how many slots landed.
+
+  Install (once):
+    1. AirDrop or open this file on the iPhone. Unsigned shortcuts need
+       Settings > Shortcuts > Advanced > Allow Untrusted Shortcuts turned on first
+       (Apple only exposes that switch after you have run any shortcut once).
+    2. Open the shortcut, edit the Authorization header, and replace
+       ROTATIONAL_TOKEN_GOES_HERE with the token from
+       1Password > Private > "accoworks.dev ROTATIONAL_TOKEN".
+    3. Settings > Accessibility > Touch > Back Tap > Double Tap > Log VECO advisory.
+
+  Rotating the token means editing that one header field, alongside
+  `wrangler pages secret put ROTATIONAL_TOKEN` and ~/.config/veco-poll.env on uther-mini.
+-->
+<plist version="1.0">
+<dict>
+  <key>WFWorkflowClientVersion</key>
+  <string>2605.0.5</string>
+  <key>WFWorkflowMinimumClientVersion</key>
+  <integer>900</integer>
+  <key>WFWorkflowMinimumClientVersionString</key>
+  <string>900</string>
+  <key>WFWorkflowIcon</key>
+  <dict>
+    <key>WFWorkflowIconStartColor</key>
+    <integer>2846468479</integer>
+    <key>WFWorkflowIconGlyphNumber</key>
+    <integer>59511</integer>
+  </dict>
+  <key>WFWorkflowImportQuestions</key>
+  <array/>
+  <key>WFWorkflowInputContentItemClasses</key>
+  <array>
+    <string>WFStringContentItem</string>
+  </array>
+  <key>WFWorkflowTypes</key>
+  <array>
+    <string>NCWidget</string>
+    <string>WatchKit</string>
+  </array>
+  <key>WFWorkflowActions</key>
+  <array>
+
+    <!-- 1. POST the clipboard to /api/rotational -->
+    <dict>
+      <key>WFWorkflowActionIdentifier</key>
+      <string>is.workflow.actions.downloadurl</string>
+      <key>WFWorkflowActionParameters</key>
+      <dict>
+        <key>UUID</key>
+        <string>A1B2C3D4-0001-4000-8000-000000000001</string>
+        <key>WFURL</key>
+        <string>https://accoworks.dev/api/rotational</string>
+        <key>WFHTTPMethod</key>
+        <string>POST</string>
+        <key>ShowHeaders</key>
+        <true/>
+        <key>WFHTTPHeaders</key>
+        <dict>
+          <key>Value</key>
+          <dict>
+            <key>WFDictionaryFieldValueItems</key>
+            <array>
+              <dict>
+                <key>WFItemType</key>
+                <integer>0</integer>
+                <key>WFKey</key>
+                <dict>
+                  <key>Value</key>
+                  <dict>
+                    <key>string</key>
+                    <string>Authorization</string>
+                  </dict>
+                  <key>WFSerializationType</key>
+                  <string>WFTextTokenString</string>
+                </dict>
+                <key>WFValue</key>
+                <dict>
+                  <key>Value</key>
+                  <dict>
+                    <key>string</key>
+                    <string>Bearer ROTATIONAL_TOKEN_GOES_HERE</string>
+                  </dict>
+                  <key>WFSerializationType</key>
+                  <string>WFTextTokenString</string>
+                </dict>
+              </dict>
+            </array>
+          </dict>
+          <key>WFSerializationType</key>
+          <string>WFDictionaryFieldValue</string>
+        </dict>
+        <key>WFHTTPBodyType</key>
+        <string>JSON</string>
+        <key>WFJSONValues</key>
+        <dict>
+          <key>Value</key>
+          <dict>
+            <key>WFDictionaryFieldValueItems</key>
+            <array>
+              <!-- text = the Clipboard special variable -->
+              <dict>
+                <key>WFItemType</key>
+                <integer>0</integer>
+                <key>WFKey</key>
+                <dict>
+                  <key>Value</key>
+                  <dict>
+                    <key>string</key>
+                    <string>text</string>
+                  </dict>
+                  <key>WFSerializationType</key>
+                  <string>WFTextTokenString</string>
+                </dict>
+                <key>WFValue</key>
+                <dict>
+                  <key>Value</key>
+                  <dict>
+                    <key>string</key>
+                    <string>￼</string>
+                    <key>attachmentsByRange</key>
+                    <dict>
+                      <key>{0, 1}</key>
+                      <dict>
+                        <key>Type</key>
+                        <string>Clipboard</string>
+                      </dict>
+                    </dict>
+                  </dict>
+                  <key>WFSerializationType</key>
+                  <string>WFTextTokenString</string>
+                </dict>
+              </dict>
+              <!-- via = paste, so /power/update can tell these from the poller's -->
+              <dict>
+                <key>WFItemType</key>
+                <integer>0</integer>
+                <key>WFKey</key>
+                <dict>
+                  <key>Value</key>
+                  <dict>
+                    <key>string</key>
+                    <string>via</string>
+                  </dict>
+                  <key>WFSerializationType</key>
+                  <string>WFTextTokenString</string>
+                </dict>
+                <key>WFValue</key>
+                <dict>
+                  <key>Value</key>
+                  <dict>
+                    <key>string</key>
+                    <string>paste</string>
+                  </dict>
+                  <key>WFSerializationType</key>
+                  <string>WFTextTokenString</string>
+                </dict>
+              </dict>
+            </array>
+          </dict>
+          <key>WFSerializationType</key>
+          <string>WFDictionaryFieldValue</string>
+        </dict>
+      </dict>
+    </dict>
+
+    <!-- 2. Read `stored` out of the JSON response -->
+    <dict>
+      <key>WFWorkflowActionIdentifier</key>
+      <string>is.workflow.actions.getvalueforkey</string>
+      <key>WFWorkflowActionParameters</key>
+      <dict>
+        <key>UUID</key>
+        <string>A1B2C3D4-0002-4000-8000-000000000002</string>
+        <key>WFDictionaryKey</key>
+        <string>stored</string>
+        <key>WFGetDictionaryValueType</key>
+        <string>Value</string>
+      </dict>
+    </dict>
+
+    <!-- 3. Say what happened. An error body yields an empty value, which is the tell. -->
+    <dict>
+      <key>WFWorkflowActionIdentifier</key>
+      <string>is.workflow.actions.notification</string>
+      <key>WFWorkflowActionParameters</key>
+      <dict>
+        <key>WFNotificationActionTitle</key>
+        <string>accoworks.dev/power</string>
+        <key>WFNotificationActionBody</key>
+        <dict>
+          <key>Value</key>
+          <dict>
+            <key>string</key>
+            <string>￼ slots live. Empty means it failed — open /power/update.</string>
+            <key>attachmentsByRange</key>
+            <dict>
+              <key>{0, 1}</key>
+              <dict>
+                <key>Type</key>
+                <string>ActionOutput</string>
+                <key>OutputUUID</key>
+                <string>A1B2C3D4-0002-4000-8000-000000000002</string>
+                <key>OutputName</key>
+                <string>Dictionary Value</string>
+              </dict>
+            </dict>
+          </dict>
+          <key>WFSerializationType</key>
+          <string>WFTextTokenString</string>
+        </dict>
+        <key>WFInput</key>
+        <dict>
+          <key>Value</key>
+          <dict>
+            <key>Type</key>
+            <string>ActionOutput</string>
+            <key>OutputUUID</key>
+            <string>A1B2C3D4-0002-4000-8000-000000000002</string>
+          </dict>
+          <key>WFSerializationType</key>
+          <string>WFTextTokenAttachment</string>
+        </dict>
+      </dict>
+    </dict>
+
+  </array>
+</dict>
+</plist>
