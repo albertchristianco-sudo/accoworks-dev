@@ -26,6 +26,7 @@ const description =
             placeholder="e.g. Talamban, Mabolo, Guadalupe"
             autocomplete="address-level4"
             enterkeyhint="search"
+            aria-describedby="area-hint"
             spellcheck="false"
           />
           <button type="submit" class="btn btn-primary" data-check>Check</button>
@@ -38,7 +39,7 @@ const description =
             Use my location
           </button>
         </div>
-        <p class="field-hint" data-hint>Or let the browser read your location once.</p>
+        <p class="field-hint" id="area-hint" role="status" data-hint>Or let the browser read your location once.</p>
       </form>
     </header>
 
@@ -66,7 +67,7 @@ const description =
     <div class="feed" data-feed></div>
 
     <div class="note" data-empty hidden>
-      <p class="note-head">Nothing scheduled for that area</p>
+      <h2 class="note-head">Nothing scheduled for that area</h2>
       <p>
         No advisory in the next 14 days mentions it. Try the barangay name on its own, or clear the
         filter to read the whole franchise schedule.
@@ -92,16 +93,9 @@ const description =
      them. This block is global; every selector stays under .outage. -->
 <style is:global>
   .outage {
-    /* Status vocabulary for this surface. Rose stays reserved for the reaction control. */
-    --out: #A61B43;
-    --out-soft: #FCE8EE;
-    --wait: #92400E;
-    --wait-soft: #FDF0D5;
-    --clear: #046B4F;
-    --clear-soft: #E3F3EC;
     --rail: rgba(13, 21, 38, 0.08);
 
-    padding: clamp(26px, 5vw, 48px) 0 72px;
+    padding: clamp(24px, 5vw, 48px) 0 72px;
   }
 
   /* ── Ask ─────────────────────────────────────────────────────────────── */
@@ -111,26 +105,26 @@ const description =
   .outage h1 {
     margin: 0;
     font-family: var(--font-display);
-    font-size: clamp(2.1rem, 6.4vw, 3.05rem);
+    font-size: var(--text-page);
     font-weight: 700;
-    line-height: 1.04;
-    letter-spacing: -0.015em;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
   }
 
   .outage .ask-lede {
     margin: 12px 0 0;
-    max-width: 44ch;
+    max-width: 48ch;
     color: var(--ink-2);
-    font-size: 1rem;
+    font-size: var(--text-body);
   }
 
-  .outage .locator { margin-top: 22px; }
+  .outage .locator { margin-top: 24px; }
 
   .outage .locator label {
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     color: var(--ink-2);
-    font-size: 0.82rem;
+    font-size: var(--text-label);
     font-weight: 600;
   }
 
@@ -141,10 +135,8 @@ const description =
     max-width: 38rem;
   }
 
-  .outage .field-row input { flex: 1 1 14rem; }
-
   .outage input[type='text'] {
-    flex: 1;
+    flex: 1 1 14rem;
     min-width: 0;
     min-height: 46px;
     padding: 0 14px;
@@ -153,7 +145,7 @@ const description =
     border: 1px solid var(--line-2);
     border-radius: var(--radius-sm);
     font: inherit;
-    font-size: 1rem;
+    font-size: var(--text-body);
   }
 
   .outage input[type='text']::placeholder { color: var(--ink-3); }
@@ -165,9 +157,9 @@ const description =
   }
 
   .outage .field-hint {
-    margin: 7px 0 0;
+    margin: 8px 0 0;
     color: var(--ink-3);
-    font-size: 0.8rem;
+    font-size: var(--text-label);
   }
 
   .outage .field-hint[data-tone='error'] { color: var(--out); }
@@ -176,12 +168,12 @@ const description =
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: 8px;
     min-height: 46px;
     padding: 0 16px;
     border-radius: var(--radius-sm);
     font: inherit;
-    font-size: 0.94rem;
+    font-size: var(--text-body);
     font-weight: 600;
     cursor: pointer;
     transition: background-color 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease);
@@ -194,6 +186,7 @@ const description =
   }
 
   .outage .btn-primary:hover { background: #1D4FD0; border-color: #1D4FD0; }
+  .outage .btn-primary:active { background: #1A44B8; border-color: #1A44B8; }
 
   .outage .btn-ghost {
     color: var(--ink);
@@ -202,9 +195,11 @@ const description =
   }
 
   .outage .btn-ghost:hover { background: var(--surface-hover); border-color: var(--accent-line); }
+  .outage .btn-ghost:active { background: var(--bg-2); }
 
-  .outage .btn[aria-busy='true'] { color: var(--ink-3); cursor: progress; }
   .outage .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  /* Busy wins over disabled: the control is working, not forbidden. */
+  .outage .btn[aria-busy='true'] { color: var(--ink-3); cursor: progress; }
 
   .outage .ico {
     width: 18px;
@@ -217,8 +212,8 @@ const description =
   .outage .verdict {
     display: flex;
     gap: 16px;
-    margin: 26px 0 0;
-    padding: 20px 22px;
+    margin: 24px 0 0;
+    padding: 20px 24px;
     background: var(--surface);
     border-radius: var(--radius);
     box-shadow: 0 18px 40px -30px rgba(13, 29, 64, 0.45);
@@ -232,8 +227,8 @@ const description =
     display: grid;
     place-items: center;
     flex: none;
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     color: var(--ink-2);
     background: rgba(13, 21, 38, 0.06);
@@ -249,9 +244,10 @@ const description =
   .outage .verdict-head {
     margin: 2px 0 0;
     font-family: var(--font-display);
-    font-size: clamp(1.32rem, 4.2vw, 1.72rem);
+    font-size: var(--text-answer);
     font-weight: 700;
-    line-height: 1.14;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
     text-wrap: balance;
   }
 
@@ -260,9 +256,10 @@ const description =
   .outage .verdict[data-tone='wait'] .verdict-head { color: var(--wait); }
 
   .outage .verdict-detail {
-    margin: 6px 0 0;
+    margin: 8px 0 0;
     color: var(--ink-2);
-    font-size: 0.96rem;
+    font-size: var(--text-body);
+    font-variant-numeric: tabular-nums;
   }
 
   .outage .verdict-meta {
@@ -270,10 +267,10 @@ const description =
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
-    margin: 10px 0 0;
+    margin: 12px 0 0;
     color: var(--ink-3);
     font-family: var(--font-mono);
-    font-size: 0.75rem;
+    font-size: var(--text-meta);
   }
 
   .outage .verdict-meta button {
@@ -282,7 +279,10 @@ const description =
     color: var(--accent);
     background: none;
     border: 0;
-    font: inherit;
+    /* A control label, not data: sans, never the mono it would inherit. */
+    font-family: var(--font-sans);
+    font-size: var(--text-meta);
+    font-weight: 600;
     text-decoration: underline;
     text-underline-offset: 0.2em;
     cursor: pointer;
@@ -308,8 +308,8 @@ const description =
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 10px 14px;
-    margin: 26px 0 6px;
+    gap: 8px 16px;
+    margin: 24px 0 4px;
     padding: 12px 0;
     border-top: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
@@ -318,19 +318,19 @@ const description =
   .outage .chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
     margin-right: auto;
   }
 
   .outage .chip {
-    min-height: 34px;
+    min-height: 36px;
     padding: 0 12px;
     color: var(--ink-2);
     background: transparent;
     border: 1px solid var(--line);
     border-radius: 999px;
     font: inherit;
-    font-size: 0.82rem;
+    font-size: var(--text-label);
     font-weight: 500;
     white-space: nowrap;
     cursor: pointer;
@@ -338,6 +338,7 @@ const description =
   }
 
   .outage .chip:hover { background: var(--surface-hover); }
+  .outage .chip:active { background: var(--bg-2); }
 
   .outage .chip[aria-pressed='true'] {
     color: var(--accent-ink);
@@ -345,21 +346,24 @@ const description =
     border-color: var(--ink);
   }
 
+  .outage .chip[aria-pressed='true']:hover { background: #1B2740; border-color: #1B2740; }
+
   .outage .chip-n {
-    margin-left: 6px;
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
+    margin-left: 8px;
+    color: var(--ink-3);
+    font-size: var(--text-meta);
     font-variant-numeric: tabular-nums;
-    opacity: 0.65;
   }
+
+  .outage .chip[aria-pressed='true'] .chip-n { color: rgba(251, 252, 254, 0.75); }
 
   .outage .switch {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    min-height: 34px;
+    gap: 8px;
+    min-height: 36px;
     color: var(--ink-2);
-    font-size: 0.84rem;
+    font-size: var(--text-label);
     cursor: pointer;
   }
 
@@ -367,26 +371,27 @@ const description =
 
   /* ── Day sections and the hour rail ──────────────────────────────────── */
 
-  .outage .day { margin: 22px 0 0; }
+  .outage .day { margin: 24px 0 0; }
 
   .outage .day-head {
     display: flex;
     align-items: baseline;
-    gap: 10px;
+    gap: 12px;
   }
 
   .outage .day-name {
     margin: 0;
-    font-family: var(--font-display);
-    font-size: 1.2rem;
-    font-weight: 700;
+    font-size: var(--text-title);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
   }
 
   .outage .day-date,
   .outage .day-count {
     color: var(--ink-3);
     font-family: var(--font-mono);
-    font-size: 0.74rem;
+    font-size: var(--text-meta);
     font-variant-numeric: tabular-nums;
   }
 
@@ -396,8 +401,8 @@ const description =
      across 24 hours, so the shape of the day is readable before the rows are. */
   .outage .rail {
     position: relative;
-    height: 26px;
-    margin: 10px 0 4px;
+    height: 32px;
+    margin: 12px 0 4px;
     border-bottom: 1px solid var(--line-2);
   }
 
@@ -411,12 +416,13 @@ const description =
 
   .outage .rail-hour {
     position: absolute;
-    bottom: 8px;
+    bottom: 12px;
     white-space: nowrap;
     color: var(--ink-3);
     font-family: var(--font-mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.04em;
+    font-size: var(--text-meta);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
     transform: translateX(-50%);
   }
 
@@ -450,52 +456,53 @@ const description =
 
   .outage .row {
     display: grid;
-    grid-template-columns: 10.5rem minmax(0, 1fr) auto;
+    grid-template-columns: 11.5rem minmax(0, 1fr) auto;
     align-items: start;
-    gap: 4px 18px;
-    padding: 14px 0;
+    gap: 4px 20px;
+    padding: 16px 0;
     border-bottom: 1px solid var(--line);
   }
 
-  .outage .row:hover { background: var(--surface-hover); }
   .outage .row[data-state='done'],
   .outage .row[data-state='cancelled'] { color: var(--ink-3); }
 
   .outage .row-time {
     padding-top: 1px;
     font-family: var(--font-mono);
-    font-size: 0.9rem;
+    font-size: var(--text-body);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.02em;
     white-space: nowrap;
   }
 
   .outage .row[data-state='cancelled'] .row-time { text-decoration: line-through; }
+  .outage .row[data-possible] .row-time { color: var(--ink-2); font-weight: 500; }
 
   .outage .row-span {
     display: block;
-    margin-top: 3px;
+    margin-top: 4px;
     color: var(--ink-3);
-    font-size: 0.72rem;
+    font-size: var(--text-meta);
     font-weight: 400;
+    font-variant-numeric: tabular-nums;
     letter-spacing: 0.02em;
   }
 
   .outage .row-area {
     margin: 0;
     max-width: 52ch;
-    font-size: 1rem;
+    font-size: var(--text-body);
     font-weight: 600;
-    line-height: 1.35;
+    line-height: 1.5;
     text-wrap: pretty;
   }
 
   .outage .row-streets {
-    margin: 3px 0 0;
+    margin: 4px 0 0;
     max-width: 68ch;
     color: var(--ink-2);
-    font-size: 0.88rem;
+    font-size: var(--text-body);
+    line-height: 1.55;
   }
 
   .outage .row[data-state='done'] .row-streets,
@@ -506,12 +513,13 @@ const description =
     align-items: center;
     gap: 6px;
     align-self: start;
-    padding: 4px 10px;
+    padding: 5px 10px;
     border-radius: 999px;
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
+    /* A status label, not data: sans at the metadata step. */
+    font-size: var(--text-meta);
     font-weight: 600;
-    letter-spacing: 0.06em;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     white-space: nowrap;
   }
@@ -521,9 +529,7 @@ const description =
   .outage .row-state[data-state='upcoming'] { color: var(--wait); background: var(--wait-soft); }
   .outage .row-state[data-state='done'],
   .outage .row-state[data-state='cancelled'] { color: var(--ink-3); background: var(--surface-2); }
-
   .outage .row-state[data-possible] { color: var(--wait); background: var(--wait-soft); }
-  .outage .row[data-possible] .row-time { font-weight: 500; color: var(--ink-2); }
 
   .outage details { margin: 8px 0 0; }
 
@@ -531,23 +537,28 @@ const description =
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    min-height: 32px;
     color: var(--ink-3);
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.06em;
+    font-size: var(--text-meta);
+    font-weight: 600;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     cursor: pointer;
   }
 
+  .outage summary::-webkit-details-marker { display: none; }
   .outage summary:hover { color: var(--accent); }
-  .outage details p { margin: 7px 0 0; color: var(--ink-2); font-size: 0.88rem; max-width: 70ch; }
+  .outage summary svg { width: 12px; height: 12px; transition: transform 160ms var(--ease); }
+  .outage details[open] summary svg { transform: rotate(90deg); }
+
+  .outage details p { margin: 8px 0 0; color: var(--ink-2); font-size: var(--text-body); max-width: 70ch; }
   .outage details a { color: var(--accent); }
 
   /* ── Loading, empty, footer ──────────────────────────────────────────── */
 
   .outage .skeleton {
     height: 14px;
-    margin: 22px 0;
+    margin: 24px 0;
     background: linear-gradient(100deg, var(--surface-2) 30%, var(--bg-2) 50%, var(--surface-2) 70%);
     background-size: 220% 100%;
     border-radius: 3px;
@@ -566,44 +577,56 @@ const description =
   }
 
   .outage .note {
-    padding: 26px 0 8px;
+    padding: 24px 0 8px;
     max-width: 52ch;
   }
 
   .outage .note-head {
-    margin: 0 0 6px;
-    font-size: 1.02rem;
+    margin: 0 0 8px;
+    font-size: var(--text-lead);
     font-weight: 600;
+    line-height: 1.3;
   }
 
-  .outage .note p { margin: 0 0 12px; color: var(--ink-2); font-size: 0.92rem; }
+  .outage .note p { margin: 0 0 12px; color: var(--ink-2); font-size: var(--text-body); }
 
   .outage .outage-foot {
     margin: 36px 0 0;
     padding-top: 16px;
     border-top: 1px solid var(--line);
     color: var(--ink-3);
-    font-size: 0.82rem;
+    font-size: var(--text-label);
   }
 
-  .outage .outage-foot p { margin: 0 0 7px; max-width: 74ch; }
+  .outage .outage-foot p { margin: 0 0 8px; max-width: 74ch; line-height: 1.55; }
   .outage .outage-foot a { color: var(--ink-2); }
-  .outage .stamp { font-family: var(--font-mono); font-size: 0.74rem; }
+  .outage .stamp { font-family: var(--font-mono); font-size: var(--text-meta); font-variant-numeric: tabular-nums; }
+
+  /* Touch: the filter controls are the page's primary interaction on a phone. */
+  @media (pointer: coarse) {
+    .outage .chip,
+    .outage .switch,
+    .outage summary,
+    .outage .verdict-meta button { min-height: 44px; }
+
+    .outage .chip { padding: 0 16px; }
+  }
 
   @media (max-width: 620px) {
-    .outage .locator { gap: 10px; }
     .outage .btn-ghost { flex: 1 1 100%; }
 
     .outage .row {
       grid-template-columns: 1fr auto;
       gap: 2px 12px;
-      padding: 13px 0;
+      padding: 14px 0;
     }
 
     .outage .row-time { grid-column: 1; grid-row: 1; }
-    .outage .row-state { grid-column: 2; grid-row: 1; justify-self: end; }
-    .outage .row > div { grid-column: 1 / -1; grid-row: 2; margin-top: 5px; }
-    .outage .row-span { display: inline; margin: 0 0 0 7px; }
+    .outage .row-state { grid-column: 2; grid-row: 1; justify-self: end; white-space: normal; text-align: right; }
+    .outage .row > div { grid-column: 1 / -1; grid-row: 2; margin-top: 4px; }
+    .outage .row-span { display: inline; margin: 0 0 0 8px; }
+    /* Keep only the anchors of the 24-hour scale when it is this narrow. */
+    .outage .rail-hour[data-edge='mid'] { display: none; }
   }
 </style>
 
@@ -790,18 +813,23 @@ const description =
       detail = 'No interruption is published for that area in the next 14 days.';
     }
 
+    // The verdict is an aria-live region: reassigning identical text still announces, so
+    // every write is guarded and the entrance animation only replays on a real change.
+    const changed = verdictHead.textContent !== head || verdictDetail.textContent !== detail;
     verdict.dataset.tone = tone;
-    verdictMark.innerHTML = ICONS[tone === 'out' ? 'out' : tone === 'wait' ? 'wait' : tone === 'clear' ? 'clear' : 'idle'];
-    verdictHead.textContent = head;
-    verdictDetail.textContent = detail;
-
-    if (detected) {
-      verdictMeta.hidden = false;
-      verdictMeta.innerHTML = `Located: ${esc(detected)} <button type="button" data-reset>Not my area</button>`;
-    } else {
-      verdictMeta.hidden = true;
-      verdictMeta.textContent = '';
+    if (changed) {
+      verdictMark.innerHTML = ICONS[tone === 'out' ? 'out' : tone === 'wait' ? 'wait' : tone === 'clear' ? 'clear' : 'idle'];
+      verdictHead.textContent = head;
+      verdictDetail.textContent = detail;
     }
+
+    const meta = detected ? `Located: ${esc(detected)} <button type="button" data-reset>Not my area</button>` : '';
+    if (verdictMeta.innerHTML !== meta) {
+      verdictMeta.innerHTML = meta;
+      verdictMeta.hidden = !detected;
+    }
+
+    if (!changed) return;
 
     // One authored moment: the answer settles in when it changes, never on every tick.
     verdict.removeAttribute('data-fresh');
@@ -856,25 +884,35 @@ const description =
     return `<div class="rail" aria-hidden="true">${ticks}${blocks}${marker}</div>`;
   }
 
-  function row(entry: Entry, now: number) {
+  // A possible slot never claims to be happening; it reports its window instead.
+  const badgeFor = (entry: Entry, now: number) => {
     const status = entryStatus(entry, now);
     const state = status.state;
+    if (entry.possible) {
+      return state === 'live' ? 'possible now' : state === 'upcoming' ? `possible in ${gap(status.minutes ?? 0)}` : state;
+    }
+    return state === 'live'
+      ? `${gap(status.minutes ?? 0)} left`
+      : state === 'upcoming'
+        ? `in ${gap(status.minutes ?? 0)}`
+        : state;
+  };
+
+  const CHEVRON =
+    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
+
+  function row(entry: Entry, now: number) {
+    const state = entryStatus(entry, now).state;
     const overnight = dayKey(entry.start) !== dayKey(entry.end);
-    // A possible slot never claims to be happening; it reports its window instead.
-    const badge = entry.possible
-      ? state === 'live' ? 'possible now' : state === 'upcoming' ? `possible in ${gap(status.minutes ?? 0)}` : state
-      : state === 'live'
-        ? `${gap(status.minutes ?? 0)} left`
-        : state === 'upcoming'
-          ? `in ${gap(status.minutes ?? 0)}`
-          : state;
+    const badge = badgeFor(entry, now);
     const tags = [
       entry.possible ? 'Possible rotational brownout' : entry.kind === 'rotational' ? 'Rotational brownout' : '',
       entry.flag && entry.flag !== 'cancelled' ? entry.flag : '',
     ].filter(Boolean).join(' · ');
+    const iconState = entry.possible && state === 'live' ? 'upcoming' : (state as keyof typeof STATE_ICONS);
 
     return `
-      <article class="row" data-state="${state}"${entry.possible ? ' data-possible' : ''}>
+      <article class="row" data-state="${state}" data-key="${esc(`${entry.start}|${entry.area}`)}"${entry.possible ? ' data-possible' : ''}>
         <p class="row-time">${clock.format(new Date(entry.start))} – ${clock.format(new Date(entry.end))}
           <span class="row-span">${entry.hours}h${overnight ? ' · ends next day' : ''}</span>
         </p>
@@ -882,9 +920,9 @@ const description =
           <p class="row-area">${esc(entry.area)}</p>
           ${entry.streets ? `<p class="row-streets">${esc(entry.streets)}</p>` : ''}
           ${tags ? `<p class="row-streets">${esc(tags)}</p>` : ''}
-          ${entry.purpose ? `<details><summary>Why</summary><p>${esc(entry.purpose)}</p>${entry.map ? `<p><a href="${esc(entry.map)}" rel="noopener" target="_blank">See the affected-area map</a></p>` : ''}${entry.source ? `<p><a href="${esc(entry.source)}" rel="noopener" target="_blank">Read the advisory</a></p>` : ''}</details>` : ''}
+          ${entry.purpose ? `<details><summary>${CHEVRON}Why</summary><p>${esc(entry.purpose)}</p>${entry.map ? `<p><a href="${esc(entry.map)}" rel="noopener" target="_blank">See the affected-area map</a></p>` : ''}${entry.source ? `<p><a href="${esc(entry.source)}" rel="noopener" target="_blank">Read the advisory</a></p>` : ''}</details>` : ''}
         </div>
-        <span class="row-state" data-state="${state}"${entry.possible ? ' data-possible' : ''}>${STATE_ICONS[entry.possible && state === 'live' ? 'upcoming' : (state as keyof typeof STATE_ICONS)] || ''}${badge}</span>
+        <span class="row-state" data-state="${state}"${entry.possible ? ' data-possible' : ''}>${STATE_ICONS[iconState] || ''}${badge}</span>
       </article>`;
   }
 
@@ -921,6 +959,42 @@ const description =
           </section>`;
       })
       .join('');
+  }
+
+  // The minute tick only ages statuses. Patching the rows in place keeps open "Why"
+  // panels open and keyboard focus where the user left it; a full rebuild would not.
+  function refresh() {
+    const now = Date.now();
+    renderVerdict();
+
+    const byKey = new Map(entries.map((entry) => [`${entry.start}|${entry.area}`, entry]));
+    for (const node of feed.querySelectorAll<HTMLElement>('.row[data-key]')) {
+      const entry = byKey.get(node.dataset.key || '');
+      if (!entry) continue;
+      const state = entryStatus(entry, now).state;
+      const pill = node.querySelector<HTMLElement>('.row-state');
+      if (node.dataset.state !== state) {
+        node.dataset.state = state;
+        if (pill) {
+          pill.dataset.state = state;
+          const iconState = entry.possible && state === 'live' ? 'upcoming' : (state as keyof typeof STATE_ICONS);
+          pill.innerHTML = `${STATE_ICONS[iconState] || ''}${badgeFor(entry, now)}`;
+          continue;
+        }
+      }
+      if (pill) {
+        const badge = badgeFor(entry, now);
+        const label = pill.lastChild;
+        if (label && label.textContent !== badge) label.textContent = badge;
+      }
+    }
+
+    // The now-marker and any block that changed state also age.
+    for (const railNode of feed.querySelectorAll<HTMLElement>('.rail')) {
+      const marker = railNode.querySelector<HTMLElement>('.rail-now');
+      const key = railNode.closest('.day')?.querySelector<HTMLElement>('.row[data-key]')?.dataset.key?.slice(0, 10);
+      if (marker && key) marker.style.left = `${(dayOffset(new Date(now).toISOString(), key) / 1440) * 100}%`;
+    }
   }
 
   function setHint(message: string, tone: 'neutral' | 'error' = 'neutral') {
@@ -1016,6 +1090,8 @@ const description =
     city = button.dataset.city === city ? '' : button.dataset.city || '';
     renderChips();
     render();
+    // renderChips() replaced the button that was just pressed; put focus back on it.
+    chipBox.querySelector<HTMLButtonElement>(`[data-city="${CSS.escape(city)}"]`)?.focus();
   });
 
   verdictMeta.addEventListener('click', (event) => {
@@ -1066,9 +1142,9 @@ const description =
     const advisories = (data.posts || []).map((post: { title: string }) => post.title).join(' · ');
     updated.textContent = `Checked ${stamp} · ${entries.length} interruptions${advisories ? ` · ${advisories}` : ''}`;
 
-    setInterval(render, 60000);
+    setInterval(refresh, 60000);
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) render();
+      if (!document.hidden) refresh();
     });
   } catch (error) {
     feed.innerHTML = '';

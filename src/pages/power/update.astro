@@ -43,58 +43,71 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 </BaseLayout>
 
 <style is:global>
+  /* Same component vocabulary as /power: the role scale from global.css, matching
+     control heights, and the status tokens rather than re-typed hex values. */
   .paste {
     max-width: 46rem;
-    padding: clamp(26px, 5vw, 44px) 0 72px;
+    padding: clamp(24px, 5vw, 44px) 0 72px;
   }
 
   .paste h1 {
     margin: 0;
     font-family: var(--font-display);
-    font-size: clamp(1.9rem, 5.4vw, 2.5rem);
+    font-size: var(--text-page);
     font-weight: 700;
-    line-height: 1.06;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
   }
 
   .paste .lede {
-    margin: 12px 0 26px;
+    margin: 12px 0 24px;
     max-width: 60ch;
     color: var(--ink-2);
+    font-size: var(--text-body);
   }
 
   .paste .lede a { color: var(--accent); }
 
   .paste label {
     display: block;
-    margin: 16px 0 6px;
+    margin: 16px 0 8px;
     color: var(--ink-2);
-    font-size: 0.82rem;
+    font-size: var(--text-label);
     font-weight: 600;
   }
 
   .paste .opt {
     color: var(--ink-3);
     font-weight: 400;
-    font-style: italic;
   }
 
   .paste input,
   .paste textarea {
     width: 100%;
-    padding: 11px 13px;
+    padding: 12px 14px;
     color: var(--ink);
     background: var(--surface);
     border: 1px solid var(--line-2);
     border-radius: var(--radius-sm);
     font: inherit;
-    font-size: 0.98rem;
+    font-size: var(--text-body);
   }
 
-  .paste input { min-height: 46px; }
+  .paste input::placeholder,
+  .paste textarea::placeholder { color: var(--ink-3); }
+
+  .paste input:focus-visible,
+  .paste textarea:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 1px;
+    border-color: var(--accent);
+  }
+
+  .paste input { min-height: 46px; padding: 0 14px; }
 
   .paste textarea {
     font-family: var(--font-mono);
-    font-size: 0.86rem;
+    font-size: var(--text-label);
     line-height: 1.6;
     resize: vertical;
   }
@@ -110,13 +123,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .paste .btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     min-height: 46px;
-    padding: 0 18px;
+    padding: 0 16px;
     border-radius: var(--radius-sm);
     font: inherit;
-    font-size: 0.94rem;
+    font-size: var(--text-body);
     font-weight: 600;
     cursor: pointer;
+    transition: background-color 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease);
   }
 
   .paste .btn-primary {
@@ -125,45 +140,68 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     border: 1px solid var(--accent);
   }
 
+  .paste .btn-primary:hover { background: #1D4FD0; border-color: #1D4FD0; }
+  .paste .btn-primary:active { background: #1A44B8; border-color: #1A44B8; }
+
   .paste .btn-ghost {
     margin-left: auto;
-    color: var(--ink-2);
+    color: var(--ink);
     background: var(--surface);
     border: 1px solid var(--line-2);
   }
 
+  .paste .btn-ghost:hover { background: var(--surface-hover); border-color: var(--accent-line); }
+  .paste .btn-ghost:active { background: var(--bg-2); }
+
+  .paste .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .paste .btn[aria-busy='true'] { color: var(--ink-3); cursor: progress; }
+
   .paste .switch {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
+    min-height: 36px;
     margin: 0;
-    font-size: 0.84rem;
+    color: var(--ink-2);
+    font-size: var(--text-label);
     font-weight: 400;
   }
+
+  .paste .switch input { width: 16px; height: 16px; min-height: 0; accent-color: var(--accent); }
 
   .paste .status {
     margin: 16px 0 0;
     min-height: 1.4em;
-    font-size: 0.9rem;
+    font-size: var(--text-label);
   }
 
-  .paste .status[data-tone='error'] { color: #A61B43; }
-  .paste .status[data-tone='ok'] { color: #046B4F; }
+  .paste .status[data-tone='error'] { color: var(--out); }
+  .paste .status[data-tone='ok'] { color: var(--clear); }
 
-  .paste .result { margin-top: 26px; }
-  .paste .result h2 { font-size: 1.05rem; margin: 0 0 8px; }
+  .paste .result { margin-top: 24px; }
+
+  .paste .result h2 {
+    margin: 0 0 8px;
+    font-size: var(--text-lead);
+    font-weight: 600;
+  }
 
   .paste .result ul {
     margin: 0;
     padding: 0;
     list-style: none;
     font-family: var(--font-mono);
-    font-size: 0.8rem;
+    font-size: var(--text-meta);
+    font-variant-numeric: tabular-nums;
   }
 
   .paste .result li {
-    padding: 7px 0;
+    padding: 8px 0;
     border-bottom: 1px solid var(--line);
+  }
+
+  @media (pointer: coarse) {
+    .paste .switch { min-height: 44px; }
   }
 </style>
 
@@ -197,6 +235,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   async function send(method: 'POST' | 'DELETE') {
     if (!token.value.trim()) return say('Token first.', 'error');
     localStorage.setItem(TOKEN_KEY, token.value.trim());
+    const active = method === 'DELETE' ? clear : submit;
+    active.setAttribute('aria-busy', 'true');
     submit.disabled = true;
     clear.disabled = true;
     say(method === 'DELETE' ? 'Clearing…' : 'Parsing…');
@@ -226,6 +266,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     } catch (error) {
       say(`Request failed: ${(error as Error).message}`, 'error');
     } finally {
+      active.removeAttribute('aria-busy');
       submit.disabled = false;
       clear.disabled = false;
     }

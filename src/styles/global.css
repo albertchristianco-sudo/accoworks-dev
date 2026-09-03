@@ -23,6 +23,14 @@
   --heart: #C51F50;
   --error: #A61B43;
 
+  /* Status vocabulary. Rose (--heart) stays reserved for the reaction control. */
+  --out: #A61B43;
+  --out-soft: #FCE8EE;
+  --wait: #92400E;
+  --wait-soft: #FDF0D5;
+  --clear: #046B4F;
+  --clear-soft: #E3F3EC;
+
   --max: 1180px;
   --radius: 12px;
   --radius-sm: 8px;
@@ -33,7 +41,25 @@
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-display: 'Barlow Semi Condensed', 'Arial Narrow', var(--font-sans);
 
+  /* Type roles for task surfaces: fixed rem steps, 12px floor, ~1.125 ratio.
+     Marketing surfaces keep their fluid display clamps. */
+  --text-meta: 0.75rem;
+  --text-label: 0.875rem;
+  --text-body: 1rem;
+  --text-lead: 1.125rem;
+  --text-title: 1.25rem;
+  --text-answer: 1.5rem;
+  --text-page: 2rem;
+
   font-family: var(--font-sans);
+}
+
+/* One step up for the two largest roles once there is room; no fluid interpolation. */
+@media (min-width: 768px) {
+  :root {
+    --text-answer: 1.75rem;
+    --text-page: 2.5rem;
+  }
 }
 
 * { box-sizing: border-box; }
@@ -156,7 +182,7 @@ p { text-wrap: pretty; }
   background: var(--ink);
   color: var(--bg);
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 600; /* 700 is not imported; asking for it synthesises a sheared bold. */
   font-size: calc(var(--s) * 0.44);
   line-height: 1;
   letter-spacing: -0.02em;
