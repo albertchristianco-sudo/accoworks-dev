@@ -4,8 +4,9 @@
 //
 // Reads Visayan Electric's own weekly advisory posts (their Wix blog renders the
 // schedule as real HTML tables), normalizes them, and merges the hand-logged
-// rotational brownouts from src/data/rotational.mjs. No API key, no storage: the
-// response is cached at the edge so a page load costs VECO nothing most of the time.
+// rotational brownouts from src/data/rotational.mjs. No API key, no storage: the upstream
+// VECO fetches are edge-cached (EDGE_TTL below), so a page load costs VECO nothing most of
+// the time. This response itself is not edge-cached — see the headers at the bottom.
 
 import {
   parsePost,
@@ -98,10 +99,9 @@ export async function onRequestGet({ env }) {
   }
 
   // Rotational brownouts come from Facebook — the uther-mini poller or a paste on
-  // /power/update — and land in KV; they change by the hour, which is why this response
-  // is not cached as a whole. The upstream fetches above carry their own 15-minute edge
-  // cache, so a page load stays cheap. ingest says when Facebook was last read, so the
-  // page can admit it may be missing an update instead of implying all-clear.
+  // /power/update — and land in KV; they change by the hour, so freshness here matters
+  // more than caching. ingest says when Facebook was last read, so the page can admit it
+  // may be missing an update instead of implying all-clear.
   const log = await readLog(env || {});
   payload.rotationalUpdated = log.updated;
   payload.ingest = await readHealth(env || {});
@@ -115,10 +115,15 @@ export async function onRequestGet({ env }) {
     (entry) => entry.end >= `${payload.window.from}T00:00:00+08:00`,
   );
 
+  // max-age=60 is browser-only and load-bearing: /power refetches this feed on tab focus
+  // and on repeat navigations, so a minute of freshness keeps those off the wire. No
+  // s-maxage — Pages Functions are not edge-cached without an explicit cache rule (every
+  // live response comes back cf-cache-status: DYNAMIC with no age), so advertising a shared
+  // TTL would describe a cache that does not exist. Only the upstream fetches are cached.
   return new Response(JSON.stringify(payload), {
     headers: {
       'content-type': 'application/json; charset=utf-8',
-      'cache-control': 'public, max-age=60, s-maxage=60',
+      'cache-control': 'public, max-age=60',
       'access-control-allow-origin': '*',
     },
   });

@@ -47,8 +47,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 </BaseLayout>
 
 <style is:global>
-  /* Same component vocabulary as /power: the role scale from global.css, matching
-     control heights, and the status tokens rather than re-typed hex values. */
+  /* ── Page ────────────────────────────────────────────────────────────── */
+
   .paste {
     max-width: 46rem;
     padding: clamp(24px, 5vw, 44px) 0 72px;
@@ -85,17 +85,36 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     font-weight: 400;
   }
 
+  .paste .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  /* ── Control vocabulary — mirrors .outage in power.astro; hoist to
+     global.css when a third surface needs it ────────────────────────────
+     Same 46px control height, `0 16px` button padding, var(--text-body),
+     the one shared transition list, and 44px targets under a coarse
+     pointer. Two surfaces do not earn an abstraction, so these rules are
+     copied on purpose and must be edited in lockstep with power.astro.
+     Declarations marked "local" are the only intentional divergences:
+     this surface is a form, so it has to undo its own label styling. */
+
   .paste input,
   .paste textarea {
     width: 100%;
-    padding: 12px 14px;
     color: var(--ink);
     background: var(--surface);
-    border: 1px solid var(--line-2);
+    /* 1.4.11: a control identified by its boundary alone needs 3:1. */
+    border: 1px solid var(--line-control);
     border-radius: var(--radius-sm);
     font: inherit;
     font-size: var(--text-body);
   }
+
+  .paste input { min-height: 46px; padding: 0 14px; }
 
   .paste input::placeholder,
   .paste textarea::placeholder { color: var(--ink-3); }
@@ -107,27 +126,21 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     border-color: var(--accent);
   }
 
-  .paste input { min-height: 46px; padding: 0 14px; }
-
+  /* Local: the advisory box holds pasted machine output, so it reads as
+     mono metadata and needs the vertical padding a single line does not. */
   .paste textarea {
+    padding: 12px 14px;
     font-family: var(--font-mono);
     font-size: var(--text-label);
     line-height: 1.6;
     resize: vertical;
   }
 
-  .paste .actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px;
-    margin-top: 20px;
-  }
-
   .paste .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
     min-height: 46px;
     padding: 0 16px;
     border-radius: var(--radius-sm);
@@ -144,42 +157,62 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     border: 1px solid var(--accent);
   }
 
-  .paste .btn-primary:hover { background: #1D4FD0; border-color: #1D4FD0; }
-  .paste .btn-primary:active { background: #1A44B8; border-color: #1A44B8; }
-
-  .paste .btn-quiet {
-    color: var(--ink-2);
-    background: transparent;
-    border: 1px solid var(--line);
-  }
-
-  .paste .btn-quiet:hover { color: var(--ink); background: var(--surface-hover); }
+  .paste .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .paste .btn-primary:active { background: var(--accent-active); border-color: var(--accent-active); }
 
   .paste .btn-ghost {
-    margin-left: auto;
     color: var(--ink);
     background: var(--surface);
-    border: 1px solid var(--line-2);
+    border: 1px solid var(--line-control);
+    margin-left: auto; /* local: "Clear log" is destructive, so it sits apart. */
   }
 
   .paste .btn-ghost:hover { background: var(--surface-hover); border-color: var(--accent-line); }
   .paste .btn-ghost:active { background: var(--bg-2); }
 
   .paste .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  /* Busy wins over disabled: the control is working, not forbidden. */
   .paste .btn[aria-busy='true'] { color: var(--ink-3); cursor: progress; }
+
+  /* Local: /power has no secondary submit. Its boundary is the whole
+     control, so it takes --line-control too. */
+  .paste .btn-quiet {
+    color: var(--ink-2);
+    background: transparent;
+    border: 1px solid var(--line-control);
+  }
+
+  .paste .btn-quiet:hover { color: var(--ink); background: var(--surface-hover); }
 
   .paste .switch {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     min-height: 36px;
-    margin: 0;
     color: var(--ink-2);
     font-size: var(--text-label);
-    font-weight: 400;
+    cursor: pointer;
+    margin: 0; /* local: undoes .paste label */
+    font-weight: 400; /* local: undoes .paste label */
   }
 
-  .paste .switch input { width: 16px; height: 16px; min-height: 0; accent-color: var(--accent); }
+  .paste .switch input {
+    width: 16px;
+    height: 16px;
+    min-height: 0; /* local: undoes the 46px input floor */
+    accent-color: var(--accent);
+  }
+
+  /* Touch: only the controls under 44px need lifting; buttons and inputs
+     are already 46px. */
+  @media (pointer: coarse) {
+    .paste .switch { min-height: 44px; }
+  }
+
+  /* ── Feedback ─────────────────────────────────────────────────────────
+     --error means "this interface failed" — a refused request, a dead
+     poller, a rejected paste. --out means "power is out" and belongs to
+     /power's status scale, not here. */
 
   .paste .ingest {
     margin: 0 0 24px;
@@ -193,7 +226,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     line-height: 1.6;
   }
 
-  .paste .ingest[data-tone='error'] { color: var(--out); background: var(--out-soft); }
+  .paste .ingest[data-tone='error'] { color: var(--error); background: var(--error-soft); }
   .paste .ingest[data-tone='ok'] { color: var(--clear); background: var(--clear-soft); }
 
   .paste .status {
@@ -202,7 +235,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     font-size: var(--text-label);
   }
 
-  .paste .status[data-tone='error'] { color: var(--out); }
+  .paste .status[data-tone='error'] { color: var(--error); }
   .paste .status[data-tone='ok'] { color: var(--clear); }
 
   .paste .result { margin-top: 24px; }
@@ -222,13 +255,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     font-variant-numeric: tabular-nums;
   }
 
+  /* Content divider, not a control boundary — stays on --line. */
   .paste .result li {
     padding: 8px 0;
     border-bottom: 1px solid var(--line);
-  }
-
-  @media (pointer: coarse) {
-    .paste .switch { min-height: 44px; }
   }
 </style>
 

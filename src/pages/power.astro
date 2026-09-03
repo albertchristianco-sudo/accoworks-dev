@@ -26,7 +26,7 @@ const description =
             placeholder="e.g. Talamban, Mabolo, Guadalupe"
             autocomplete="address-level4"
             enterkeyhint="search"
-            aria-describedby="area-hint"
+            aria-describedby="area-desc"
             spellcheck="false"
           />
           <button type="submit" class="btn btn-primary" data-check>Check</button>
@@ -39,7 +39,8 @@ const description =
             Use my location
           </button>
         </div>
-        <p class="field-hint" id="area-hint" role="status" data-hint>Or let the browser read your location once.</p>
+        <p class="field-hint visually-hidden" id="area-desc">Type a barangay, street or city in Metro Cebu.</p>
+        <p class="field-hint" role="status" data-hint>Or let the browser read your location once.</p>
       </form>
     </header>
 
@@ -94,11 +95,7 @@ const description =
 <!-- Rows are built at runtime from /api/outages, so Astro's scoped attributes never reach
      them. This block is global; every selector stays under .outage. -->
 <style is:global>
-  .outage {
-    --rail: rgba(13, 21, 38, 0.08);
-
-    padding: clamp(24px, 5vw, 48px) 0 72px;
-  }
+  .outage { padding: clamp(24px, 5vw, 48px) 0 72px; }
 
   /* ── Ask ─────────────────────────────────────────────────────────────── */
 
@@ -144,7 +141,7 @@ const description =
     padding: 0 14px;
     color: var(--ink);
     background: var(--surface);
-    border: 1px solid var(--line-2);
+    border: 1px solid var(--line-control);
     border-radius: var(--radius-sm);
     font: inherit;
     font-size: var(--text-body);
@@ -164,7 +161,8 @@ const description =
     font-size: var(--text-label);
   }
 
-  .outage .field-hint[data-tone='error'] { color: var(--out); }
+  /* A declined geolocation permission is a failed interface, not an outage. */
+  .outage .field-hint[data-tone='error'] { color: var(--error); }
 
   .outage .btn {
     display: inline-flex;
@@ -187,8 +185,8 @@ const description =
     border: 1px solid var(--accent);
   }
 
-  .outage .btn-primary:hover { background: #1D4FD0; border-color: #1D4FD0; }
-  .outage .btn-primary:active { background: #1A44B8; border-color: #1A44B8; }
+  .outage .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .outage .btn-primary:active { background: var(--accent-active); border-color: var(--accent-active); }
 
   .outage .btn-ghost {
     color: var(--ink);
@@ -218,7 +216,7 @@ const description =
     padding: 20px 24px;
     background: var(--surface);
     border-radius: var(--radius);
-    box-shadow: 0 18px 40px -30px rgba(13, 29, 64, 0.45);
+    box-shadow: var(--shadow);
   }
 
   .outage .verdict[data-tone='out'] { background: var(--out-soft); }
@@ -233,13 +231,13 @@ const description =
     height: 44px;
     border-radius: 50%;
     color: var(--ink-2);
-    background: rgba(13, 21, 38, 0.06);
+    background: color-mix(in srgb, var(--ink) 6%, transparent);
   }
 
   .outage .verdict-mark svg { width: 22px; height: 22px; }
-  .outage .verdict[data-tone='out'] .verdict-mark { color: var(--out); background: rgba(166, 27, 67, 0.12); }
-  .outage .verdict[data-tone='wait'] .verdict-mark { color: var(--wait); background: rgba(146, 64, 14, 0.12); }
-  .outage .verdict[data-tone='clear'] .verdict-mark { color: var(--clear); background: rgba(4, 107, 79, 0.12); }
+  .outage .verdict[data-tone='out'] .verdict-mark { color: var(--out); background: color-mix(in srgb, var(--out) 12%, transparent); }
+  .outage .verdict[data-tone='wait'] .verdict-mark { color: var(--wait); background: color-mix(in srgb, var(--wait) 12%, transparent); }
+  .outage .verdict[data-tone='clear'] .verdict-mark { color: var(--clear); background: color-mix(in srgb, var(--clear) 12%, transparent); }
 
   .outage .verdict-body { min-width: 0; }
 
@@ -339,7 +337,7 @@ const description =
     padding: 0 12px;
     color: var(--ink-2);
     background: transparent;
-    border: 1px solid var(--line);
+    border: 1px solid var(--line-control);
     border-radius: 999px;
     font: inherit;
     font-size: var(--text-label);
@@ -358,7 +356,7 @@ const description =
     border-color: var(--ink);
   }
 
-  .outage .chip[aria-pressed='true']:hover { background: #1B2740; border-color: #1B2740; }
+  .outage .chip[aria-pressed='true']:hover { background: var(--ink-hover); border-color: var(--ink-hover); }
 
   .outage .chip-n {
     margin-left: 8px;
@@ -367,7 +365,7 @@ const description =
     font-variant-numeric: tabular-nums;
   }
 
-  .outage .chip[aria-pressed='true'] .chip-n { color: rgba(251, 252, 254, 0.75); }
+  .outage .chip[aria-pressed='true'] .chip-n { color: color-mix(in srgb, var(--accent-ink) 75%, transparent); }
 
   .outage .switch {
     display: inline-flex;
@@ -387,6 +385,7 @@ const description =
 
   .outage .day-head {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     gap: 12px;
   }
@@ -452,7 +451,7 @@ const description =
 
   .outage .rail-block[data-state='live'] { background: var(--out); }
   .outage .rail-block[data-state='upcoming'] { background: var(--wait); }
-  .outage .rail-block[data-state='cancelled'] { background: var(--rail); }
+  .outage .rail-block[data-state='cancelled'] { background: var(--line); }
   /* Possible slots read as provisional: same hue, lighter weight than a confirmed cut. */
   .outage .rail-block[data-possible] { background: var(--wait); opacity: 0.4; }
 
@@ -468,11 +467,15 @@ const description =
 
   .outage .row {
     display: grid;
-    grid-template-columns: 11.5rem minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 11.5rem) minmax(0, 1fr) auto;
     align-items: start;
     gap: 4px 20px;
     padding: 16px 0;
     border-bottom: 1px solid var(--line);
+    /* Three hundred-odd rows: letting the off-screen ones skip layout and paint is what
+       keeps a keystroke cheap. The reserved height is a typical row's. */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 140px;
   }
 
   .outage .row[data-state='done'],
@@ -486,6 +489,9 @@ const description =
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
+
+  /* The range may break between its two clocks, never inside one. */
+  .outage .row-clock { white-space: nowrap; }
 
   .outage .row[data-state='cancelled'] .row-time { text-decoration: line-through; }
   .outage .row[data-possible] .row-time { color: var(--ink-2); font-weight: 500; }
@@ -619,21 +625,28 @@ const description =
     .outage .chip,
     .outage .switch,
     .outage summary,
+    .outage details a,
     .outage .verdict-meta button { min-height: 44px; }
 
     .outage .chip { padding: 0 16px; }
+    /* An inline link is as tall as its line box: 20px on a page that raises everything
+       else to 44. */
+    .outage details a { display: inline-flex; align-items: center; }
   }
 
   @media (max-width: 620px) {
     .outage .btn-ghost { flex: 1 1 100%; }
 
     .outage .row {
-      grid-template-columns: 1fr auto;
+      grid-template-columns: minmax(0, 1fr) auto;
       gap: 2px 12px;
       padding: 14px 0;
     }
 
-    .outage .row-time { grid-column: 1; grid-row: 1; }
+    /* The time and its duration share the first track here, so the track's min-content
+       is that whole string. Keep it breakable: unbroken, it pushes the status badge past
+       a 320px viewport, and body{overflow-x:clip} destroys it rather than scrolls to it. */
+    .outage .row-time { grid-column: 1; grid-row: 1; white-space: normal; }
     .outage .row-state { grid-column: 2; grid-row: 1; justify-self: end; white-space: normal; text-align: right; }
     .outage .row > div { grid-column: 1 / -1; grid-row: 2; margin-top: 4px; }
     .outage .row-span { display: inline; margin: 0 0 0 8px; }
@@ -644,6 +657,19 @@ const description =
 
 <script>
   import { entryStatus, manilaDate } from '../scripts/outages.mjs';
+  import {
+    CITIES,
+    badgeFor,
+    citiesOf,
+    clock,
+    dayFull,
+    dayKey,
+    dayOffset,
+    dayShort,
+    isVisible,
+    matches,
+    verdictView,
+  } from '../scripts/power-view.mjs';
 
   type Entry = {
     kind: 'scheduled' | 'rotational';
@@ -656,12 +682,23 @@ const description =
     areasRaw: string;
     purpose: string;
     source: string;
-    sourceTitle: string;
     map?: string;
     possible?: boolean;
-    via?: string;
     postedAt?: string | null;
   };
+
+  type Ingest = { checkedAt: string | null; latestPostAt: string | null };
+
+  type Feed = {
+    updated: string;
+    entries?: Entry[];
+    posts?: { title: string }[];
+    ingest?: Ingest;
+    warnings?: string[];
+  };
+
+  /** A verdict line: stable prose, plus the one countdown that moves every minute. */
+  type Segment = string | { count: string };
 
   const el = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
 
@@ -687,6 +724,12 @@ const description =
   // Three missed 15-minute poller cycles. Judged against the feed's own timestamp, not
   // Date.now(), so a tab left open overnight does not invent a staleness warning.
   const INGEST_STALE_MS = 45 * 60 * 1000;
+  // How old the payload itself may get before the minute tick re-reads it. A tab left
+  // open during an outage is the normal case, and ageing the badges it loaded with is
+  // not the same as following the schedule.
+  const REFETCH_MS = 5 * 60 * 1000;
+  // Long enough that an 8-character area name is one rebuild, short enough to feel live.
+  const TYPE_DEBOUNCE_MS = 120;
 
   const ICONS = {
     out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/><path d="M3 3l18 18"/></svg>',
@@ -702,69 +745,38 @@ const description =
     cancelled: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg>',
   };
 
-  // Areas read like "Talisay City, Portions of Corona del Mar" or "City of Naga &
-  // Minglanilla (Alpaco, Cogon)", so the trailing comma segment is not the city. Match the
-  // franchise's actual LGUs instead; one advisory can span two.
-  const CITIES: [string, RegExp][] = [
-    ['Cebu City', /\bcebu city\b/],
-    ['Mandaue', /\bmandaue\b/],
-    ['Lapu-Lapu', /\blapu[- ]?lapu\b/],
-    ['Talisay', /\btalisay\b/],
-    ['Minglanilla', /\bminglanilla\b/],
-    ['Naga', /\bnaga\b/],
-    ['San Fernando', /\bsan fernando\b/],
-    ['Consolacion', /\bconsolacion\b/],
-    ['Liloan', /\bliloan\b/],
-    ['Compostela', /\bcompostela\b/],
-    ['Cordova', /\bcordova\b/],
-    ['Danao', /\bdanao\b/],
-  ];
-
-  const clock = new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit' });
-  const dayFull = new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', weekday: 'long', month: 'short', day: 'numeric' });
-  const dayShort = new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', weekday: 'long' });
+  const stampFmt = new Intl.DateTimeFormat('en-PH', {
+    timeZone: 'Asia/Manila',
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
 
   let entries: Entry[] = [];
   let city = '';
   let detected = '';
-  let ingest: { checkedAt: string | null; latestPostAt: string | null } | undefined;
+  let ingest: Ingest | undefined;
   let fetchedAt = Date.now();
+  let lastFetch = 0;
+  let feedSig = '';
+  let chipSig = '';
+  let loading = false;
+  let typing = 0;
+  let frame = 0;
 
   const esc = (value: string) =>
     value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 
-  const dayKey = (iso: string) => iso.slice(0, 10);
-
-  const gap = (minutes: number) => {
-    if (minutes < 60) return `${minutes} min`;
-    const hours = Math.floor(minutes / 60);
-    const rest = minutes % 60;
-    if (hours < 24) return rest ? `${hours}h ${rest}m` : `${hours}h`;
-    const days = Math.round(hours / 24);
-    return days === 1 ? '1 day' : `${days} days`;
-  };
-
-  const citiesOf = (entry: Entry) => {
-    const hay = `${entry.area} ${entry.areasRaw}`.toLowerCase();
-    const hits = CITIES.filter(([, re]) => re.test(hay)).map(([name]) => name);
-    return hits.length ? hits : ['Other'];
-  };
+  // One entry, one identity — shared by its row, its rail block and the minute tick.
+  const keyOf = (entry: Entry) => `${entry.start}|${entry.area}`;
 
   const query = () => search.value.trim().toLowerCase();
 
-  const matches = (entry: Entry, needle: string) =>
-    !needle || `${entry.area} ${entry.streets} ${entry.areasRaw}`.toLowerCase().includes(needle);
-
-  const visible = (opts: { includeDone?: boolean } = {}) => {
+  const filtered = (opts: { includeDone?: boolean } = {}) => {
     const needle = query();
     const now = Date.now();
-    return entries.filter((entry) => {
-      if (city && !citiesOf(entry).includes(city)) return false;
-      if (!matches(entry, needle)) return false;
-      if (hidePossible.checked && entry.possible) return false;
-      if (!opts.includeDone && hideDone.checked && entryStatus(entry, now).state === 'done') return false;
-      return true;
-    });
+    const hideFinished = !opts.includeDone && hideDone.checked;
+    return entries.filter((entry) =>
+      isVisible(entry, { city, needle, hidePossible: hidePossible.checked, hideDone: hideFinished, now }));
   };
 
   // Facebook is the only source of rotational brownouts, so an unread feed is a hole in
@@ -781,97 +793,62 @@ const description =
   };
 
   function renderStaleNotice() {
-    if (!ingestStale()) {
-      verdictStale.hidden = true;
-      verdictStale.textContent = '';
+    const text = ingestStale()
+      ? `Rotational brownout updates from Facebook may be missing: last automatic check ${whenChecked()}. ` +
+        'Confirm on Visayan Electric’s Facebook page.'
+      : '';
+    // Inside the aria-live region: only write when it actually says something new.
+    if (verdictStale.textContent === text) return;
+    verdictStale.textContent = text;
+    verdictStale.hidden = !text;
+  }
+
+  // The verdict is an aria-live region, and reassigning identical text still announces.
+  // Stable prose is therefore rewritten only when the answer itself changed; the
+  // countdown lives in an aria-live="off" span, so it can move every minute in silence.
+  function paint(node: HTMLElement, segments: Segment[], rebuild: boolean) {
+    if (rebuild) {
+      node.textContent = '';
+      for (const segment of segments) {
+        if (typeof segment === 'string') {
+          node.append(segment);
+          continue;
+        }
+        const span = document.createElement('span');
+        span.setAttribute('aria-live', 'off');
+        span.textContent = segment.count;
+        node.append(span);
+      }
       return;
     }
-    verdictStale.hidden = false;
-    verdictStale.textContent =
-      `Rotational brownout updates from Facebook may be missing: last automatic check ${whenChecked()}. ` +
-      'Confirm on Visayan Electric’s Facebook page.';
+    const spans = node.querySelectorAll<HTMLElement>('[aria-live="off"]');
+    let index = 0;
+    for (const segment of segments) {
+      if (typeof segment === 'string') continue;
+      const span = spans[index++];
+      if (span && span.textContent !== segment.count) span.textContent = segment.count;
+    }
   }
 
   function renderVerdict() {
-    const now = Date.now();
-    const scope = visible({ includeDone: true });
-    const scoped = Boolean(query() || city);
-    // Echo the typed area back as a place name, not as raw keystrokes.
-    const label = query() ? search.value.trim().replace(/\b\p{Ll}/gu, (c) => c.toUpperCase()) : city;
+    const view = verdictView({
+      entries,
+      scope: filtered({ includeDone: true }),
+      // Echo the typed area back as a place name, not as raw keystrokes.
+      label: query() ? search.value.trim().replace(/\b\p{Ll}/gu, (c) => c.toUpperCase()) : city,
+      scoped: Boolean(query() || city),
+      stale: ingestStale(),
+      now: Date.now(),
+    }) as { tone: keyof typeof ICONS; key: string; head: Segment[]; detail: Segment[] };
 
-    // Confirmed interruptions answer the question; "possible" rotational slots only ever
-    // warn, because VECO implements them solely when NGCP calls for load reduction.
-    const live = scope
-      .filter((e) => entryStatus(e, now).state === 'live')
-      .sort((a, b) => Date.parse(a.end) - Date.parse(b.end));
-    const liveSure = live.filter((e) => !e.possible);
-    const livePossible = live.filter((e) => e.possible);
-    const next = scope
-      .filter((e) => entryStatus(e, now).state === 'upcoming')
-      .sort((a, b) => Date.parse(a.start) - Date.parse(b.start))[0];
-
-    let tone = 'idle';
-    let head = '';
-    let detail = '';
-
-    if (!entries.length) {
-      tone = 'wait';
-      head = 'No advisories available';
-      detail = 'Visayan Electric’s schedule could not be read just now. Try again in a few minutes.';
-    } else if (!scoped) {
-      tone = 'idle';
-      head = 'Tell me where you are';
-      const liveAll = entries.filter((e) => entryStatus(e, now).state === 'live' && !e.possible).length;
-      detail = liveAll
-        ? `${liveAll} ${liveAll === 1 ? 'interruption is' : 'interruptions are'} running across the franchise right now. Type your barangay for a straight answer.`
-        : `${entries.length} interruptions and possible brownout slots are published for the next 14 days. Type your barangay for a straight answer.`;
-    } else if (liveSure.length) {
-      tone = 'out';
-      const soonest = liveSure[0];
-      const left = entryStatus(soonest, now).minutes ?? 0;
-      head = `Yes — power is out now in ${label}`;
-      detail = `${soonest.area}: back around ${clock.format(new Date(soonest.end))}, about ${gap(left)} from now.${
-        liveSure.length > 1 ? ` ${liveSure.length - 1} more area${liveSure.length > 2 ? 's' : ''} also out.` : ''
-      }`;
-    } else if (livePossible.length) {
-      tone = 'wait';
-      const slot = livePossible[0];
-      head = `Maybe — ${label} is in a rotational brownout window now`;
-      detail = `Window ${clock.format(new Date(slot.start))} to ${clock.format(new Date(slot.end))}. Visayan Electric only cuts power if NGCP calls for load reduction, so it may not happen.`;
-    } else if (next) {
-      const away = entryStatus(next, now).minutes ?? 0;
-      tone = away <= 180 ? 'wait' : 'clear';
-      const when = dayKey(next.start) === manilaDate(now)
-        ? `today ${clock.format(new Date(next.start))}`
-        : `${dayFull.format(new Date(next.start))}, ${clock.format(new Date(next.start))}`;
-      head = next.possible
-        ? `No outage right now in ${label}`
-        : away <= 180
-          ? `Power goes out in ${gap(away)}`
-          : `No outage right now in ${label}`;
-      detail = next.possible
-        ? `Next rotational window: ${when} to ${clock.format(new Date(next.end))} (${next.hours}h) — possible, not confirmed.`
-        : `Next: ${next.area} — ${when} to ${clock.format(new Date(next.end))} (${next.hours}h).`;
-    } else {
-      tone = 'clear';
-      head = `No — nothing scheduled for ${label}`;
-      detail = 'No interruption is published for that area in the next 14 days.';
-    }
-
-    // A green "nothing scheduled" is not honest while the Facebook feed is unread: the
-    // rotational advisories live only there. A confirmed live outage stays 'out' — that is
-    // true whatever the poller is doing.
-    if (ingestStale() && tone === 'clear') tone = 'wait';
-
-    // The verdict is an aria-live region: reassigning identical text still announces, so
-    // every write is guarded and the entrance animation only replays on a real change.
-    const changed = verdictHead.textContent !== head || verdictDetail.textContent !== detail;
-    verdict.dataset.tone = tone;
-    if (changed) {
-      verdictMark.innerHTML = ICONS[tone === 'out' ? 'out' : tone === 'wait' ? 'wait' : tone === 'clear' ? 'clear' : 'idle'];
-      verdictHead.textContent = head;
-      verdictDetail.textContent = detail;
-    }
+    // The identity of the answer, with no clock in it: a minute later it is the same key,
+    // so nothing is announced and nothing is re-animated.
+    const changed = verdict.dataset.key !== view.key;
+    verdict.dataset.tone = view.tone;
+    verdict.dataset.key = view.key;
+    if (changed) verdictMark.innerHTML = ICONS[view.tone] || ICONS.idle;
+    paint(verdictHead, view.head, changed);
+    paint(verdictDetail, view.detail, changed);
 
     const meta = detected ? `Located: ${esc(detected)} <button type="button" data-reset>Not my area</button>` : '';
     if (verdictMeta.innerHTML !== meta) {
@@ -896,17 +873,16 @@ const description =
     for (const [name, count] of [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))) {
       rows.push([name, name, count]);
     }
-    chipBox.innerHTML = rows
+    // Without the label the accessible name reads "Mandaue96".
+    const html = rows
       .map(([label, value, count]) =>
-        `<button type="button" class="chip" data-city="${esc(value)}" aria-pressed="${value === city}">${esc(label)}<span class="chip-n">${count}</span></button>`)
+        `<button type="button" class="chip" data-city="${esc(value)}" aria-pressed="${value === city}" aria-label="${esc(label)}, ${count} ${count === 1 ? 'interruption' : 'interruptions'}">${esc(label)}<span class="chip-n">${count}</span></button>`)
       .join('');
+    // A background refresh that changes nothing must not replace the button under focus.
+    if (html === chipSig) return;
+    chipSig = html;
+    chipBox.innerHTML = html;
   }
-
-  // Minutes from midnight of `key`, clamped to that day, for the hour rail.
-  const dayOffset = (iso: string, key: string) => {
-    const base = Date.parse(`${key}T00:00:00+08:00`);
-    return Math.max(0, Math.min(1440, Math.round((Date.parse(iso) - base) / 60000)));
-  };
 
   function rail(group: Entry[], key: string, now: number) {
     const ticks = [0, 6, 12, 18, 24]
@@ -918,12 +894,13 @@ const description =
       })
       .join('');
 
+    // Each block carries its row's key so the minute tick can age it in place.
     const blocks = group
       .map((entry) => {
         const from = dayOffset(entry.start, key);
         const to = dayOffset(entry.end, key);
         const state = entryStatus(entry, now).state;
-        return `<span class="rail-block" data-state="${state}"${entry.possible ? ' data-possible' : ''} style="left:${(from / 1440) * 100}%;width:${Math.max(((to - from) / 1440) * 100, 0.4)}%"></span>`;
+        return `<span class="rail-block" data-key="${esc(keyOf(entry))}" data-state="${state}"${entry.possible ? ' data-possible' : ''} style="left:${(from / 1440) * 100}%;width:${Math.max(((to - from) / 1440) * 100, 0.4)}%"></span>`;
       })
       .join('');
 
@@ -931,26 +908,14 @@ const description =
       ? `<span class="rail-now" style="left:${(dayOffset(new Date(now).toISOString(), key) / 1440) * 100}%"></span>`
       : '';
 
-    return `<div class="rail" aria-hidden="true">${ticks}${blocks}${marker}</div>`;
+    return `<div class="rail" data-day="${esc(key)}" aria-hidden="true">${ticks}${blocks}${marker}</div>`;
   }
-
-  // A possible slot never claims to be happening; it reports its window instead.
-  const badgeFor = (entry: Entry, now: number) => {
-    const status = entryStatus(entry, now);
-    const state = status.state;
-    if (entry.possible) {
-      return state === 'live' ? 'possible now' : state === 'upcoming' ? `possible in ${gap(status.minutes ?? 0)}` : state;
-    }
-    return state === 'live'
-      ? `${gap(status.minutes ?? 0)} left`
-      : state === 'upcoming'
-        ? `in ${gap(status.minutes ?? 0)}`
-        : state;
-  };
 
   const CHEVRON =
     '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
 
+  // A plain div, not an article: 336 article boundaries announced in a row is noise, and
+  // naming each one only trades that for 336 redundant labels.
   function row(entry: Entry, now: number) {
     const state = entryStatus(entry, now).state;
     const overnight = dayKey(entry.start) !== dayKey(entry.end);
@@ -962,8 +927,8 @@ const description =
     const iconState = entry.possible && state === 'live' ? 'upcoming' : (state as keyof typeof STATE_ICONS);
 
     return `
-      <article class="row" data-state="${state}" data-key="${esc(`${entry.start}|${entry.area}`)}"${entry.possible ? ' data-possible' : ''}>
-        <p class="row-time">${clock.format(new Date(entry.start))} – ${clock.format(new Date(entry.end))}
+      <div class="row" data-state="${state}" data-key="${esc(keyOf(entry))}"${entry.possible ? ' data-possible' : ''}>
+        <p class="row-time"><span class="row-clock">${clock.format(new Date(entry.start))}</span> – <span class="row-clock">${clock.format(new Date(entry.end))}</span>
           <span class="row-span">${entry.hours}h${overnight ? ' · ends next day' : ''}</span>
         </p>
         <div>
@@ -973,13 +938,12 @@ const description =
           ${entry.purpose ? `<details><summary>${CHEVRON}Why</summary><p>${esc(entry.purpose)}</p>${entry.map ? `<p><a href="${esc(entry.map)}" rel="noopener" target="_blank">See the affected-area map</a></p>` : ''}${entry.source ? `<p><a href="${esc(entry.source)}" rel="noopener" target="_blank">Read the advisory</a></p>` : ''}${entry.postedAt ? `<p>Posted by Visayan Electric ${clock.format(new Date(entry.postedAt))}</p>` : ''}</details>` : ''}
         </div>
         <span class="row-state" data-state="${state}"${entry.possible ? ' data-possible' : ''}>${STATE_ICONS[iconState] || ''}${badge}</span>
-      </article>`;
+      </div>`;
   }
 
-  function render() {
-    const list = visible();
+  function renderFeed() {
+    const list = filtered();
     const now = Date.now();
-    renderVerdict();
 
     const today = manilaDate(now);
     const groups = new Map<string, Entry[]>();
@@ -1011,13 +975,21 @@ const description =
       .join('');
   }
 
+  function render() {
+    // Whatever was queued by typing is stale the moment anything else renders.
+    clearTimeout(typing);
+    cancelAnimationFrame(frame);
+    renderVerdict();
+    renderFeed();
+  }
+
   // The minute tick only ages statuses. Patching the rows in place keeps open "Why"
   // panels open and keyboard focus where the user left it; a full rebuild would not.
   function refresh() {
     const now = Date.now();
     renderVerdict();
 
-    const byKey = new Map(entries.map((entry) => [`${entry.start}|${entry.area}`, entry]));
+    const byKey = new Map(entries.map((entry) => [keyOf(entry), entry]));
     for (const node of feed.querySelectorAll<HTMLElement>('.row[data-key]')) {
       const entry = byKey.get(node.dataset.key || '');
       if (!entry) continue;
@@ -1039,11 +1011,18 @@ const description =
       }
     }
 
-    // The now-marker and any block that changed state also age.
-    for (const railNode of feed.querySelectorAll<HTMLElement>('.rail')) {
+    // The rail is drawn once per render, so its blocks age here too — otherwise a window
+    // that just went live keeps the amber it was painted with while its row turns red.
+    for (const block of feed.querySelectorAll<HTMLElement>('.rail-block[data-key]')) {
+      const entry = byKey.get(block.dataset.key || '');
+      if (!entry) continue;
+      const state = entryStatus(entry, now).state;
+      if (block.dataset.state !== state) block.dataset.state = state;
+    }
+
+    for (const railNode of feed.querySelectorAll<HTMLElement>('.rail[data-day]')) {
       const marker = railNode.querySelector<HTMLElement>('.rail-now');
-      const key = railNode.closest('.day')?.querySelector<HTMLElement>('.row[data-key]')?.dataset.key?.slice(0, 10);
-      if (marker && key) marker.style.left = `${(dayOffset(new Date(now).toISOString(), key) / 1440) * 100}%`;
+      if (marker) marker.style.left = `${(dayOffset(new Date(now).toISOString(), railNode.dataset.day!) / 1440) * 100}%`;
     }
   }
 
@@ -1085,7 +1064,7 @@ const description =
       // A barangay with no advisory is the common case: fall back to its city so the
       // answer still shows what is happening around the user.
       if (barangay && !entries.some((entry) => matches(entry, barangay.toLowerCase()))) {
-        const cityHit = CITIES.find(([, re]) => re.test(String(place.city || '').toLowerCase()));
+        const cityHit = CITIES.find(([, re]: [string, RegExp]) => re.test(String(place.city || '').toLowerCase()));
         if (cityHit) {
           search.value = '';
           city = cityHit[0];
@@ -1124,10 +1103,16 @@ const description =
     setHint(search.value.trim() ? 'Showing every advisory that mentions it.' : 'Or let the browser read your location once.');
   });
 
-  // Typing filters live; the verdict follows the same input.
+  // The answer follows every keystroke; the 336-row list follows one frame after typing
+  // settles, because rebuilding it is style and paint on thousands of nodes.
   search.addEventListener('input', () => {
     detected = '';
-    render();
+    renderVerdict();
+    clearTimeout(typing);
+    typing = window.setTimeout(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(renderFeed);
+    }, TYPE_DEBOUNCE_MS);
   });
 
   locateBtn.addEventListener('click', locate);
@@ -1165,46 +1150,79 @@ const description =
     search.focus();
   });
 
-  feed.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
-
-  try {
-    const response = await fetch('/api/outages');
-    if (!response.ok) throw new Error(`feed responded ${response.status}`);
-    const data = await response.json();
-    entries = (data.entries || []) as Entry[];
-    ingest = data.ingest;
-    fetchedAt = Date.parse(data.updated) || Date.now();
-
-    const saved = localStorage.getItem(AREA_KEY);
-    if (saved) {
-      // A remembered city restores as the chip filter; anything else as the search term.
-      if (CITIES.some(([name]) => name === saved)) city = saved;
-      else search.value = saved;
-      setHint('Using the area you checked last time.');
-    }
-
-    renderChips();
-    renderStaleNotice();
-    render();
-
-    const stamp = new Intl.DateTimeFormat('en-PH', {
-      timeZone: 'Asia/Manila',
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(new Date(data.updated));
-    const advisories = (data.posts || []).map((post: { title: string }) => post.title).join(' · ');
+  function stampFooter(data: Feed) {
+    const advisories = (data.posts || []).map((post) => post.title).join(' · ');
     const facebook = ingestStale()
       ? ` · Facebook not checked since ${whenChecked()}`
       : ` · Facebook checked ${clock.format(new Date(ingest!.checkedAt!))}`;
     const latest = ingest?.latestPostAt
       ? ` · latest VECO post ${clock.format(new Date(ingest.latestPostAt))}`
       : '';
-    updated.textContent = `Checked ${stamp} · ${entries.length} interruptions${facebook}${latest}${advisories ? ` · ${advisories}` : ''}`;
+    // A half-read advisory is news, not something to swallow: the API says which post it
+    // could not parse, so the stamp says it too.
+    const warnings = data.warnings?.length ? ` · ${data.warnings.join(' · ')}` : '';
+    updated.textContent =
+      `Checked ${stampFmt.format(new Date(data.updated))} · ${entries.length} interruptions${facebook}${latest}` +
+      `${advisories ? ` · ${advisories}` : ''}${warnings}`;
+  }
 
-    setInterval(refresh, 60000);
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) refresh();
-    });
+  // One load path for the first paint and for every refresh. Nothing on screen is
+  // replaced until the payload has parsed, so a failed re-read keeps the last schedule.
+  // Returns whether the schedule itself moved: `updated` is stamped per request, so the
+  // entries are the only honest signal, and a tab regaining focus should not rebuild
+  // 336 rows — closing every open "Why" — just to redraw the same day.
+  async function load() {
+    const response = await fetch('/api/outages');
+    if (!response.ok) throw new Error(`feed responded ${response.status}`);
+    const data = (await response.json()) as Feed;
+
+    lastFetch = Date.now();
+    const sig = JSON.stringify(data.entries || []);
+    const moved = sig !== feedSig;
+    feedSig = sig;
+    entries = data.entries || [];
+    ingest = data.ingest;
+    fetchedAt = Date.parse(data.updated) || Date.now();
+    stampFooter(data);
+    return moved;
+  }
+
+  async function reload() {
+    if (loading) return;
+    loading = true;
+    try {
+      const moved = await load();
+      renderStaleNotice();
+      if (moved) {
+        renderChips();
+        render();
+      } else {
+        refresh();
+      }
+    } catch (error) {
+      // The schedule already on screen beats a blank page; try again on the next tick.
+      console.error(error);
+      refresh();
+    } finally {
+      loading = false;
+    }
+  }
+
+  feed.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+
+  const saved = localStorage.getItem(AREA_KEY);
+  if (saved) {
+    // A remembered city restores as the chip filter; anything else as the search term.
+    if (CITIES.some(([name]: [string, RegExp]) => name === saved)) city = saved;
+    else search.value = saved;
+    setHint('Using the area you checked last time.');
+  }
+
+  try {
+    await load();
+    renderChips();
+    renderStaleNotice();
+    render();
   } catch (error) {
     feed.innerHTML = '';
     emptyNote.hidden = true;
@@ -1213,4 +1231,16 @@ const description =
     updated.textContent = 'Advisory feed unreachable.';
     console.error(error);
   }
+
+  // The tick ages the badges and the rail; once the payload itself is old it gets re-read,
+  // and a tab coming back into view always does. Installed even if the first read failed,
+  // so an unreachable feed recovers on its own.
+  setInterval(() => {
+    if (Date.now() - lastFetch > REFETCH_MS) void reload();
+    else refresh();
+  }, 60000);
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) void reload();
+  });
 </script>

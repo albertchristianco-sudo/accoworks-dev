@@ -12,16 +12,28 @@
   --ink: #0D1526;
   --ink-2: #4C586C;
   --ink-3: #606B80;
+  --ink-hover: #1B2740; /* pressed-chip hover, one step off --ink */
 
   --line: rgba(13, 21, 38, 0.12);
   --line-2: rgba(13, 21, 38, 0.22);
+  /* Control boundaries only (inputs, buttons, chips): WCAG 1.4.11 needs 3:1 against every
+     adjacent colour. Measured 3.11:1 on --bg, 3.14:1 on --surface, and >=3.08:1 on --bg-2,
+     --surface-2 and --surface-hover (the pressed-control backgrounds). Ratios computed with
+     the WCAG formula validated against #767676-on-white 4.54:1 and #595959-on-white 7.00:1;
+     0.45 and 0.46 alpha both miss 3:1 somewhere, so do not lighten this. */
+  --line-control: rgba(13, 21, 38, 0.47);
   --accent: #2563EB;
+  --accent-hover: #1D4FD0;
+  --accent-active: #1A44B8;
   --accent-2: #38BDF8;
   --accent-ink: #FBFCFE;
   --accent-soft: #E7EEFD;
   --accent-line: #9BB7F5;
   --heart: #C51F50;
+  /* Interface failure — form, geolocation, request. Power state is --out below, kept
+     separate so retuning the status scale never recolours a form error. */
   --error: #A61B43;
+  --error-soft: #FCE8EE;
 
   /* Status vocabulary. Rose (--heart) stays reserved for the reaction control. */
   --out: #A61B43;
@@ -128,6 +140,9 @@ p { text-wrap: pretty; }
 
 .skip-link:focus { transform: translateY(0); }
 
+/* Skip-link target: clear the 64px sticky header so the h1 is not left behind it. */
+#main-content { scroll-margin-top: 80px; }
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -213,14 +228,17 @@ p { text-wrap: pretty; }
 
 @keyframes brand-blink { 50% { opacity: 0; } }
 
+/* Both wrap so a raised default font size reflows the chrome instead of pushing it off
+   the viewport (WCAG 1.4.4): at a 32px root the nav is wider than a phone on its own. */
 .nav-cluster,
-.site-nav { display: flex; align-items: center; }
+.site-nav { display: flex; align-items: center; flex-wrap: wrap; }
 
 .site-nav {
   gap: 2px;
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: var(--text-meta);
   letter-spacing: 0.02em;
+  justify-content: flex-end;
 }
 
 .nav-link {
@@ -387,7 +405,7 @@ p { text-wrap: pretty; }
   border: 1px solid var(--accent);
 }
 
-.btn--primary:hover { color: var(--accent-ink); background: #174FC7; transform: translateY(-1px); }
+.btn--primary:hover { color: var(--accent-ink); background: var(--accent-hover); transform: translateY(-1px); }
 
 .btn--ghost {
   color: var(--ink);
@@ -816,7 +834,7 @@ p { text-wrap: pretty; }
   border-top: 1px solid var(--line-2);
 }
 
-.footer-grid { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: space-between; font-size: 0.78rem; letter-spacing: 0.03em; }
+.footer-grid { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: space-between; font-size: var(--text-meta); letter-spacing: 0.03em; }
 .footer-links { display: flex; flex-wrap: wrap; gap: 6px 16px; }
 .footer-links a { display: inline-flex; align-items: center; min-height: 36px; color: var(--ink-2); text-decoration: none; }
 .footer-links a:hover { color: var(--accent); }
@@ -1102,7 +1120,6 @@ p { text-wrap: pretty; }
 }
 
 @media (max-width: 420px) {
-  .site-nav { font-size: 0.69rem; }
   .nav-link { padding-inline: 7px; }
   .hero h1 { font-size: clamp(3.15rem, 16vw, 4.2rem); }
   .credential-list { grid-template-columns: 1fr; }
@@ -1111,5 +1128,12 @@ p { text-wrap: pretty; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  /* Kill looping/decorative animation, not state-change easing. Authored motion is already
+     gated behind (prefers-reduced-motion: no-preference), and iteration-count: 1 stops a
+     0.01ms keyframe animation from spinning ~100k times a second. Colour and border
+     transitions on hover/focus carry no vestibular risk, so they keep their easing. */
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
