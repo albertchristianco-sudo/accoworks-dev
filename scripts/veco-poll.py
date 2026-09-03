@@ -21,8 +21,10 @@ import argparse
 import gzip
 import json
 import os
+import random
 import re
 import sys
+import time
 import unicodedata
 import urllib.error
 import urllib.request
@@ -43,8 +45,9 @@ PHT = timezone(timedelta(hours=8))
 # same two Accept headers, variant 3 is RSS-Bridge's full Chromium set (Chrome 131 UA +
 # sec-ch-ua, sec-ch-ua-mobile, sec-ch-ua-platform, Sec-Fetch-Dest/Mode/Site/User,
 # Upgrade-Insecure-Requests). Never mix half of one with half of another.
+UA = 'Mozilla/5.0 (compatible; accoworks.dev outage tracker; +https://accoworks.dev/power)'
 HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (compatible; accoworks.dev outage tracker; +https://accoworks.dev/power)',
+    'User-Agent': UA,
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Language': 'en-US,en;q=0.9',
     'Accept-Encoding': 'gzip',
@@ -58,6 +61,7 @@ TOKEN = os.environ.get('ROTATIONAL_TOKEN', '')
 HEALTHCHECKS_URL = os.environ.get('HEALTHCHECKS_URL', '')
 STATE_DIR = Path(os.environ.get('VECO_STATE_DIR') or Path.home() / '.local/state/veco-poll')
 STATE_FILE = STATE_DIR / 'state.json'
+JITTER_SEC = float(os.environ.get('POLL_JITTER_SEC') or 0)
 
 
 # --- Facebook ---------------------------------------------------------------------
@@ -156,7 +160,13 @@ def call(method, path, body):
         f'{ORIGIN}{path}',
         method=method,
         data=json.dumps(body).encode('utf-8'),
-        headers={'authorization': f'Bearer {TOKEN}', 'content-type': 'application/json'},
+        # Cloudflare answers the default Python-urllib signature with error 1010 ("banned
+        # browser"), so the poller names itself instead of shipping urllib's UA.
+        headers={
+            'authorization': f'Bearer {TOKEN}',
+            'content-type': 'application/json',
+            'user-agent': UA,
+        },
     )
     try:
         with urllib.request.urlopen(request, timeout=FETCH_TIMEOUT) as response:
@@ -191,7 +201,8 @@ def ping(suffix='', body=''):
         return
     try:
         data = body.encode('utf-8')[:10000] if body else None
-        urllib.request.urlopen(HEALTHCHECKS_URL + suffix, data=data, timeout=PING_TIMEOUT).close()
+        request = urllib.request.Request(HEALTHCHECKS_URL + suffix, data=data, headers={'user-agent': UA})
+        urllib.request.urlopen(request, timeout=PING_TIMEOUT).close()
     except Exception:  # noqa: BLE001
         pass
 
@@ -371,6 +382,10 @@ def main():
     if not TOKEN:
         print('ROTATIONAL_TOKEN is not set', file=sys.stderr)
         return 1
+    # systemd has RandomizedDelaySec; launchd's StartInterval does not, so the jitter that
+    # keeps every cycle off the exact quarter hour lives here when POLL_JITTER_SEC is set.
+    if JITTER_SEC > 0:
+        time.sleep(random.uniform(0, JITTER_SEC))
     return cycle(force=args.force)
 
 

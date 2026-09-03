@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Runs veco-poll.py every 15 minutes on uther-mini (macOS, so launchd rather than systemd).
+
+  Install:
+    mkdir -p ~/opt/veco-poll ~/.config
+    scp scripts/veco-poll.py uther-mini:~/opt/veco-poll/veco-poll.py
+    scp scripts/dev.accoworks.veco-poll.plist uther-mini:~/Library/LaunchAgents/
+    ssh uther-mini 'launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/dev.accoworks.veco-poll.plist'
+
+  The token lives only in ~/.config/veco-poll.env (mode 0600) and is sourced by the shell
+  below, never written into this plist, which launchd keeps world-readable.
+
+  launchd has no RandomizedDelaySec, so POLL_JITTER_SEC makes the script sleep 0-120s
+  before its cycle instead of hitting Facebook exactly on the quarter hour.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>dev.accoworks.veco-poll</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/sh</string>
+    <string>-c</string>
+    <string>set -a; . "$HOME/.config/veco-poll.env"; set +a; POLL_JITTER_SEC=120 exec /usr/bin/python3 "$HOME/opt/veco-poll/veco-poll.py" &gt;&gt; "$HOME/Library/Logs/veco-poll.log" 2&gt;&amp;1</string>
+  </array>
+
+  <key>StartInterval</key>
+  <integer>900</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>ProcessType</key>
+  <string>Background</string>
+
+  <key>LowPriorityIO</key>
+  <true/>
+</dict>
+</plist>
