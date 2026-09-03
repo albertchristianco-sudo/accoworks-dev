@@ -1,0 +1,1080 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const title = 'Will I have a power interruption? | Cebu outage tracker';
+const description =
+  'Check whether Visayan Electric has a power interruption scheduled for your barangay in Metro Cebu: what time it starts, how long it lasts, and when power returns.';
+---
+
+<BaseLayout title={title} description={description}>
+  <section class="outage" aria-labelledby="outage-title">
+    <header class="ask">
+      <h1 id="outage-title">Will I have a power interruption in my area?</h1>
+      <p class="ask-lede">
+        Read straight from Visayan Electric’s published advisories for Metro Cebu. Cebu time,
+        next 14 days.
+      </p>
+
+      <form class="locator" data-form novalidate>
+        <label for="area">Your barangay, street or city</label>
+        <div class="field-row">
+          <input
+            id="area"
+            name="area"
+            type="text"
+            data-search
+            placeholder="e.g. Talamban, Mabolo, Guadalupe"
+            autocomplete="address-level4"
+            enterkeyhint="search"
+            spellcheck="false"
+          />
+          <button type="submit" class="btn btn-primary" data-check>Check</button>
+          <button type="button" class="btn btn-ghost" data-locate>
+            <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
+              <circle cx="10" cy="10" r="3.2" fill="none" stroke="currentColor" stroke-width="1.7" />
+              <circle cx="10" cy="10" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-dasharray="3.2 3.4" />
+              <path d="M10 1v2.2M10 16.8V19M1 10h2.2M16.8 10H19" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            </svg>
+            Use my location
+          </button>
+        </div>
+        <p class="field-hint" data-hint>Or let the browser read your location once.</p>
+      </form>
+    </header>
+
+    <div class="verdict" data-verdict data-tone="idle" aria-live="polite">
+      <div class="verdict-mark" data-verdict-mark aria-hidden="true"></div>
+      <div class="verdict-body">
+        <p class="verdict-head" data-verdict-head>Loading today’s advisories…</p>
+        <p class="verdict-detail" data-verdict-detail>Reading Visayan Electric’s published schedule.</p>
+        <p class="verdict-meta" data-verdict-meta hidden></p>
+      </div>
+    </div>
+
+    <div class="toolbar" role="group" aria-label="Filter the schedule">
+      <div class="chips" data-chips></div>
+      <label class="switch">
+        <input type="checkbox" data-hide-done checked />
+        <span>Hide finished</span>
+      </label>
+      <label class="switch">
+        <input type="checkbox" data-hide-possible />
+        <span>Hide possible</span>
+      </label>
+    </div>
+
+    <div class="feed" data-feed></div>
+
+    <div class="note" data-empty hidden>
+      <p class="note-head">Nothing scheduled for that area</p>
+      <p>
+        No advisory in the next 14 days mentions it. Try the barangay name on its own, or clear the
+        filter to read the whole franchise schedule.
+      </p>
+      <button type="button" class="btn btn-ghost" data-clear>Clear filters</button>
+    </div>
+
+    <footer class="outage-foot">
+      <p data-updated class="stamp"></p>
+      <p>
+        Unofficial mirror of
+        <a href="https://www.visayanelectric.com/newsroom-blog" rel="noopener" target="_blank">Visayan Electric advisories</a>
+        and their
+        <a href="https://www.facebook.com/visayanelectriccompany" rel="noopener" target="_blank">Facebook announcements</a>.
+        Schedules get moved, extended and cancelled — confirm on the official channels before you
+        plan a day around one.
+      </p>
+    </footer>
+  </section>
+</BaseLayout>
+
+<!-- Rows are built at runtime from /api/outages, so Astro's scoped attributes never reach
+     them. This block is global; every selector stays under .outage. -->
+<style is:global>
+  .outage {
+    /* Status vocabulary for this surface. Rose stays reserved for the reaction control. */
+    --out: #A61B43;
+    --out-soft: #FCE8EE;
+    --wait: #92400E;
+    --wait-soft: #FDF0D5;
+    --clear: #046B4F;
+    --clear-soft: #E3F3EC;
+    --rail: rgba(13, 21, 38, 0.08);
+
+    padding: clamp(26px, 5vw, 48px) 0 72px;
+  }
+
+  /* ── Ask ─────────────────────────────────────────────────────────────── */
+
+  .outage .ask { max-width: 46rem; }
+
+  .outage h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2.1rem, 6.4vw, 3.05rem);
+    font-weight: 700;
+    line-height: 1.04;
+    letter-spacing: -0.015em;
+  }
+
+  .outage .ask-lede {
+    margin: 12px 0 0;
+    max-width: 44ch;
+    color: var(--ink-2);
+    font-size: 1rem;
+  }
+
+  .outage .locator { margin-top: 22px; }
+
+  .outage .locator label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--ink-2);
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  .outage .field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: 38rem;
+  }
+
+  .outage .field-row input { flex: 1 1 14rem; }
+
+  .outage input[type='text'] {
+    flex: 1;
+    min-width: 0;
+    min-height: 46px;
+    padding: 0 14px;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius-sm);
+    font: inherit;
+    font-size: 1rem;
+  }
+
+  .outage input[type='text']::placeholder { color: var(--ink-3); }
+
+  .outage input[type='text']:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 1px;
+    border-color: var(--accent);
+  }
+
+  .outage .field-hint {
+    margin: 7px 0 0;
+    color: var(--ink-3);
+    font-size: 0.8rem;
+  }
+
+  .outage .field-hint[data-tone='error'] { color: var(--out); }
+
+  .outage .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 46px;
+    padding: 0 16px;
+    border-radius: var(--radius-sm);
+    font: inherit;
+    font-size: 0.94rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease);
+  }
+
+  .outage .btn-primary {
+    color: var(--accent-ink);
+    background: var(--accent);
+    border: 1px solid var(--accent);
+  }
+
+  .outage .btn-primary:hover { background: #1D4FD0; border-color: #1D4FD0; }
+
+  .outage .btn-ghost {
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--line-2);
+  }
+
+  .outage .btn-ghost:hover { background: var(--surface-hover); border-color: var(--accent-line); }
+
+  .outage .btn[aria-busy='true'] { color: var(--ink-3); cursor: progress; }
+  .outage .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .outage .ico {
+    width: 18px;
+    height: 18px;
+    flex: none;
+  }
+
+  /* ── Verdict ─────────────────────────────────────────────────────────── */
+
+  .outage .verdict {
+    display: flex;
+    gap: 16px;
+    margin: 26px 0 0;
+    padding: 20px 22px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: 0 18px 40px -30px rgba(13, 29, 64, 0.45);
+  }
+
+  .outage .verdict[data-tone='out'] { background: var(--out-soft); }
+  .outage .verdict[data-tone='wait'] { background: var(--wait-soft); }
+  .outage .verdict[data-tone='clear'] { background: var(--clear-soft); }
+
+  .outage .verdict-mark {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    color: var(--ink-2);
+    background: rgba(13, 21, 38, 0.06);
+  }
+
+  .outage .verdict-mark svg { width: 22px; height: 22px; }
+  .outage .verdict[data-tone='out'] .verdict-mark { color: var(--out); background: rgba(166, 27, 67, 0.12); }
+  .outage .verdict[data-tone='wait'] .verdict-mark { color: var(--wait); background: rgba(146, 64, 14, 0.12); }
+  .outage .verdict[data-tone='clear'] .verdict-mark { color: var(--clear); background: rgba(4, 107, 79, 0.12); }
+
+  .outage .verdict-body { min-width: 0; }
+
+  .outage .verdict-head {
+    margin: 2px 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.32rem, 4.2vw, 1.72rem);
+    font-weight: 700;
+    line-height: 1.14;
+    text-wrap: balance;
+  }
+
+  .outage .verdict[data-tone='out'] .verdict-head { color: var(--out); }
+  .outage .verdict[data-tone='clear'] .verdict-head { color: var(--clear); }
+  .outage .verdict[data-tone='wait'] .verdict-head { color: var(--wait); }
+
+  .outage .verdict-detail {
+    margin: 6px 0 0;
+    color: var(--ink-2);
+    font-size: 0.96rem;
+  }
+
+  .outage .verdict-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0 0;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .outage .verdict-meta button {
+    min-height: 32px;
+    padding: 4px 0;
+    color: var(--accent);
+    background: none;
+    border: 0;
+    font: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    cursor: pointer;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .outage .verdict[data-fresh] .verdict-body > * {
+      animation: verdict-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .outage .verdict[data-fresh] .verdict-detail { animation-delay: 40ms; }
+    .outage .verdict[data-fresh] .verdict-meta { animation-delay: 80ms; }
+  }
+
+  @keyframes verdict-in {
+    from { opacity: 0; transform: translateY(6px); filter: blur(4px); }
+    to { opacity: 1; transform: none; filter: none; }
+  }
+
+  /* ── Toolbar ─────────────────────────────────────────────────────────── */
+
+  .outage .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    margin: 26px 0 6px;
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .outage .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-right: auto;
+  }
+
+  .outage .chip {
+    min-height: 34px;
+    padding: 0 12px;
+    color: var(--ink-2);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 160ms var(--ease), color 160ms var(--ease), border-color 160ms var(--ease);
+  }
+
+  .outage .chip:hover { background: var(--surface-hover); }
+
+  .outage .chip[aria-pressed='true'] {
+    color: var(--accent-ink);
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+
+  .outage .chip-n {
+    margin-left: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.65;
+  }
+
+  .outage .switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 34px;
+    color: var(--ink-2);
+    font-size: 0.84rem;
+    cursor: pointer;
+  }
+
+  .outage .switch input { width: 16px; height: 16px; accent-color: var(--accent); }
+
+  /* ── Day sections and the hour rail ──────────────────────────────────── */
+
+  .outage .day { margin: 22px 0 0; }
+
+  .outage .day-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .outage .day-name {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+
+  .outage .day-date,
+  .outage .day-count {
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .outage .day-count { margin-left: auto; }
+
+  /* The rail is the page's one device: each day's outage windows drawn to scale
+     across 24 hours, so the shape of the day is readable before the rows are. */
+  .outage .rail {
+    position: relative;
+    height: 26px;
+    margin: 10px 0 4px;
+    border-bottom: 1px solid var(--line-2);
+  }
+
+  .outage .rail-tick {
+    position: absolute;
+    bottom: 0;
+    width: 1px;
+    height: 6px;
+    background: var(--line-2);
+  }
+
+  .outage .rail-hour {
+    position: absolute;
+    bottom: 8px;
+    white-space: nowrap;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    transform: translateX(-50%);
+  }
+
+  .outage .rail-hour[data-edge='start'] { transform: none; }
+  .outage .rail-hour[data-edge='end'] { transform: translateX(-100%); }
+
+  .outage .rail-block {
+    position: absolute;
+    bottom: 0;
+    height: 9px;
+    min-width: 2px;
+    background: var(--ink-3);
+    border-radius: 1px;
+  }
+
+  .outage .rail-block[data-state='live'] { background: var(--out); }
+  .outage .rail-block[data-state='upcoming'] { background: var(--wait); }
+  .outage .rail-block[data-state='cancelled'] { background: var(--rail); }
+  /* Possible slots read as provisional: same hue, lighter weight than a confirmed cut. */
+  .outage .rail-block[data-possible] { background: var(--wait); opacity: 0.4; }
+
+  .outage .rail-now {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--accent);
+  }
+
+  /* ── Rows ────────────────────────────────────────────────────────────── */
+
+  .outage .row {
+    display: grid;
+    grid-template-columns: 10.5rem minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 4px 18px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .outage .row:hover { background: var(--surface-hover); }
+  .outage .row[data-state='done'],
+  .outage .row[data-state='cancelled'] { color: var(--ink-3); }
+
+  .outage .row-time {
+    padding-top: 1px;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+
+  .outage .row[data-state='cancelled'] .row-time { text-decoration: line-through; }
+
+  .outage .row-span {
+    display: block;
+    margin-top: 3px;
+    color: var(--ink-3);
+    font-size: 0.72rem;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+
+  .outage .row-area {
+    margin: 0;
+    max-width: 52ch;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.35;
+    text-wrap: pretty;
+  }
+
+  .outage .row-streets {
+    margin: 3px 0 0;
+    max-width: 68ch;
+    color: var(--ink-2);
+    font-size: 0.88rem;
+  }
+
+  .outage .row[data-state='done'] .row-streets,
+  .outage .row[data-state='cancelled'] .row-streets { color: var(--ink-3); }
+
+  .outage .row-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: start;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .outage .row-state svg { width: 13px; height: 13px; }
+  .outage .row-state[data-state='live'] { color: var(--out); background: var(--out-soft); }
+  .outage .row-state[data-state='upcoming'] { color: var(--wait); background: var(--wait-soft); }
+  .outage .row-state[data-state='done'],
+  .outage .row-state[data-state='cancelled'] { color: var(--ink-3); background: var(--surface-2); }
+
+  .outage .row-state[data-possible] { color: var(--wait); background: var(--wait-soft); }
+  .outage .row[data-possible] .row-time { font-weight: 500; color: var(--ink-2); }
+
+  .outage details { margin: 8px 0 0; }
+
+  .outage summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .outage summary:hover { color: var(--accent); }
+  .outage details p { margin: 7px 0 0; color: var(--ink-2); font-size: 0.88rem; max-width: 70ch; }
+  .outage details a { color: var(--accent); }
+
+  /* ── Loading, empty, footer ──────────────────────────────────────────── */
+
+  .outage .skeleton {
+    height: 14px;
+    margin: 22px 0;
+    background: linear-gradient(100deg, var(--surface-2) 30%, var(--bg-2) 50%, var(--surface-2) 70%);
+    background-size: 220% 100%;
+    border-radius: 3px;
+  }
+
+  .outage .skeleton:nth-child(2n) { width: 78%; }
+  .outage .skeleton:nth-child(3n) { width: 61%; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .outage .skeleton { animation: sweep 1.5s var(--ease) infinite; }
+  }
+
+  @keyframes sweep {
+    from { background-position: 120% 0; }
+    to { background-position: -40% 0; }
+  }
+
+  .outage .note {
+    padding: 26px 0 8px;
+    max-width: 52ch;
+  }
+
+  .outage .note-head {
+    margin: 0 0 6px;
+    font-size: 1.02rem;
+    font-weight: 600;
+  }
+
+  .outage .note p { margin: 0 0 12px; color: var(--ink-2); font-size: 0.92rem; }
+
+  .outage .outage-foot {
+    margin: 36px 0 0;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    color: var(--ink-3);
+    font-size: 0.82rem;
+  }
+
+  .outage .outage-foot p { margin: 0 0 7px; max-width: 74ch; }
+  .outage .outage-foot a { color: var(--ink-2); }
+  .outage .stamp { font-family: var(--font-mono); font-size: 0.74rem; }
+
+  @media (max-width: 620px) {
+    .outage .locator { gap: 10px; }
+    .outage .btn-ghost { flex: 1 1 100%; }
+
+    .outage .row {
+      grid-template-columns: 1fr auto;
+      gap: 2px 12px;
+      padding: 13px 0;
+    }
+
+    .outage .row-time { grid-column: 1; grid-row: 1; }
+    .outage .row-state { grid-column: 2; grid-row: 1; justify-self: end; }
+    .outage .row > div { grid-column: 1 / -1; grid-row: 2; margin-top: 5px; }
+    .outage .row-span { display: inline; margin: 0 0 0 7px; }
+  }
+</style>
+
+<script>
+  import { entryStatus, manilaDate } from '../scripts/outages.mjs';
+
+  type Entry = {
+    kind: 'scheduled' | 'rotational';
+    start: string;
+    end: string;
+    hours: number;
+    flag: string | null;
+    area: string;
+    streets: string;
+    areasRaw: string;
+    purpose: string;
+    source: string;
+    sourceTitle: string;
+    map?: string;
+    possible?: boolean;
+  };
+
+  const el = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
+
+  const form = el<HTMLFormElement>('[data-form]');
+  const search = el<HTMLInputElement>('[data-search]');
+  const hint = el('[data-hint]');
+  const locateBtn = el<HTMLButtonElement>('[data-locate]');
+  const verdict = el('[data-verdict]');
+  const verdictMark = el('[data-verdict-mark]');
+  const verdictHead = el('[data-verdict-head]');
+  const verdictDetail = el('[data-verdict-detail]');
+  const verdictMeta = el('[data-verdict-meta]');
+  const chipBox = el('[data-chips]');
+  const hideDone = el<HTMLInputElement>('[data-hide-done]');
+  const hidePossible = el<HTMLInputElement>('[data-hide-possible]');
+  const feed = el('[data-feed]');
+  const emptyNote = el('[data-empty]');
+  const clearBtn = el<HTMLButtonElement>('[data-clear]');
+  const updated = el('[data-updated]');
+
+  const AREA_KEY = 'accoworks:power:area';
+
+  const ICONS = {
+    out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/><path d="M3 3l18 18"/></svg>',
+    wait: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.2 2"/></svg>',
+    clear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6.5 9.6 17 4 11.4"/></svg>',
+    idle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M16.2 16.2 21 21"/></svg>',
+  };
+
+  const STATE_ICONS = {
+    live: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/><path d="M3 3l18 18"/></svg>',
+    upcoming: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.2 2"/></svg>',
+    done: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6.5 9.6 17 4 11.4"/></svg>',
+    cancelled: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg>',
+  };
+
+  // Areas read like "Talisay City, Portions of Corona del Mar" or "City of Naga &
+  // Minglanilla (Alpaco, Cogon)", so the trailing comma segment is not the city. Match the
+  // franchise's actual LGUs instead; one advisory can span two.
+  const CITIES: [string, RegExp][] = [
+    ['Cebu City', /\bcebu city\b/],
+    ['Mandaue', /\bmandaue\b/],
+    ['Lapu-Lapu', /\blapu[- ]?lapu\b/],
+    ['Talisay', /\btalisay\b/],
+    ['Minglanilla', /\bminglanilla\b/],
+    ['Naga', /\bnaga\b/],
+    ['San Fernando', /\bsan fernando\b/],
+    ['Consolacion', /\bconsolacion\b/],
+    ['Liloan', /\bliloan\b/],
+    ['Compostela', /\bcompostela\b/],
+    ['Cordova', /\bcordova\b/],
+    ['Danao', /\bdanao\b/],
+  ];
+
+  const clock = new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit' });
+  const dayFull = new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', weekday: 'long', month: 'short', day: 'numeric' });
+  const dayShort = new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', weekday: 'long' });
+
+  let entries: Entry[] = [];
+  let city = '';
+  let detected = '';
+
+  const esc = (value: string) =>
+    value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+
+  const dayKey = (iso: string) => iso.slice(0, 10);
+
+  const gap = (minutes: number) => {
+    if (minutes < 60) return `${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+    const rest = minutes % 60;
+    if (hours < 24) return rest ? `${hours}h ${rest}m` : `${hours}h`;
+    const days = Math.round(hours / 24);
+    return days === 1 ? '1 day' : `${days} days`;
+  };
+
+  const citiesOf = (entry: Entry) => {
+    const hay = `${entry.area} ${entry.areasRaw}`.toLowerCase();
+    const hits = CITIES.filter(([, re]) => re.test(hay)).map(([name]) => name);
+    return hits.length ? hits : ['Other'];
+  };
+
+  const query = () => search.value.trim().toLowerCase();
+
+  const matches = (entry: Entry, needle: string) =>
+    !needle || `${entry.area} ${entry.streets} ${entry.areasRaw}`.toLowerCase().includes(needle);
+
+  const visible = (opts: { includeDone?: boolean } = {}) => {
+    const needle = query();
+    const now = Date.now();
+    return entries.filter((entry) => {
+      if (city && !citiesOf(entry).includes(city)) return false;
+      if (!matches(entry, needle)) return false;
+      if (hidePossible.checked && entry.possible) return false;
+      if (!opts.includeDone && hideDone.checked && entryStatus(entry, now).state === 'done') return false;
+      return true;
+    });
+  };
+
+  function renderVerdict() {
+    const now = Date.now();
+    const scope = visible({ includeDone: true });
+    const scoped = Boolean(query() || city);
+    // Echo the typed area back as a place name, not as raw keystrokes.
+    const label = query() ? search.value.trim().replace(/\b\p{Ll}/gu, (c) => c.toUpperCase()) : city;
+
+    // Confirmed interruptions answer the question; "possible" rotational slots only ever
+    // warn, because VECO implements them solely when NGCP calls for load reduction.
+    const live = scope
+      .filter((e) => entryStatus(e, now).state === 'live')
+      .sort((a, b) => Date.parse(a.end) - Date.parse(b.end));
+    const liveSure = live.filter((e) => !e.possible);
+    const livePossible = live.filter((e) => e.possible);
+    const next = scope
+      .filter((e) => entryStatus(e, now).state === 'upcoming')
+      .sort((a, b) => Date.parse(a.start) - Date.parse(b.start))[0];
+
+    let tone = 'idle';
+    let head = '';
+    let detail = '';
+
+    if (!entries.length) {
+      tone = 'wait';
+      head = 'No advisories available';
+      detail = 'Visayan Electric’s schedule could not be read just now. Try again in a few minutes.';
+    } else if (!scoped) {
+      tone = 'idle';
+      head = 'Tell me where you are';
+      const liveAll = entries.filter((e) => entryStatus(e, now).state === 'live' && !e.possible).length;
+      detail = liveAll
+        ? `${liveAll} ${liveAll === 1 ? 'interruption is' : 'interruptions are'} running across the franchise right now. Type your barangay for a straight answer.`
+        : `${entries.length} interruptions and possible brownout slots are published for the next 14 days. Type your barangay for a straight answer.`;
+    } else if (liveSure.length) {
+      tone = 'out';
+      const soonest = liveSure[0];
+      const left = entryStatus(soonest, now).minutes ?? 0;
+      head = `Yes — power is out now in ${label}`;
+      detail = `${soonest.area}: back around ${clock.format(new Date(soonest.end))}, about ${gap(left)} from now.${
+        liveSure.length > 1 ? ` ${liveSure.length - 1} more area${liveSure.length > 2 ? 's' : ''} also out.` : ''
+      }`;
+    } else if (livePossible.length) {
+      tone = 'wait';
+      const slot = livePossible[0];
+      head = `Maybe — ${label} is in a rotational brownout window now`;
+      detail = `Window ${clock.format(new Date(slot.start))} to ${clock.format(new Date(slot.end))}. Visayan Electric only cuts power if NGCP calls for load reduction, so it may not happen.`;
+    } else if (next) {
+      const away = entryStatus(next, now).minutes ?? 0;
+      tone = away <= 180 ? 'wait' : 'clear';
+      const when = dayKey(next.start) === manilaDate(now)
+        ? `today ${clock.format(new Date(next.start))}`
+        : `${dayFull.format(new Date(next.start))}, ${clock.format(new Date(next.start))}`;
+      head = next.possible
+        ? `No outage right now in ${label}`
+        : away <= 180
+          ? `Power goes out in ${gap(away)}`
+          : `No outage right now in ${label}`;
+      detail = next.possible
+        ? `Next rotational window: ${when} to ${clock.format(new Date(next.end))} (${next.hours}h) — possible, not confirmed.`
+        : `Next: ${next.area} — ${when} to ${clock.format(new Date(next.end))} (${next.hours}h).`;
+    } else {
+      tone = 'clear';
+      head = `No — nothing scheduled for ${label}`;
+      detail = 'No interruption is published for that area in the next 14 days.';
+    }
+
+    verdict.dataset.tone = tone;
+    verdictMark.innerHTML = ICONS[tone === 'out' ? 'out' : tone === 'wait' ? 'wait' : tone === 'clear' ? 'clear' : 'idle'];
+    verdictHead.textContent = head;
+    verdictDetail.textContent = detail;
+
+    if (detected) {
+      verdictMeta.hidden = false;
+      verdictMeta.innerHTML = `Located: ${esc(detected)} <button type="button" data-reset>Not my area</button>`;
+    } else {
+      verdictMeta.hidden = true;
+      verdictMeta.textContent = '';
+    }
+
+    // One authored moment: the answer settles in when it changes, never on every tick.
+    verdict.removeAttribute('data-fresh');
+    void verdict.offsetWidth;
+    verdict.setAttribute('data-fresh', '');
+  }
+
+  function renderChips() {
+    const counts = new Map<string, number>();
+    for (const entry of entries) {
+      for (const name of citiesOf(entry)) counts.set(name, (counts.get(name) || 0) + 1);
+    }
+    const rows: [string, string, number][] = [['All areas', '', entries.length]];
+    for (const [name, count] of [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))) {
+      rows.push([name, name, count]);
+    }
+    chipBox.innerHTML = rows
+      .map(([label, value, count]) =>
+        `<button type="button" class="chip" data-city="${esc(value)}" aria-pressed="${value === city}">${esc(label)}<span class="chip-n">${count}</span></button>`)
+      .join('');
+  }
+
+  // Minutes from midnight of `key`, clamped to that day, for the hour rail.
+  const dayOffset = (iso: string, key: string) => {
+    const base = Date.parse(`${key}T00:00:00+08:00`);
+    return Math.max(0, Math.min(1440, Math.round((Date.parse(iso) - base) / 60000)));
+  };
+
+  function rail(group: Entry[], key: string, now: number) {
+    const ticks = [0, 6, 12, 18, 24]
+      .map((hour) => {
+        const pct = (hour / 24) * 100;
+        const edge = hour === 0 ? 'start' : hour === 24 ? 'end' : 'mid';
+        const label = hour === 0 ? '12 AM' : hour === 12 ? '12 NN' : hour === 24 ? '12 MN' : `${hour > 12 ? hour - 12 : hour} ${hour < 12 ? 'AM' : 'PM'}`;
+        return `<span class="rail-tick" style="left:${pct}%"></span><span class="rail-hour" data-edge="${edge}" style="left:${pct}%">${label}</span>`;
+      })
+      .join('');
+
+    const blocks = group
+      .map((entry) => {
+        const from = dayOffset(entry.start, key);
+        const to = dayOffset(entry.end, key);
+        const state = entryStatus(entry, now).state;
+        return `<span class="rail-block" data-state="${state}"${entry.possible ? ' data-possible' : ''} style="left:${(from / 1440) * 100}%;width:${Math.max(((to - from) / 1440) * 100, 0.4)}%"></span>`;
+      })
+      .join('');
+
+    const marker = key === manilaDate(now)
+      ? `<span class="rail-now" style="left:${(dayOffset(new Date(now).toISOString(), key) / 1440) * 100}%"></span>`
+      : '';
+
+    return `<div class="rail" aria-hidden="true">${ticks}${blocks}${marker}</div>`;
+  }
+
+  function row(entry: Entry, now: number) {
+    const status = entryStatus(entry, now);
+    const state = status.state;
+    const overnight = dayKey(entry.start) !== dayKey(entry.end);
+    // A possible slot never claims to be happening; it reports its window instead.
+    const badge = entry.possible
+      ? state === 'live' ? 'possible now' : state === 'upcoming' ? `possible in ${gap(status.minutes ?? 0)}` : state
+      : state === 'live'
+        ? `${gap(status.minutes ?? 0)} left`
+        : state === 'upcoming'
+          ? `in ${gap(status.minutes ?? 0)}`
+          : state;
+    const tags = [
+      entry.possible ? 'Possible rotational brownout' : entry.kind === 'rotational' ? 'Rotational brownout' : '',
+      entry.flag && entry.flag !== 'cancelled' ? entry.flag : '',
+    ].filter(Boolean).join(' · ');
+
+    return `
+      <article class="row" data-state="${state}"${entry.possible ? ' data-possible' : ''}>
+        <p class="row-time">${clock.format(new Date(entry.start))} – ${clock.format(new Date(entry.end))}
+          <span class="row-span">${entry.hours}h${overnight ? ' · ends next day' : ''}</span>
+        </p>
+        <div>
+          <p class="row-area">${esc(entry.area)}</p>
+          ${entry.streets ? `<p class="row-streets">${esc(entry.streets)}</p>` : ''}
+          ${tags ? `<p class="row-streets">${esc(tags)}</p>` : ''}
+          ${entry.purpose ? `<details><summary>Why</summary><p>${esc(entry.purpose)}</p>${entry.map ? `<p><a href="${esc(entry.map)}" rel="noopener" target="_blank">See the affected-area map</a></p>` : ''}${entry.source ? `<p><a href="${esc(entry.source)}" rel="noopener" target="_blank">Read the advisory</a></p>` : ''}</details>` : ''}
+        </div>
+        <span class="row-state" data-state="${state}"${entry.possible ? ' data-possible' : ''}>${STATE_ICONS[entry.possible && state === 'live' ? 'upcoming' : (state as keyof typeof STATE_ICONS)] || ''}${badge}</span>
+      </article>`;
+  }
+
+  function render() {
+    const list = visible();
+    const now = Date.now();
+    renderVerdict();
+
+    const today = manilaDate(now);
+    const groups = new Map<string, Entry[]>();
+    for (const entry of list) {
+      const key = dayKey(entry.start);
+      groups.set(key, [...(groups.get(key) || []), entry]);
+    }
+
+    emptyNote.hidden = groups.size > 0;
+    feed.innerHTML = [...groups.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([key, group]) => {
+        const noon = new Date(`${key}T12:00:00+08:00`);
+        const offset = Math.round(
+          (Date.parse(`${key}T00:00:00+08:00`) - Date.parse(`${today}T00:00:00+08:00`)) / 86400000,
+        );
+        const name = offset === 0 ? 'Today' : offset === 1 ? 'Tomorrow' : offset === -1 ? 'Yesterday' : dayShort.format(noon);
+        return `
+          <section class="day">
+            <div class="day-head">
+              <h2 class="day-name">${name}</h2>
+              <span class="day-date">${dayFull.format(noon)}</span>
+              <span class="day-count">${group.length} ${group.length === 1 ? 'interruption' : 'interruptions'}</span>
+            </div>
+            ${rail(group, key, now)}
+            ${group.map((entry) => row(entry, now)).join('')}
+          </section>`;
+      })
+      .join('');
+  }
+
+  function setHint(message: string, tone: 'neutral' | 'error' = 'neutral') {
+    hint.textContent = message;
+    hint.dataset.tone = tone;
+  }
+
+  // Remember whatever narrowed the view — typed area or the city we fell back to.
+  function remember() {
+    const value = search.value.trim() || city;
+    if (value) localStorage.setItem(AREA_KEY, value);
+    else localStorage.removeItem(AREA_KEY);
+  }
+
+  async function locate() {
+    if (!navigator.geolocation) {
+      setHint('This browser cannot share a location. Type your barangay instead.', 'error');
+      return;
+    }
+    locateBtn.setAttribute('aria-busy', 'true');
+    locateBtn.disabled = true;
+    setHint('Asking your browser for a location…');
+
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 12000, maximumAge: 300000 });
+      });
+      const { latitude, longitude } = position.coords;
+      const response = await fetch(`/api/where?lat=${latitude.toFixed(5)}&lon=${longitude.toFixed(5)}`);
+      const place = await response.json();
+      if (!response.ok) throw new Error(place.error || 'lookup failed');
+
+      detected = place.label || '';
+      const barangay = place.barangay || place.city || '';
+      search.value = barangay;
+      city = '';
+
+      // A barangay with no advisory is the common case: fall back to its city so the
+      // answer still shows what is happening around the user.
+      if (barangay && !entries.some((entry) => matches(entry, barangay.toLowerCase()))) {
+        const cityHit = CITIES.find(([, re]) => re.test(String(place.city || '').toLowerCase()));
+        if (cityHit) {
+          search.value = '';
+          city = cityHit[0];
+          setHint(`Nothing scheduled for ${barangay} itself — showing ${cityHit[0]}.`);
+        } else {
+          setHint(`Located ${detected}.`);
+        }
+      } else {
+        setHint(`Located ${detected}.`);
+      }
+
+      remember();
+      renderChips();
+      render();
+    } catch (error) {
+      const denied = (error as GeolocationPositionError)?.code === 1;
+      setHint(
+        denied
+          ? 'Location permission was declined. Type your barangay instead.'
+          : 'Could not work out your location. Type your barangay instead.',
+        'error',
+      );
+    } finally {
+      locateBtn.removeAttribute('aria-busy');
+      locateBtn.disabled = false;
+    }
+  }
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    detected = '';
+    city = '';
+    remember();
+    renderChips();
+    render();
+    setHint(search.value.trim() ? 'Showing every advisory that mentions it.' : 'Or let the browser read your location once.');
+  });
+
+  // Typing filters live; the verdict follows the same input.
+  search.addEventListener('input', () => {
+    detected = '';
+    render();
+  });
+
+  locateBtn.addEventListener('click', locate);
+  hideDone.addEventListener('change', render);
+  hidePossible.addEventListener('change', render);
+
+  chipBox.addEventListener('click', (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('.chip');
+    if (!button) return;
+    city = button.dataset.city === city ? '' : button.dataset.city || '';
+    renderChips();
+    render();
+  });
+
+  verdictMeta.addEventListener('click', (event) => {
+    if (!(event.target as HTMLElement).closest('[data-reset]')) return;
+    detected = '';
+    search.value = '';
+    city = '';
+    localStorage.removeItem(AREA_KEY);
+    renderChips();
+    render();
+    search.focus();
+  });
+
+  clearBtn.addEventListener('click', () => {
+    search.value = '';
+    city = '';
+    detected = '';
+    localStorage.removeItem(AREA_KEY);
+    renderChips();
+    render();
+    search.focus();
+  });
+
+  feed.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+
+  try {
+    const response = await fetch('/api/outages');
+    if (!response.ok) throw new Error(`feed responded ${response.status}`);
+    const data = await response.json();
+    entries = (data.entries || []) as Entry[];
+
+    const saved = localStorage.getItem(AREA_KEY);
+    if (saved) {
+      // A remembered city restores as the chip filter; anything else as the search term.
+      if (CITIES.some(([name]) => name === saved)) city = saved;
+      else search.value = saved;
+      setHint('Using the area you checked last time.');
+    }
+
+    renderChips();
+    render();
+
+    const stamp = new Intl.DateTimeFormat('en-PH', {
+      timeZone: 'Asia/Manila',
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(data.updated));
+    const advisories = (data.posts || []).map((post: { title: string }) => post.title).join(' · ');
+    updated.textContent = `Checked ${stamp} · ${entries.length} interruptions${advisories ? ` · ${advisories}` : ''}`;
+
+    setInterval(render, 60000);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) render();
+    });
+  } catch (error) {
+    feed.innerHTML = '';
+    emptyNote.hidden = true;
+    renderVerdict();
+    updated.textContent = 'Advisory feed unreachable.';
+    console.error(error);
+  }
+</script>

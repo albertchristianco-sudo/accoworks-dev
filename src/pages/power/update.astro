@@ -1,0 +1,250 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  minimalNav
+  noindex
+  title="Log a rotational brownout | accoworks.dev"
+  description="Paste a Visayan Electric rotational brownout advisory so it appears on the Cebu outage tracker."
+>
+  <section class="paste" aria-labelledby="paste-title">
+    <h1 id="paste-title">Log a rotational brownout</h1>
+    <p class="lede">
+      Copy the Facebook advisory text and paste it here. Time slots, cities, barangays and map
+      links are read out of it and go live on <a href="/power/">/power</a> immediately — no
+      deploy. Pasting an hourly update keeps the earlier slots and replaces repeats.
+    </p>
+
+    <form data-form>
+      <label for="token">Token</label>
+      <input id="token" name="token" type="password" data-token autocomplete="current-password" />
+
+      <label for="source">Post permalink <span class="opt">optional</span></label>
+      <input id="source" name="source" type="url" data-source placeholder="https://www.facebook.com/…" />
+
+      <label for="text">Advisory text</label>
+      <textarea id="text" name="text" data-text rows="14" placeholder="ONGOING ROTATIONAL BROWNOUT&#10;11:00AM-12:00PM | SEPTEMBER 3, 2026&#10;Portion of Cebu City: Calamba, Capitol Site, Guadalupe&#10;View the map here: https://tinyurl.com/…"></textarea>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary" data-submit>Parse and publish</button>
+        <label class="switch"><input type="checkbox" data-replace /> <span>Replace the whole log</span></label>
+        <button type="button" class="btn btn-ghost" data-clear>Clear log</button>
+      </div>
+
+      <p class="status" data-status role="status"></p>
+    </form>
+
+    <div class="result" data-result hidden>
+      <h2>Stored</h2>
+      <ul data-list></ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style is:global>
+  .paste {
+    max-width: 46rem;
+    padding: clamp(26px, 5vw, 44px) 0 72px;
+  }
+
+  .paste h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.9rem, 5.4vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.06;
+  }
+
+  .paste .lede {
+    margin: 12px 0 26px;
+    max-width: 60ch;
+    color: var(--ink-2);
+  }
+
+  .paste .lede a { color: var(--accent); }
+
+  .paste label {
+    display: block;
+    margin: 16px 0 6px;
+    color: var(--ink-2);
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  .paste .opt {
+    color: var(--ink-3);
+    font-weight: 400;
+    font-style: italic;
+  }
+
+  .paste input,
+  .paste textarea {
+    width: 100%;
+    padding: 11px 13px;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius-sm);
+    font: inherit;
+    font-size: 0.98rem;
+  }
+
+  .paste input { min-height: 46px; }
+
+  .paste textarea {
+    font-family: var(--font-mono);
+    font-size: 0.86rem;
+    line-height: 1.6;
+    resize: vertical;
+  }
+
+  .paste .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .paste .btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 46px;
+    padding: 0 18px;
+    border-radius: var(--radius-sm);
+    font: inherit;
+    font-size: 0.94rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .paste .btn-primary {
+    color: var(--accent-ink);
+    background: var(--accent);
+    border: 1px solid var(--accent);
+  }
+
+  .paste .btn-ghost {
+    margin-left: auto;
+    color: var(--ink-2);
+    background: var(--surface);
+    border: 1px solid var(--line-2);
+  }
+
+  .paste .switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+    font-size: 0.84rem;
+    font-weight: 400;
+  }
+
+  .paste .status {
+    margin: 16px 0 0;
+    min-height: 1.4em;
+    font-size: 0.9rem;
+  }
+
+  .paste .status[data-tone='error'] { color: #A61B43; }
+  .paste .status[data-tone='ok'] { color: #046B4F; }
+
+  .paste .result { margin-top: 26px; }
+  .paste .result h2 { font-size: 1.05rem; margin: 0 0 8px; }
+
+  .paste .result ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
+  .paste .result li {
+    padding: 7px 0;
+    border-bottom: 1px solid var(--line);
+  }
+</style>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('[data-form]')!;
+  const token = document.querySelector<HTMLInputElement>('[data-token]')!;
+  const source = document.querySelector<HTMLInputElement>('[data-source]')!;
+  const text = document.querySelector<HTMLTextAreaElement>('[data-text]')!;
+  const replace = document.querySelector<HTMLInputElement>('[data-replace]')!;
+  const submit = document.querySelector<HTMLButtonElement>('[data-submit]')!;
+  const clear = document.querySelector<HTMLButtonElement>('[data-clear]')!;
+  const status = document.querySelector<HTMLElement>('[data-status]')!;
+  const result = document.querySelector<HTMLElement>('[data-result]')!;
+  const list = document.querySelector<HTMLElement>('[data-list]')!;
+
+  const TOKEN_KEY = 'accoworks:power:token';
+  token.value = localStorage.getItem(TOKEN_KEY) || '';
+
+  const say = (message: string, tone: 'ok' | 'error' | 'neutral' = 'neutral') => {
+    status.textContent = message;
+    status.dataset.tone = tone;
+  };
+
+  const show = (items: { date: string; start: string; end: string; area: string }[]) => {
+    result.hidden = items.length === 0;
+    list.innerHTML = items
+      .map((item) => `<li>${item.date} ${item.start}–${item.end} · ${item.area}</li>`)
+      .join('');
+  };
+
+  async function send(method: 'POST' | 'DELETE') {
+    if (!token.value.trim()) return say('Token first.', 'error');
+    localStorage.setItem(TOKEN_KEY, token.value.trim());
+    submit.disabled = true;
+    clear.disabled = true;
+    say(method === 'DELETE' ? 'Clearing…' : 'Parsing…');
+
+    try {
+      const response = await fetch('/api/rotational', {
+        method,
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${token.value.trim()}` },
+        body: method === 'POST'
+          ? JSON.stringify({ text: text.value, source: source.value.trim(), replace: replace.checked })
+          : undefined,
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        say(`${data.error || 'Failed'}${data.warnings?.length ? ` — ${data.warnings.join('; ')}` : ''}`, 'error');
+        return;
+      }
+      show(data.items || []);
+      const warned = data.warnings?.length ? ` (${data.warnings.join('; ')})` : '';
+      say(
+        method === 'DELETE'
+          ? 'Log cleared.'
+          : `Published ${data.added} slot${data.added === 1 ? '' : 's'}; ${data.stored} live.${warned}`,
+        'ok',
+      );
+      if (method === 'POST') text.value = '';
+    } catch (error) {
+      say(`Request failed: ${(error as Error).message}`, 'error');
+    } finally {
+      submit.disabled = false;
+      clear.disabled = false;
+    }
+  }
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    void send('POST');
+  });
+
+  clear.addEventListener('click', () => {
+    if (confirm('Clear every logged rotational brownout?')) void send('DELETE');
+  });
+
+  fetch('/api/rotational')
+    .then((r) => r.json())
+    .then((data) => {
+      show(data.items || []);
+      if (data.updated) say(`Log last updated ${new Date(data.updated).toLocaleString('en-PH', { timeZone: 'Asia/Manila' })}.`);
+    })
+    .catch(() => {});
+</script>
