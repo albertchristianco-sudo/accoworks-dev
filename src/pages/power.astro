@@ -37,6 +37,10 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   <section class="outage" aria-labelledby="outage-title">
     <header class="ask">
       <h1 id="outage-title">Will I have a power interruption in my area?</h1>
+      <p class="byline">
+        A free utility by <a href="https://andar.ph" rel="noopener" target="_blank">Andar</a>,
+        Cebu. We make custom software and AI automations.
+      </p>
       <p class="ask-lede">
         Read straight from Visayan Electric’s published advisories for the 8 cities and towns
         it distributes to, Cebu time, next 14 days. Lapu-Lapu and Cordova run on Mactan
@@ -216,6 +220,22 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     font-weight: 700;
     line-height: 1.05;
     letter-spacing: -0.02em;
+  }
+
+  /* Who made this, said once at the top, where a phone reader actually sees it. Smaller
+     than the lede so it never competes with the question or the answer. */
+  .outage .byline {
+    margin: 10px 0 0;
+    max-width: 30em;
+    color: var(--ink-2);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .outage .byline a {
+    color: var(--accent);
+    font-weight: 500;
+    text-decoration-color: currentcolor;
   }
 
   .outage .ask-lede {
@@ -1170,14 +1190,15 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     }
 
     .outage .ask h1 { grid-column: 1 / -1; grid-row: 1; }
-    .outage .ask-lede { grid-column: 1; grid-row: 2; }
-    .outage .locator { grid-column: 1; grid-row: 3; }
-    .outage .verdict { grid-column: 1; grid-row: 4; }
+    .outage .byline { grid-column: 1; grid-row: 2; }
+    .outage .ask-lede { grid-column: 1; grid-row: 3; }
+    .outage .locator { grid-column: 1; grid-row: 4; }
+    .outage .verdict { grid-column: 1; grid-row: 5; }
 
     /* Column two starts at the search label's top and runs beside the answer. */
     .outage .cities {
       grid-column: 2;
-      grid-row: 3 / span 2;
+      grid-row: 4 / span 2;
       align-self: start;
       margin-top: 32px;
       border-left: 1px solid var(--line-2);
