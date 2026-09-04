@@ -284,10 +284,18 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     status.dataset.tone = tone;
   };
 
+  // Every field below arrives from KV, so an advisory copied out of Facebook must not be
+  // able to smuggle markup onto the operator's own page. Same helper as the reader page.
+  const esc = (value: string) =>
+    value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+
   const show = (items: { date: string; start: string; end: string; area: string; via?: string }[]) => {
     result.hidden = items.length === 0;
     list.innerHTML = items
-      .map((item) => `<li>${item.date} ${item.start}–${item.end} · ${item.area} · ${item.via || 'paste'}</li>`)
+      .map(
+        (item) =>
+          `<li>${esc(item.date)} ${esc(item.start)}–${esc(item.end)} · ${esc(item.area)} · ${esc(item.via || 'paste')}</li>`,
+      )
       .join('');
   };
 

@@ -2,7 +2,7 @@
 // what the verdict box answers. No DOM — the page owns the plumbing, this owns the
 // answers, and tests/power-view.test.mjs owns the proof.
 
-import { entryStatus, manilaDate } from './outages.mjs';
+import { addDays, entryStatus, manilaDate } from './outages.mjs';
 
 // Areas read like "Talisay City, Portions of Corona del Mar" or "City of Naga &
 // Minglanilla (Alpaco, Cogon)", so the trailing comma segment is not the city. Match the
@@ -23,12 +23,42 @@ export const CITIES = [
   ['Danao', /\bdanao\b/],
 ];
 
+// The city strip reads north to south down the franchise, the way the coast road runs, so
+// a Consolacion reader stops scanning once they pass their own name. Every entry here is
+// a CITIES name; tests/power-view.test.mjs holds that invariant.
+export const CITY_ORDER = Object.freeze([
+  'Danao',
+  'Compostela',
+  'Liloan',
+  'Consolacion',
+  'Mandaue',
+  'Lapu-Lapu',
+  'Cordova',
+  'Cebu City',
+  'Talisay',
+  'Minglanilla',
+  'Naga',
+  'San Fernando',
+]);
+
+// The strip always offers these seven, even on a day none of them has an advisory: a
+// missing row reads as "not loaded", a zero row reads as "nothing listed". The outer LGUs
+// appear only when they have something, so the strip stays short.
+const CORE_CITIES = new Set(['Consolacion', 'Liloan', 'Mandaue', 'Cebu City', 'Talisay', 'Minglanilla', 'Naga']);
+
 // The page's time vocabulary, pinned to Cebu wherever the code runs.
 export const clock = new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit' });
 export const dayFull = new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', weekday: 'long', month: 'short', day: 'numeric' });
 export const dayShort = new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', weekday: 'long' });
 
 export const dayKey = (iso) => iso.slice(0, 10);
+
+/** Every day key from `from` to `to` inclusive, so the rail can draw empty days too. */
+export function windowDays(from, to) {
+  const keys = [];
+  for (let key = from; key <= to; key = addDays(key, 1)) keys.push(key);
+  return keys;
+}
 
 export function gap(minutes) {
   if (minutes < 60) return `${minutes} min`;
@@ -43,6 +73,58 @@ export function citiesOf(entry) {
   const hay = `${entry.area} ${entry.areasRaw}`.toLowerCase();
   const hits = CITIES.filter(([, re]) => re.test(hay)).map(([name]) => name);
   return hits.length ? hits : ['Other'];
+}
+
+/** One row per city in the strip: geographic order, then `Other` last if it has any. */
+export function cityRows(entries) {
+  const counts = new Map();
+  for (const entry of entries) {
+    // An advisory spanning two LGUs is one interruption in each; both readers are right.
+    for (const city of citiesOf(entry)) counts.set(city, (counts.get(city) ?? 0) + 1);
+  }
+  const rows = CITY_ORDER
+    .filter((name) => CORE_CITIES.has(name) || counts.get(name))
+    .map((name) => ({ name, count: counts.get(name) ?? 0 }));
+  const other = counts.get('Other') ?? 0;
+  if (other) rows.push({ name: 'Other', count: other });
+  return rows;
+}
+
+const commaNames = (text) => text.split(',').map((part) => part.trim()).filter(Boolean);
+
+/**
+ * Clamp a long barangay list without losing the city.
+ *
+ * Visayan Electric writes the city LAST ("Agsungot, Apas, ..., Taptap, Cebu City") or in
+ * front of a parenthesised list ("City of Naga & Minglanilla (Alpaco, ...)"), so a CSS
+ * line clamp cuts off the one word that tells a reader whether the row is theirs. Split
+ * the string instead: `shown` is the first `keep` barangays, `hidden` is how many were
+ * dropped, `tail` is the city the expander can name. In the comma form the trailing
+ * segment becomes `tail` only when it matches a franchise LGU in `CITIES`: a pure
+ * barangay list keeps that segment among the names and leaves `tail` as `''`, so the
+ * expander never names a barangay as if it were a city. `hidden === 0` means nothing was
+ * dropped and the caller should print the area verbatim, with no expander.
+ */
+export function splitArea(area, keep = 5) {
+  const text = `${area ?? ''}`.trim();
+  const paren = text.match(/^(.*?)\s*\(([^)]*)\)$/);
+  let names;
+  let tail;
+  if (paren) {
+    // The list sits inside the parens and the city leads, so collapse the inside only.
+    tail = paren[1].trim();
+    names = commaNames(paren[2]);
+    // Its final comma segment joins the last two barangays with "&": "Uling & Camp 8".
+    const last = names.pop();
+    if (last) names.push(...last.split(/\s*&\s*/).filter(Boolean));
+  } else {
+    names = commaNames(text);
+    // Only a real franchise LGU earns the city slot; a barangay stays in the name list.
+    const last = names.length > 1 ? names[names.length - 1] : '';
+    tail = CITIES.some(([, re]) => re.test(last.toLowerCase())) ? (names.pop() ?? '') : '';
+  }
+  // slice() rather than a join-and-cut, so `shown` can never end on a dangling comma.
+  return { shown: names.slice(0, keep).join(', '), hidden: Math.max(0, names.length - keep), tail };
 }
 
 export function matches(entry, needle) {

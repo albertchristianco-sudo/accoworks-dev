@@ -16,21 +16,20 @@ const description =
       </p>
 
       <form class="locator" data-form novalidate>
-        <label for="area">Your barangay, street or city</label>
-        <div class="field-row">
-          <input
-            id="area"
-            name="area"
-            type="text"
-            data-search
-            placeholder="e.g. Talamban, Mabolo, Guadalupe"
-            autocomplete="address-level4"
-            enterkeyhint="search"
-            aria-describedby="area-desc"
-            spellcheck="false"
-          />
-          <button type="submit" class="btn btn-primary" data-check>Check</button>
-          <button type="button" class="btn btn-ghost" data-locate>
+        <label class="eyebrow" for="area">Your barangay, street or city</label>
+        <input
+          id="area"
+          name="area"
+          type="text"
+          data-search
+          placeholder="For example, Guadalupe"
+          autocomplete="address-level4"
+          enterkeyhint="search"
+          aria-describedby="area-desc"
+          spellcheck="false"
+        />
+        <p class="search-aux">
+          <button type="button" class="txtbtn" data-locate>
             <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
               <circle cx="10" cy="10" r="3.2" fill="none" stroke="currentColor" stroke-width="1.7" />
               <circle cx="10" cy="10" r="6.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-dasharray="3.2 3.4" />
@@ -38,64 +37,76 @@ const description =
             </svg>
             Use my location
           </button>
-        </div>
+          <button type="submit" class="txtbtn" data-check>Check</button>
+        </p>
         <p class="field-hint visually-hidden" id="area-desc">Type a barangay, street or city in Metro Cebu.</p>
         <p class="field-hint" role="status" data-hint>Or let the browser read your location once.</p>
       </form>
+
+      <div class="verdict" data-verdict data-tone="idle" aria-live="polite">
+        <span class="verdict-mark" data-verdict-mark aria-hidden="true" hidden></span>
+        <div class="verdict-body">
+          <p class="verdict-head" data-verdict-head>Reading Visayan Electric’s advisories</p>
+          <p class="verdict-detail" data-verdict-detail>Every time on this page is Cebu time.</p>
+          <p class="verdict-stale" data-verdict-stale hidden></p>
+          <p class="verdict-meta" data-verdict-meta hidden></p>
+        </div>
+      </div>
+
+      <nav class="cities" data-cities aria-label="Cities in this window">
+        <p class="eyebrow cities-lab">Cities</p>
+        <div class="chips" data-chips></div>
+      </nav>
     </header>
 
-    <div class="verdict" data-verdict data-tone="idle" aria-live="polite">
-      <div class="verdict-mark" data-verdict-mark aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M16.2 16.2 21 21"/></svg>
-      </div>
-      <div class="verdict-body">
-        <p class="verdict-head" data-verdict-head>Loading today’s advisories…</p>
-        <p class="verdict-detail" data-verdict-detail>Reading Visayan Electric’s published schedule.</p>
-        <p class="verdict-stale" data-verdict-stale hidden></p>
-        <p class="verdict-meta" data-verdict-meta hidden></p>
-      </div>
+    <div class="toolbar" data-toolbar role="group" aria-label="Filter the schedule" hidden>
+      <label class="check">
+        <input type="checkbox" data-hide-done checked />
+        <span>Hide what already finished</span>
+      </label>
+      <label class="check">
+        <input type="checkbox" data-hide-possible />
+        <span>Hide possible brownouts</span>
+      </label>
     </div>
 
-    <div class="toolbar" data-toolbar role="group" aria-label="Filter the schedule" hidden>
-      <div class="chips" data-chips></div>
-      <label class="switch">
-        <input type="checkbox" data-hide-done checked />
-        <span>Hide finished</span>
-      </label>
-      <label class="switch">
-        <input type="checkbox" data-hide-possible />
-        <span>Hide possible</span>
-      </label>
-    </div>
+    <p class="note" data-toolbar-note hidden>
+      Possible means a rotational brownout that Visayan Electric mapped in advance but only carries
+      out if NGCP calls for load reduction that day. It often does not happen at all.
+    </p>
+
+    <h2 class="eyebrow list-head" data-range>Schedule</h2>
+    <nav class="fortnight" data-fortnight aria-label="Days in this window" hidden></nav>
 
     <div class="feed" data-feed></div>
 
-    <div class="note" data-empty hidden>
-      <p>
-        No advisory in the next 14 days mentions it. Try the barangay name on its own, or clear the
-        filter to read the whole franchise schedule.
-      </p>
-      <button type="button" class="btn btn-ghost" data-clear>Clear filters</button>
+    <div class="empty" data-empty hidden>
+      <p data-empty-line></p>
+      <button type="button" class="txtbtn" data-clear>Show everything</button>
     </div>
 
-    <div class="note" data-failed hidden>
-      <p>
-        Nothing was reachable just now — this page reads Visayan Electric’s own site and their
-        Facebook posts, and one of them did not answer.
-      </p>
-      <button type="button" class="btn btn-primary" data-retry>Try again</button>
+    <div class="failed" data-failed hidden>
+      <p>The advisory feed did not answer. Nothing on this page is current.</p>
+      <button type="button" class="txtbtn" data-retry>Try again</button>
     </div>
 
     <footer class="outage-foot">
-      <p data-updated class="stamp"></p>
-      <p>
-        Unofficial mirror of
+      <p class="stamp" data-updated></p>
+      <p class="sources">
         <a href="https://www.visayanelectric.com/newsroom-blog" rel="noopener" target="_blank">Visayan Electric advisories</a>
-        and their
-        <a href="https://www.facebook.com/visayanelectriccompany" rel="noopener" target="_blank">Facebook announcements</a>.
-        Rotational brownout posts are picked up from Facebook automatically every 15 minutes.
-        Schedules get moved, extended and cancelled — confirm on the official channels before you
-        plan a day around one.
+        <a href="https://www.facebook.com/visayanelectriccompany" rel="noopener" target="_blank">Visayan Electric on Facebook</a>
+      </p>
+      <p class="fine">
+        An unofficial mirror of Visayan Electric service interruption advisories and of their
+        Facebook posts. Rotational brownout posts are picked up automatically every 15 minutes.
+      </p>
+      <p class="fine">
+        Schedules get moved, shortened, extended and cancelled without notice. Confirm on the
+        official channels before you plan a day around one.
+      </p>
+      <p class="built">
+        Built by <a href="https://andar.ph" rel="noopener" target="_blank">Andar</a>, a software
+        and AI company in Cebu. We build the systems that make an operation run.
       </p>
     </footer>
   </section>
@@ -104,14 +115,43 @@ const description =
 <!-- Rows are built at runtime from /api/outages, so Astro's scoped attributes never reach
      them. This block is global; every selector stays under .outage. -->
 <style is:global>
-  .outage { padding: clamp(24px, 5vw, 48px) 0 72px; }
+  /* ── Shell and this page's own tokens ────────────────────────────────── */
+
+  .outage {
+    /* Derived from house ink so the row bar and the day rail read as one instrument.
+       Declared here, never in global.css: this is one page's vocabulary. */
+    --bar-next: rgba(13, 21, 38, 0.7);
+    --bar-done: rgba(13, 21, 38, 0.18);
+    --strip-next: rgba(13, 21, 38, 0.55);
+    --strip-done: rgba(13, 21, 38, 0.16);
+    /* "Possible" is a pattern fill that encodes a state, not a decorative gradient. The
+       amber wash under the stripes is what lets stacked hatches darken at all. */
+    --hatch: repeating-linear-gradient(135deg, var(--wait) 0 1.5px, transparent 1.5px 4px);
+    --hit: var(--accent-soft);
+
+    max-width: 60rem;
+    padding: clamp(24px, 5vw, 48px) 0 72px;
+  }
+
+  .outage .eyebrow {
+    margin: 0;
+    color: var(--ink-2);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* The search hit, washed in place instead of wrapped in a <mark>: no DOM churn per
+     keystroke. Where the API is missing the wash silently does not appear. */
+  .outage ::highlight(hit) { background-color: var(--hit); color: var(--ink); }
 
   /* ── Ask ─────────────────────────────────────────────────────────────── */
 
-  .outage .ask { max-width: 46rem; }
-
   .outage h1 {
     margin: 0;
+    max-width: 20em;
     font-family: var(--font-display);
     font-size: var(--text-page);
     font-weight: 700;
@@ -120,164 +160,146 @@ const description =
   }
 
   .outage .ask-lede {
-    margin: 12px 0 0;
-    max-width: 48ch;
+    margin: 16px 0 0;
+    max-width: 30em;
     color: var(--ink-2);
-    font-size: var(--text-body);
+    font-size: 17px;
+    line-height: 1.5;
   }
 
-  .outage .locator { margin-top: 24px; }
+  .outage .locator { margin-top: 32px; }
 
-  .outage .locator label {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--ink-2);
-    font-size: var(--text-label);
-    font-weight: 600;
-  }
-
-  .outage .field-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    max-width: 38rem;
-  }
+  .outage .locator label { display: block; margin-bottom: 8px; }
 
   .outage input[type='text'] {
-    flex: 1 1 14rem;
-    min-width: 0;
-    min-height: 46px;
-    padding: 0 14px;
+    display: block;
+    width: 100%;
+    max-width: 34em;
+    padding: 0 0 10px;
     color: var(--ink);
-    background: var(--surface);
-    border: 1px solid var(--line-control);
-    border-radius: var(--radius-sm);
-    font: inherit;
-    font-size: var(--text-body);
+    background: transparent;
+    border: 0;
+    /* 0.47 alpha ink: the 3:1 a control boundary needs. Anything lighter is decoration. */
+    border-bottom: 1px solid var(--line-control);
+    border-radius: 0;
+    font-family: var(--font-sans);
+    font-size: clamp(20px, 3.4vw, 24px);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    transition: border-color 150ms var(--ease);
   }
 
-  .outage input[type='text']::placeholder { color: var(--ink-3); }
+  .outage input[type='text']::placeholder { color: var(--ink-3); opacity: 1; }
 
-  .outage input[type='text']:focus-visible {
-    outline: 3px solid var(--accent);
-    outline-offset: 1px;
-    border-color: var(--accent);
+  /* 2px on focus with one less pixel of padding, so the field never shifts. */
+  .outage input[type='text']:focus {
+    outline: none;
+    padding-bottom: 9px;
+    border-bottom: 2px solid var(--accent);
   }
+
+  .outage input[type='text']:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+
+  .outage .search-aux {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    margin: 12px 0 0;
+  }
+
+  .outage .txtbtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    padding: 0;
+    color: var(--accent);
+    background: none;
+    border: 0;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    transition: color 160ms var(--ease);
+  }
+
+  .outage .txtbtn:hover { color: var(--accent-hover); }
+  .outage .txtbtn:disabled { color: var(--ink-3); cursor: not-allowed; }
+  /* Busy wins over disabled: the control is working, not forbidden. */
+  .outage .txtbtn[aria-busy='true'] { color: var(--ink-3); cursor: progress; }
+
+  .outage .ico { width: 16px; height: 16px; flex: none; }
 
   .outage .field-hint {
     margin: 8px 0 0;
+    max-width: 34em;
     color: var(--ink-3);
-    font-size: var(--text-label);
+    font-size: 13px;
+    line-height: 1.5;
   }
 
   /* A declined geolocation permission is a failed interface, not an outage. */
   .outage .field-hint[data-tone='error'] { color: var(--error); }
 
-  .outage .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-height: 46px;
-    padding: 0 16px;
-    border-radius: var(--radius-sm);
-    font: inherit;
-    font-size: var(--text-body);
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 180ms var(--ease), border-color 180ms var(--ease), color 180ms var(--ease);
-  }
-
-  .outage .btn-primary {
-    color: var(--accent-ink);
-    background: var(--accent);
-    border: 1px solid var(--accent);
-  }
-
-  .outage .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
-  .outage .btn-primary:active { background: var(--accent-active); border-color: var(--accent-active); }
-
-  .outage .btn-ghost {
-    color: var(--ink);
-    background: var(--surface);
-    border: 1px solid var(--line-2);
-  }
-
-  .outage .btn-ghost:hover { background: var(--surface-hover); border-color: var(--accent-line); }
-  .outage .btn-ghost:active { background: var(--bg-2); }
-
-  .outage .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  /* Busy wins over disabled: the control is working, not forbidden. */
-  .outage .btn[aria-busy='true'] { color: var(--ink-3); cursor: progress; }
-
-  .outage .ico {
-    width: 18px;
-    height: 18px;
-    flex: none;
-  }
-
   /* ── Verdict ─────────────────────────────────────────────────────────── */
 
   .outage .verdict {
-    display: flex;
-    gap: 16px;
-    margin: 24px 0 0;
-    padding: 20px 24px;
-    background: var(--surface);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
+    position: relative;
+    margin: 32px 0 0;
   }
 
-  .outage .verdict[data-tone='out'] { background: var(--out-soft); }
-  .outage .verdict[data-tone='wait'] { background: var(--wait-soft); }
-  .outage .verdict[data-tone='clear'] { background: var(--clear-soft); }
-
+  /* The answer's tone as a rule, not a card: 3px of colour in the gutter. The site shell
+     keeps 16px of margin at every width, so -12px never reaches the viewport edge. */
   .outage .verdict-mark {
-    display: grid;
-    place-items: center;
-    flex: none;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    color: var(--ink-2);
-    background: color-mix(in srgb, var(--ink) 6%, transparent);
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    left: -12px;
+    width: 3px;
   }
 
-  .outage .verdict-mark svg { width: 22px; height: 22px; }
-  .outage .verdict[data-tone='out'] .verdict-mark { color: var(--out); background: color-mix(in srgb, var(--out) 12%, transparent); }
-  .outage .verdict[data-tone='wait'] .verdict-mark { color: var(--wait); background: color-mix(in srgb, var(--wait) 12%, transparent); }
-  .outage .verdict[data-tone='clear'] .verdict-mark { color: var(--clear); background: color-mix(in srgb, var(--clear) 12%, transparent); }
+  .outage .verdict[data-tone='out'] .verdict-mark { background: var(--out); }
+  .outage .verdict[data-tone='wait'] .verdict-mark { background: var(--wait); }
+  .outage .verdict[data-tone='clear'] .verdict-mark { background: var(--clear); }
 
   .outage .verdict-body { min-width: 0; }
 
   .outage .verdict-head {
-    margin: 2px 0 0;
-    font-family: var(--font-display);
-    font-size: var(--text-answer);
-    font-weight: 700;
+    margin: 0;
+    max-width: 27em;
+    font-size: clamp(22px, 3.6vw, 28px);
+    font-weight: 500;
     font-variant-numeric: tabular-nums;
-    line-height: 1.2;
-    text-wrap: balance;
+    line-height: 1.25;
+    letter-spacing: -0.018em;
+    text-wrap: pretty;
   }
 
   .outage .verdict[data-tone='out'] .verdict-head { color: var(--out); }
-  .outage .verdict[data-tone='clear'] .verdict-head { color: var(--clear); }
   .outage .verdict[data-tone='wait'] .verdict-head { color: var(--wait); }
+  .outage .verdict[data-tone='clear'] .verdict-head { color: var(--clear); }
+  /* Before the first paint there is no answer yet, only the promise of one. */
+  .outage .verdict:not([data-key]) .verdict-head { color: var(--ink-2); }
 
   .outage .verdict-detail {
-    margin: 8px 0 0;
+    margin: 12px 0 0;
+    max-width: 32em;
     color: var(--ink-2);
-    font-size: var(--text-body);
+    font-size: 14px;
     font-variant-numeric: tabular-nums;
+    line-height: 1.5;
   }
 
-  /* Shown when the Facebook poller has gone quiet: the schedule on screen may be
-     missing rotational updates, and the page has to say so rather than imply all-clear. */
+  /* Shown when the Facebook poller has gone quiet: the schedule on screen may be missing
+     rotational updates, and the page has to say so rather than imply all-clear. */
   .outage .verdict-stale {
-    margin: 10px 0 0;
+    margin: 12px 0 0;
+    max-width: 32em;
     color: var(--wait);
-    font-size: var(--text-label);
-    font-weight: 500;
+    font-size: 14px;
     line-height: 1.5;
   }
 
@@ -285,386 +307,831 @@ const description =
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: 8px 16px;
     margin: 12px 0 0;
-    color: var(--ink-3);
+    color: var(--ink-2);
     font-family: var(--font-mono);
-    font-size: var(--text-meta);
+    font-size: 12px;
   }
 
   .outage .verdict-meta button {
     min-height: 32px;
-    padding: 4px 0;
+    padding: 0;
     color: var(--accent);
     background: none;
     border: 0;
     /* A control label, not data: sans, never the mono it would inherit. */
     font-family: var(--font-sans);
-    font-size: var(--text-meta);
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 500;
     text-decoration: underline;
-    text-underline-offset: 0.2em;
+    text-underline-offset: 2px;
     cursor: pointer;
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    .outage .verdict[data-fresh] .verdict-body > * {
-      animation: verdict-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
-    }
+  /* ── City strip ──────────────────────────────────────────────────────── */
 
-    .outage .verdict[data-fresh] .verdict-detail { animation-delay: 40ms; }
-    .outage .verdict[data-fresh] .verdict-meta { animation-delay: 80ms; }
+  .outage .cities { margin-top: 32px; }
+
+  /* Phone and tablet: a wrapped inline list under the answer. Desktop turns it into the
+     strip on a vertical rule (see the >=900px block). Either way it is text on a page,
+     never a chip: no border, no radius, no background. */
+  .outage .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    margin-top: 8px;
   }
 
-  @keyframes verdict-in {
-    from { opacity: 0; transform: translateY(6px); filter: blur(4px); }
-    to { opacity: 1; transform: none; filter: none; }
+  .outage .chip {
+    position: relative;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    padding: 0;
+    color: var(--ink);
+    background: none;
+    border: 0;
+    font-family: var(--font-sans);
+    text-align: left;
+    cursor: pointer;
   }
 
-  /* ── Toolbar ─────────────────────────────────────────────────────────── */
+  .outage .chip-name { font-size: 13px; font-weight: 500; line-height: 1.4; }
+
+  .outage .chip-n {
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .outage .chip-tick { display: none; }
+  /* A core city with nothing listed. Its own attribute, never [data-empty]: that one is
+     the empty-state note's hook, and a chip must not answer a document-wide lookup. */
+  .outage .chip[data-quiet] .chip-name { color: var(--ink-3); }
+
+  .outage .chip[aria-pressed='true'] .chip-name {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* ── Toolbar and the list heading ────────────────────────────────────── */
 
   .outage .toolbar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px 16px;
-    margin: 24px 0 4px;
-    padding: 12px 0;
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
+    gap: 12px 24px;
+    margin: 48px 0 0;
+    padding-top: 16px;
+    border-top: 1px solid var(--line-2);
   }
 
   /* `display: flex` outranks the UA's [hidden] rule, so say it here or the toolbar keeps
      showing two switches that filter nothing while the feed is empty or unreachable. */
   .outage .toolbar[hidden] { display: none; }
 
-  .outage .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-right: auto;
-  }
-
-  .outage .chip {
-    min-height: 36px;
-    padding: 0 12px;
-    color: var(--ink-2);
-    background: transparent;
-    border: 1px solid var(--line-control);
-    border-radius: 999px;
-    font: inherit;
-    font-size: var(--text-label);
-    font-weight: 500;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: background-color 160ms var(--ease), color 160ms var(--ease), border-color 160ms var(--ease);
-  }
-
-  .outage .chip:hover { background: var(--surface-hover); }
-  .outage .chip:active { background: var(--bg-2); }
-
-  .outage .chip[aria-pressed='true'] {
-    color: var(--accent-ink);
-    background: var(--ink);
-    border-color: var(--ink);
-  }
-
-  .outage .chip[aria-pressed='true']:hover { background: var(--ink-hover); border-color: var(--ink-hover); }
-
-  .outage .chip-n {
-    margin-left: 8px;
-    color: var(--ink-3);
-    font-size: var(--text-meta);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .outage .chip[aria-pressed='true'] .chip-n { color: color-mix(in srgb, var(--accent-ink) 75%, transparent); }
-
-  .outage .switch {
+  .outage .check {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    min-height: 36px;
-    color: var(--ink-2);
-    font-size: var(--text-label);
+    min-height: 32px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
     cursor: pointer;
   }
 
-  .outage .switch input { width: 16px; height: 16px; accent-color: var(--accent); }
+  .outage .check input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
+
+  .outage .note {
+    margin: 12px 0 0;
+    max-width: 42em;
+    color: var(--ink-2);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .outage .list-head { margin-top: 32px; }
+
+  /* ── Fortnight rule ──────────────────────────────────────────────────── */
+
+  /* The whole window at once: which days are bad, and a way to reach one without
+     scrolling past three hundred rows. */
+  .outage .fortnight {
+    position: relative;
+    height: 44px;
+    margin-top: 12px;
+  }
+
+  .outage .fortnight::before {
+    content: '';
+    position: absolute;
+    top: 30px;
+    right: 0;
+    left: 0;
+    height: 1px;
+    background: var(--line-2);
+  }
+
+  .outage .fn-day {
+    position: absolute;
+    top: 0;
+    width: 24px;
+    height: 44px;
+    margin-left: -12px;
+    padding: 0;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .outage .fn-day[disabled] { cursor: default; }
+
+  .outage .fn-count {
+    position: absolute;
+    /* The baseline sits at y=30 and today's tick rises to y=20, so the numeral clears the
+       taller tick instead of colliding with it. */
+    bottom: 26px;
+    left: 50%;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    white-space: nowrap;
+    transform: translateX(-50%);
+  }
+
+  .outage .fn-day[data-past] .fn-count { color: var(--ink-2); }
+  /* Red on the numeral only where power is actually out. */
+  .outage .fn-day[data-live] .fn-count { color: var(--out); }
+
+  .outage .fn-tick {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    width: 1px;
+    height: 6px;
+    margin-left: -0.5px;
+    background: var(--line-2);
+  }
+
+  .outage .fn-day[data-today] .fn-tick {
+    top: 20px;
+    width: 2px;
+    height: 10px;
+    margin-left: -1px;
+    background: var(--ink);
+  }
+
+  .outage .fn-day:hover:not([disabled]) .fn-tick { background: var(--ink); }
+
+  .outage .fn-init {
+    position: absolute;
+    top: 33px;
+    left: 50%;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    transform: translateX(-50%);
+  }
 
   /* ── Day sections and the hour rail ──────────────────────────────────── */
 
-  .outage .day { margin: 24px 0 0; }
+  /* Days separate more than rows do, and clear the sticky site header when the fortnight
+     rule scrolls to one. */
+  .outage .day {
+    margin: 48px 0 0;
+    scroll-margin-top: 80px;
+  }
 
   .outage .day-head {
     display: flex;
-    flex-wrap: wrap;
     align-items: baseline;
-    gap: 12px;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0 8px;
+    border-bottom: 1px solid var(--line-2);
   }
 
   .outage .day-name {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
     margin: 0;
-    font-size: var(--text-title);
-    font-weight: 600;
+    font-size: 17px;
+    font-weight: 400;
     line-height: 1.2;
-    letter-spacing: -0.01em;
   }
+
+  .outage .day-rel { font-weight: 600; letter-spacing: -0.01em; }
+
+  /* A tab-like underline under the word, not a chip. */
+  .outage .day-rel[data-today] { padding-bottom: 2px; border-bottom: 2px solid var(--ink); }
 
   .outage .day-date,
   .outage .day-count {
-    color: var(--ink-3);
+    color: var(--ink-2);
     font-family: var(--font-mono);
-    font-size: var(--text-meta);
+    font-size: 12px;
+    font-weight: 500;
     font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+    white-space: nowrap;
   }
 
-  .outage .day-count { margin-left: auto; }
+  .outage .day-date { letter-spacing: 0.04em; text-transform: uppercase; }
 
-  /* The rail is the page's one device: each day's outage windows drawn to scale
-     across 24 hours, so the shape of the day is readable before the rows are. */
+  /* The rail is the page's one device at day scale: every window that starts that day,
+     drawn to scale across 24 hours. 22px of plot plus a 14px label row, exactly 36px at
+     one row or at seventy-five. */
   .outage .rail {
     position: relative;
-    height: 32px;
-    margin: 12px 0 4px;
-    border-bottom: 1px solid var(--line-2);
+    height: 36px;
+    margin: 8px 0 4px;
+  }
+
+  .outage .rail::after {
+    content: '';
+    position: absolute;
+    top: 21px;
+    right: 0;
+    left: 0;
+    height: 1px;
+    background: var(--line-2);
   }
 
   .outage .rail-tick {
     position: absolute;
-    bottom: 0;
+    top: 16px;
     width: 1px;
-    height: 6px;
+    height: 5px;
     background: var(--line-2);
   }
 
   .outage .rail-hour {
     position: absolute;
-    bottom: 12px;
-    white-space: nowrap;
+    top: 25px;
     color: var(--ink-3);
     font-family: var(--font-mono);
-    font-size: var(--text-meta);
+    font-size: 10px;
+    font-weight: 500;
     font-variant-numeric: tabular-nums;
-    letter-spacing: 0.02em;
+    line-height: 1;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
     transform: translateX(-50%);
   }
 
   .outage .rail-hour[data-edge='start'] { transform: none; }
   .outage .rail-hour[data-edge='end'] { transform: translateX(-100%); }
 
+  /* Density is alpha stacking, not lane assignment: two windows overlapping darken, one
+     stacked band of seventy-five goes solid, and the rail never changes height. */
   .outage .rail-block {
     position: absolute;
-    bottom: 0;
-    height: 9px;
+    top: 13px;
+    height: 8px;
     min-width: 2px;
-    background: var(--ink-3);
-    border-radius: 1px;
+    background: var(--strip-next);
   }
 
+  .outage .rail-block[data-state='done'] { background: var(--strip-done); }
   .outage .rail-block[data-state='live'] { background: var(--out); }
-  .outage .rail-block[data-state='upcoming'] { background: var(--wait); }
-  .outage .rail-block[data-state='cancelled'] { background: var(--line); }
-  /* Possible slots read as provisional: same hue, lighter weight than a confirmed cut. */
-  .outage .rail-block[data-possible] { background: var(--wait); opacity: 0.4; }
 
+  /* Hatched blocks carry the same 0.16 wash the ink fills use: stripes alone align in
+     phase, so stacked hatches would never darken. */
+  .outage .rail-block[data-possible] {
+    background-color: color-mix(in srgb, var(--wait) 16%, transparent);
+    background-image: var(--hatch);
+  }
+
+  .outage .rail-block[data-possible][data-state='done'] { opacity: 0.35; }
+
+  /* Ink, not hue: the same cursor as the row bars and the now line. */
   .outage .rail-now {
     position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: var(--accent);
+    top: -4px;
+    bottom: 13px;
+    width: 1px;
+    background: var(--ink);
   }
 
   /* ── Rows ────────────────────────────────────────────────────────────── */
 
   .outage .row {
+    position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 11.5rem) minmax(0, 1fr) auto;
-    align-items: start;
-    gap: 4px 20px;
-    padding: 16px 0;
+    grid-template-areas:
+      'time body state'
+      'bar  body state';
+    grid-template-columns: 148px minmax(0, 1fr) 128px;
+    grid-template-rows: auto 1fr;
+    column-gap: 24px;
+    padding: 20px 0;
     border-bottom: 1px solid var(--line);
-    /* Three hundred-odd rows: letting the off-screen ones skip layout and paint is what
-       keeps a keystroke cheap. The reserved height is a typical row's. */
+  }
+
+  /* Three hundred-odd rows: letting the off-screen ones skip layout and paint is what
+     keeps a keystroke cheap. Live rows opt out, because paint containment would clip the
+     gutter rule below; there are 0 to 5 of them in 300. */
+  .outage .row:not([data-state='live']) {
     content-visibility: auto;
-    contain-intrinsic-size: auto 140px;
+    contain-intrinsic-size: auto 190px;
   }
 
-  .outage .row[data-state='done'],
-  .outage .row[data-state='cancelled'] { color: var(--ink-3); }
+  /* Scannable while flinging the scroll in a way a 13px word is not, and only where power
+     is actually out: a possible window inside its slot gets a hatch, never a red rule. */
+  .outage .row[data-state='live']:not([data-possible])::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    bottom: -1px;
+    left: -12px;
+    width: 3px;
+    background: var(--out);
+  }
 
-  .outage .row-time {
-    padding-top: 1px;
+  .outage .row-time { grid-area: time; }
+
+  .outage .row-range {
+    margin: 0;
     font-family: var(--font-mono);
-    font-size: var(--text-body);
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 500;
     font-variant-numeric: tabular-nums;
-    white-space: nowrap;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
   }
 
-  /* The range may break between its two clocks, never inside one. */
-  .outage .row-clock { white-space: nowrap; }
+  /* Two lines on desktop, and never a break inside one clock. */
+  .outage .row-clock { display: block; white-space: nowrap; }
 
-  .outage .row[data-state='cancelled'] .row-time { text-decoration: line-through; }
-  .outage .row[data-possible] .row-time { color: var(--ink-2); font-weight: 500; }
+  .outage .row[data-state='cancelled'] .row-range { text-decoration: line-through; }
 
-  .outage .row-span {
-    display: block;
-    margin-top: 4px;
-    color: var(--ink-3);
-    font-size: var(--text-meta);
-    font-weight: 400;
+  .outage .row-span,
+  .outage .row-next {
+    margin: 2px 0 0;
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 12px;
     font-variant-numeric: tabular-nums;
-    letter-spacing: 0.02em;
+    line-height: 1.3;
   }
+
+  .outage .row-next { font-family: var(--font-sans); }
+
+  /* The row's own 24-hour axis, which is what retired the 6px state dot. The clocks above
+     it are the accessible version. */
+  .outage .row-bar {
+    position: relative;
+    grid-area: bar;
+    align-self: start;
+    height: 10px;
+    margin-top: 8px;
+  }
+
+  .outage .row-bar::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    right: 0;
+    left: 0;
+    height: 1px;
+    background: var(--line);
+  }
+
+  /* Quarter-day ticks under the row bar, and every line in it is a time. The day rail
+     draws its own through .rail-tick spans. */
+  .outage .ticks::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background-image:
+      linear-gradient(var(--line-2), var(--line-2)),
+      linear-gradient(var(--line-2), var(--line-2)),
+      linear-gradient(var(--line-2), var(--line-2)),
+      linear-gradient(var(--line-2), var(--line-2)),
+      linear-gradient(var(--line-2), var(--line-2));
+    background-repeat: no-repeat;
+    background-size: 1px 100%;
+    background-position: 0% 100%, 25% 100%, 50% 100%, 75% 100%, 100% 100%;
+  }
+
+  .outage .row-seg {
+    position: absolute;
+    top: 3px;
+    height: 4px;
+    min-width: 2px;
+    background: var(--bar-next);
+  }
+
+  .outage .row[data-state='done'] .row-seg { background: var(--bar-done); }
+  .outage .row[data-state='live'] .row-seg { background: var(--out); }
+
+  .outage .row[data-state='cancelled'] .row-seg {
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--ink-3);
+  }
+
+  .outage .row[data-state='cancelled'] .row-seg::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    right: 0;
+    left: 0;
+    height: 1px;
+    background: var(--ink-3);
+  }
+
+  /* Possible outranks every confirmed fill: a mapped window NGCP never called is not an
+     outage, whatever the clock says. */
+  .outage .row[data-possible] .row-seg { background: var(--hatch); }
+  .outage .row[data-possible][data-state='done'] .row-seg { opacity: 0.35; }
+
+  .outage .row-now {
+    position: absolute;
+    top: 0;
+    width: 1px;
+    height: 10px;
+    background: var(--ink);
+  }
+
+  .outage .row-body { grid-area: body; min-width: 0; }
 
   .outage .row-area {
     margin: 0;
-    max-width: 52ch;
-    font-size: var(--text-body);
-    font-weight: 600;
-    line-height: 1.5;
+    font-size: 17px;
+    line-height: 1.4;
+    letter-spacing: -0.011em;
     text-wrap: pretty;
   }
 
+  /* Streets keep a one-line clamp; that toggle appears on string length, never measured. */
   .outage .row-streets {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    overflow: hidden;
     margin: 4px 0 0;
-    max-width: 68ch;
     color: var(--ink-2);
-    font-size: var(--text-body);
-    line-height: 1.55;
+    font-size: 14px;
+    line-height: 1.5;
   }
 
-  .outage .row[data-state='done'] .row-streets,
-  .outage .row[data-state='cancelled'] .row-streets { color: var(--ink-3); }
-
-  .outage .row-state {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    align-self: start;
-    padding: 5px 10px;
-    border-radius: 999px;
-    /* A status label, not data: sans at the metadata step. */
-    font-size: var(--text-meta);
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    white-space: nowrap;
+  .outage .row-streets.open {
+    display: block;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+    overflow: visible;
   }
 
-  .outage .row-state svg { width: 13px; height: 13px; }
-  .outage .row-state[data-state='live'] { color: var(--out); background: var(--out-soft); }
-  .outage .row-state[data-state='upcoming'] { color: var(--wait); background: var(--wait-soft); }
-  .outage .row-state[data-state='done'],
-  .outage .row-state[data-state='cancelled'] { color: var(--ink-3); background: var(--surface-2); }
-  .outage .row-state[data-possible] { color: var(--wait); background: var(--wait-soft); }
+  .outage .row-tags {
+    margin: 4px 0 0;
+    color: var(--ink-3);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* Ink with a hairline underline, not a link: a day of 75 clamped rows must not read as
+     75 blue links. */
+  .outage .row-more {
+    padding: 0;
+    color: var(--ink);
+    background: none;
+    border: 0;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-decoration: underline;
+    text-decoration-color: var(--line-2);
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+
+  .outage .row-area .row-more { margin-left: 6px; }
+  .outage .row-streets-more { display: inline-block; margin-top: 8px; }
 
   .outage details { margin: 8px 0 0; }
 
   .outage summary {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    min-height: 32px;
+    gap: 8px;
+    width: fit-content;
     color: var(--ink-3);
-    font-size: var(--text-meta);
-    font-weight: 600;
-    letter-spacing: 0.08em;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     cursor: pointer;
   }
 
   .outage summary::-webkit-details-marker { display: none; }
-  .outage summary:hover { color: var(--accent); }
-  .outage summary svg { width: 12px; height: 12px; transition: transform 160ms var(--ease); }
+  .outage summary:hover,
+  .outage details[open] summary { color: var(--ink); }
+  .outage summary svg { width: 10px; height: 10px; transition: transform 160ms var(--ease); }
   .outage details[open] summary svg { transform: rotate(90deg); }
 
-  .outage details p { margin: 8px 0 0; color: var(--ink-2); font-size: var(--text-body); max-width: 70ch; }
-  .outage details a { color: var(--accent); }
-
-  /* ── Loading, empty, footer ──────────────────────────────────────────── */
-
-  .outage .skeleton {
-    height: 14px;
-    margin: 24px 0;
-    background: linear-gradient(100deg, var(--surface-2) 30%, var(--bg-2) 50%, var(--surface-2) 70%);
-    background-size: 220% 100%;
-    border-radius: 3px;
+  .outage .why-body {
+    margin-top: 12px;
+    max-width: 44em;
+    padding-left: 12px;
+    border-left: 1px solid var(--line);
   }
 
-  .outage .skeleton:nth-child(2n) { width: 78%; }
-  .outage .skeleton:nth-child(3n) { width: 61%; }
+  .outage .why-body p { margin: 0 0 8px; color: var(--ink-2); font-size: 14px; line-height: 1.55; }
+  .outage .why-body p:last-child { margin-bottom: 0; }
+  .outage .why-body a { color: var(--accent); font-size: 13px; }
 
-  @media (prefers-reduced-motion: no-preference) {
-    .outage .skeleton { animation: sweep 1.5s var(--ease) infinite; }
+  .outage .row-state { grid-area: state; padding-top: 1px; text-align: right; }
+
+  .outage .row-word {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
   }
 
-  @keyframes sweep {
-    from { background-position: 120% 0; }
-    to { background-position: -40% 0; }
-  }
+  .outage .row[data-state='live'] .row-word { color: var(--out); font-weight: 600; }
+  .outage .row[data-state='live'][data-possible] .row-word { color: var(--wait); }
+  .outage .row[data-state='upcoming'] .row-word { color: var(--ink-2); }
+  .outage .row[data-state='upcoming'][data-when='today'] .row-word { color: var(--ink); }
 
-  .outage .note {
-    padding: 24px 0 8px;
-    max-width: 52ch;
-  }
+  .outage .row[data-state='done'] .row-word,
+  .outage .row[data-state='cancelled'] .row-word,
+  .outage .row[data-state='unknown'] .row-word { color: var(--ink-3); font-weight: 400; }
 
-  .outage .note-head {
-    margin: 0 0 8px;
-    font-size: var(--text-lead);
-    font-weight: 600;
+  .outage .row-sub {
+    display: block;
+    margin-top: 2px;
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
     line-height: 1.3;
   }
 
-  .outage .note p { margin: 0 0 12px; color: var(--ink-2); font-size: var(--text-body); }
+  .outage .row[data-state='done'] .row-area,
+  .outage .row[data-state='cancelled'] .row-area,
+  .outage .row[data-state='done'] .row-range,
+  .outage .row[data-state='cancelled'] .row-range { color: var(--ink-2); }
+
+  /* ── The now line ────────────────────────────────────────────────────── */
+
+  /* One 1px rule at page scale, the same cursor as the row bars and the day rail.
+     Everything above it has started; everything below is still ahead. */
+  .outage .now-line {
+    position: relative;
+    height: 0;
+    margin-top: -1px;
+    border-top: 1px solid var(--ink);
+  }
+
+  /* Nothing has started yet today, so the line sits straight under the rail. Its label
+     and the rail's own "12 MN" would otherwise read as one cramped stack. */
+  .outage .rail + .now-line { margin-top: 10px; }
+
+  .outage .now-line span {
+    position: absolute;
+    top: -7px;
+    right: 0;
+    padding-left: 8px;
+    color: var(--ink);
+    background: var(--bg);
+    font: 600 11px/1 var(--font-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* ── Loading, empty, failed, footer ──────────────────────────────────── */
+
+  /* Placeholders on the real row grid, with solid rules where the bars go. A sweeping
+     gradient would be decoration pretending to be progress. */
+  .outage .skel .sk { display: block; height: 10px; background: var(--line); }
+  .outage .skel .sk-t { width: 84%; height: 12px; }
+  .outage .skel .sk-a { width: 62%; height: 12px; }
+  .outage .skel .sk-b { width: 38%; margin-top: 8px; }
+
+  .outage .skel .sk-bar {
+    position: absolute;
+    top: 3px;
+    left: 12%;
+    width: 34%;
+    height: 4px;
+    background: var(--line);
+  }
+
+  .outage .empty,
+  .outage .failed {
+    margin: 48px 0 0;
+    max-width: 34em;
+    color: var(--ink-2);
+    font-size: 17px;
+    line-height: 1.5;
+  }
+
+  .outage .empty p,
+  .outage .failed p { margin: 0; }
+  .outage .empty .txtbtn,
+  .outage .failed .txtbtn { margin-top: 8px; }
 
   .outage .outage-foot {
-    margin: 36px 0 0;
+    margin: 96px 0 0;
+    padding-top: 24px;
+    border-top: 1px solid var(--line-2);
+  }
+
+  .outage .stamp {
+    margin: 0;
+    max-width: 44em;
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.55;
+  }
+
+  .outage .sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    margin: 12px 0 24px;
+    font-size: 13px;
+  }
+
+  .outage .sources a { color: var(--accent); text-decoration-color: currentcolor; }
+
+  .outage .fine {
+    margin: 0 0 12px;
+    max-width: 44em;
+    color: var(--ink-2);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .outage .outage-foot > p:last-child { margin-bottom: 0; }
+
+  /* Who made this. One line, the fine-print register, on its own rule so it reads as a
+     signature and not as another disclaimer. */
+  .outage .built {
+    margin: 24px 0 0;
     padding-top: 16px;
+    max-width: 44em;
     border-top: 1px solid var(--line);
-    color: var(--ink-3);
-    font-size: var(--text-label);
+    color: var(--ink-2);
+    font-size: 13px;
+    line-height: 1.6;
   }
 
-  .outage .outage-foot p { margin: 0 0 8px; max-width: 74ch; line-height: 1.55; }
-  .outage .outage-foot a { color: var(--ink-2); }
-  .outage .stamp { font-family: var(--font-mono); font-size: var(--text-meta); font-variant-numeric: tabular-nums; }
-
-  /* Touch: the filter controls are the page's primary interaction on a phone. */
-  @media (pointer: coarse) {
-    .outage .chip,
-    .outage .switch,
-    .outage summary,
-    .outage details a,
-    .outage .verdict-meta button { min-height: 44px; }
-
-    .outage .chip { padding: 0 16px; }
-    /* An inline link is as tall as its line box: 20px on a page that raises everything
-       else to 44. */
-    .outage details a { display: inline-flex; align-items: center; }
+  .outage .built a {
+    color: var(--accent);
+    font-weight: 500;
+    text-decoration-color: currentcolor;
   }
 
-  @media (max-width: 620px) {
-    .outage .btn-ghost { flex: 1 1 100%; }
+  /* ── Two-column fold ─────────────────────────────────────────────────── */
 
-    .outage .row {
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 2px 12px;
-      padding: 14px 0;
+  @media (min-width: 900px) {
+    .outage .ask {
+      display: grid;
+      grid-template-columns: minmax(0, 34em) minmax(240px, 1fr);
+      column-gap: 48px;
+      align-items: start;
     }
 
-    /* The time and its duration share the first track here, so the track's min-content
-       is that whole string. Keep it breakable: unbroken, it pushes the status badge past
-       a 320px viewport, and body{overflow-x:clip} destroys it rather than scrolls to it. */
-    .outage .row-time { grid-column: 1; grid-row: 1; white-space: normal; }
-    .outage .row-state { grid-column: 2; grid-row: 1; justify-self: end; white-space: normal; text-align: right; }
-    .outage .row > div { grid-column: 1 / -1; grid-row: 2; margin-top: 4px; }
-    .outage .row-span { display: inline; margin: 0 0 0 8px; }
+    .outage .ask h1 { grid-column: 1 / -1; grid-row: 1; }
+    .outage .ask-lede { grid-column: 1; grid-row: 2; }
+    .outage .locator { grid-column: 1; grid-row: 3; }
+    .outage .verdict { grid-column: 1; grid-row: 4; }
+
+    /* Column two starts at the search label's top and runs beside the answer. */
+    .outage .cities {
+      grid-column: 2;
+      grid-row: 3 / span 2;
+      align-self: start;
+      margin-top: 32px;
+      border-left: 1px solid var(--line-2);
+    }
+
+    .outage .cities-lab { padding-left: 16px; }
+    .outage .chips { display: block; margin-top: 12px; }
+
+    .outage .chip {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      gap: 0;
+      min-height: 28px;
+      padding-left: 16px;
+    }
+
+    .outage .chip-tick {
+      display: block;
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 8px;
+      height: 1px;
+      margin-top: -0.5px;
+      background: var(--line-2);
+    }
+
+    .outage .chip[data-hit] .chip-tick,
+    .outage .chip[aria-pressed='true'] .chip-tick {
+      height: 2px;
+      margin-top: -1px;
+      background: var(--ink);
+    }
+
+    .outage .chip-name { font-size: 14px; }
+
+    .outage .chip-n {
+      width: 40px;
+      margin-left: auto;
+      font-size: 12px;
+      text-align: right;
+    }
+  }
+
+  /* ── Phone ───────────────────────────────────────────────────────────── */
+
+  @media (max-width: 680px) {
+    .outage h1 { max-width: none; }
+
+    .outage .row {
+      grid-template-areas:
+        'time state'
+        'bar  bar'
+        'body body';
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-rows: auto auto auto;
+      row-gap: 8px;
+      column-gap: 16px;
+      padding: 16px 0;
+    }
+
+    /* One line of clocks here, and at 15px per hour the bar becomes the row's main mark. */
+    .outage .row-time { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+    .outage .row-clock { display: inline; }
+    .outage .row-span,
+    .outage .row-next { margin-top: 0; }
+    .outage .row-bar { margin-top: 0; }
+    .outage .row-state { padding-top: 0; }
+    .outage .row-area { font-size: 16px; }
+    .outage .fn-day { width: 22px; margin-left: -11px; }
     /* Keep only the anchors of the 24-hour scale when it is this narrow. */
     .outage .rail-hour[data-edge='mid'] { display: none; }
+  }
+
+  /* Coarse pointers get real targets without changing the visual register. */
+  @media (pointer: coarse) {
+    .outage .check,
+    .outage .txtbtn,
+    .outage .chip,
+    .outage .row-more,
+    .outage .fn-day,
+    .outage summary,
+    .outage .why-body a,
+    .outage .verdict-meta button { min-height: 44px; }
+
+    .outage .chip { align-items: center; }
+    /* An inline link is as tall as its line box: 20px on a page that raises everything
+       else to 44. */
+    .outage .why-body a { display: inline-flex; align-items: center; }
+  }
+
+  /* ── Motion ──────────────────────────────────────────────────────────── */
+
+  /* One authored moment, and only when the answer itself changed: never on a countdown
+     tick, never per keystroke, never on the now marks, never on a row showing or hiding. */
+  @media (prefers-reduced-motion: no-preference) {
+    .outage .verdict[data-fresh] .verdict-body > * {
+      animation: verdict-in 180ms cubic-bezier(0.2, 0, 0, 1) both;
+    }
+
+    .outage .verdict[data-fresh] .verdict-detail,
+    .outage .verdict[data-fresh] .verdict-stale { animation-delay: 40ms; }
+  }
+
+  @keyframes verdict-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
   }
 </style>
 
@@ -672,8 +1139,10 @@ const description =
   import { entryStatus, manilaDate } from '../scripts/outages.mjs';
   import {
     CITIES,
+    CITY_ORDER,
     badgeFor,
     citiesOf,
+    cityRows,
     clock,
     dayFull,
     dayKey,
@@ -681,7 +1150,9 @@ const description =
     dayShort,
     isVisible,
     matches,
+    splitArea,
     verdictView,
+    windowDays,
   } from '../scripts/power-view.mjs';
 
   type Entry = {
@@ -701,9 +1172,12 @@ const description =
   };
 
   type Ingest = { checkedAt: string | null; latestPostAt: string | null };
+  /** The API's own span, which the fortnight rule draws even where no advisory landed. */
+  type FeedWindow = { from: string; to: string; today?: string };
 
   type Feed = {
     updated: string;
+    window?: FeedWindow;
     entries?: Entry[];
     posts?: { title: string }[];
     ingest?: Ingest;
@@ -725,13 +1199,18 @@ const description =
   const verdictDetail = el('[data-verdict-detail]');
   const verdictStale = el('[data-verdict-stale]');
   const verdictMeta = el('[data-verdict-meta]');
+  const citiesBox = el('[data-cities]');
   const chipBox = el('[data-chips]');
   const hideDone = el<HTMLInputElement>('[data-hide-done]');
   const hidePossible = el<HTMLInputElement>('[data-hide-possible]');
   const feed = el('[data-feed]');
   const emptyNote = el('[data-empty]');
+  const emptyLine = el('[data-empty-line]');
   const clearBtn = el<HTMLButtonElement>('[data-clear]');
   const toolbar = el('[data-toolbar]');
+  const toolbarNote = el('[data-toolbar-note]');
+  const rangeHead = el('[data-range]');
+  const fortnight = el('[data-fortnight]');
   const failedNote = el('[data-failed]');
   const retryBtn = el<HTMLButtonElement>('[data-retry]');
   const updated = el('[data-updated]');
@@ -746,28 +1225,21 @@ const description =
   const REFETCH_MS = 5 * 60 * 1000;
   // Long enough that an 8-character area name is one rebuild, short enough to feel live.
   const TYPE_DEBOUNCE_MS = 120;
-
-  const ICONS = {
-    out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/><path d="M3 3l18 18"/></svg>',
-    wait: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.2 2"/></svg>',
-    clear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6.5 9.6 17 4 11.4"/></svg>',
-    idle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M16.2 16.2 21 21"/></svg>',
-  };
-
-  const STATE_ICONS = {
-    live: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/><path d="M3 3l18 18"/></svg>',
-    upcoming: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.2 2"/></svg>',
-    done: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6.5 9.6 17 4 11.4"/></svg>',
-    cancelled: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg>',
-  };
+  // Streets longer than this get a toggle. A string length, never a measured height: the
+  // layout probe is what made content-visibility unsafe on rows.
+  const STREETS_CLAMP = 90;
 
   const stampFmt = new Intl.DateTimeFormat('en-PH', {
     timeZone: 'Asia/Manila',
     dateStyle: 'medium',
     timeStyle: 'short',
   });
+  const dateShort = new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', day: 'numeric', month: 'short' });
+  const monthDay = new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', month: 'long', day: 'numeric' });
 
   let entries: Entry[] = [];
+  let byKey = new Map<string, Entry>();
+  let feedWindow: FeedWindow | undefined;
   let city = '';
   let detected = '';
   let ingest: Ingest | undefined;
@@ -775,6 +1247,9 @@ const description =
   let lastFetch = 0;
   let feedSig = '';
   let chipSig = '';
+  let fortnightSig = '';
+  // Which Cebu day the list was built for: past midnight, in-place patching cannot fix it.
+  let renderedToday = '';
   let loading = false;
   let typing = 0;
   let frame = 0;
@@ -801,18 +1276,21 @@ const description =
   const ingestStale = () =>
     !ingest?.checkedAt || fetchedAt - Date.parse(ingest.checkedAt) > INGEST_STALE_MS;
 
+  // Both callers branch on `ingest?.checkedAt` first, so this only ever formats a real
+  // timestamp: "7:16 PM today" inside the Cebu day, the full date before it.
   const whenChecked = () => {
-    if (!ingest?.checkedAt) return 'never';
-    const at = new Date(ingest.checkedAt);
-    const sameDay = dayKey(ingest.checkedAt) === manilaDate(fetchedAt);
+    const at = new Date(ingest!.checkedAt!);
+    const sameDay = dayKey(ingest!.checkedAt!) === manilaDate(fetchedAt);
     return sameDay ? `${clock.format(at)} today` : `${dayFull.format(at)}, ${clock.format(at)}`;
   };
 
   function renderStaleNotice() {
-    const text = ingestStale()
-      ? `Rotational brownout updates from Facebook may be missing: last automatic check ${whenChecked()}. ` +
-        'Confirm on Visayan Electric’s Facebook page.'
-      : '';
+    // "since never" is not a sentence: an unread feed says so plainly.
+    const text = !ingestStale()
+      ? ''
+      : ingest?.checkedAt
+        ? `Facebook has not been checked since ${whenChecked()}, so rotational brownouts may be missing.`
+        : 'Facebook has not been checked yet, so rotational brownouts may be missing.';
     // Inside the aria-live region: only write when it actually says something new.
     if (verdictStale.textContent === text) return;
     verdictStale.textContent = text;
@@ -855,14 +1333,15 @@ const description =
       scoped: Boolean(query() || city),
       stale: ingestStale(),
       now: Date.now(),
-    }) as { tone: keyof typeof ICONS; key: string; head: Segment[]; detail: Segment[] };
+    }) as { tone: string; key: string; head: Segment[]; detail: Segment[] };
 
     // The identity of the answer, with no clock in it: a minute later it is the same key,
     // so nothing is announced and nothing is re-animated.
     const changed = verdict.dataset.key !== view.key;
     verdict.dataset.tone = view.tone;
     verdict.dataset.key = view.key;
-    if (changed) verdictMark.innerHTML = ICONS[view.tone] || ICONS.idle;
+    // The tone is a 3px rule in the gutter; an idle answer has no tone to draw.
+    verdictMark.hidden = view.tone === 'idle';
     paint(verdictHead, view.head, changed);
     paint(verdictDetail, view.detail, changed);
 
@@ -880,95 +1359,336 @@ const description =
     verdict.setAttribute('data-fresh', '');
   }
 
+  // The city strip: text on a rule, ordered north to south, but the same `.chip` hooks the
+  // delegation, aria-pressed and focus restore below have always used. Counts are the whole
+  // window, so nothing time-dependent enters this HTML and a background refresh that
+  // changes nothing never replaces the button under focus.
   function renderChips() {
-    const counts = new Map<string, number>();
-    for (const entry of entries) {
-      for (const name of citiesOf(entry)) counts.set(name, (counts.get(name) || 0) + 1);
-    }
-    const rows: [string, string, number][] = [['All areas', '', entries.length]];
-    for (const [name, count] of [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))) {
-      rows.push([name, name, count]);
-    }
+    const rows = [
+      { name: 'All areas', value: '', count: entries.length },
+      ...(cityRows(entries) as { name: string; count: number }[]).map((row) => ({
+        name: row.name,
+        value: row.name,
+        count: row.count,
+      })),
+    ];
     // Without the label the accessible name reads "Mandaue96".
     const html = rows
-      .map(([label, value, count]) =>
-        `<button type="button" class="chip" data-city="${esc(value)}" aria-pressed="${value === city}" aria-label="${esc(label)}, ${count} ${count === 1 ? 'interruption' : 'interruptions'}">${esc(label)}<span class="chip-n">${count}</span></button>`)
+      .map(({ name, value, count }) =>
+        `<button type="button" class="chip" data-city="${esc(value)}" aria-pressed="${value === city}"${count ? '' : ' data-quiet'}` +
+        ` aria-label="${esc(name)}, ${count ? `${count} ${count === 1 ? 'interruption' : 'interruptions'}` : 'nothing listed'}">` +
+        `<span class="chip-tick" aria-hidden="true"></span><span class="chip-name">${esc(name)}</span>` +
+        `<span class="chip-n" aria-hidden="true">${count || ''}</span></button>`)
       .join('');
-    // A background refresh that changes nothing must not replace the button under focus.
     if (html === chipSig) return;
     chipSig = html;
     chipBox.innerHTML = html;
   }
 
-  function rail(group: Entry[], key: string, now: number) {
-    const ticks = [0, 6, 12, 18, 24]
-      .map((hour) => {
-        const pct = (hour / 24) * 100;
-        const edge = hour === 0 ? 'start' : hour === 24 ? 'end' : 'mid';
-        const label = hour === 0 ? '12 AM' : hour === 12 ? '12 NN' : hour === 24 ? '12 MN' : `${hour > 12 ? hour - 12 : hour} ${hour < 12 ? 'AM' : 'PM'}`;
-        return `<span class="rail-tick" style="left:${pct}%"></span><span class="rail-hour" data-edge="${edge}" style="left:${pct}%">${label}</span>`;
-      })
-      .join('');
+  // Which cities the current search actually reaches: an attribute write outside the
+  // chipSig string, so the needle never gets baked into the chip HTML.
+  function paintCityHits(list: Entry[], needle: string) {
+    const hit = new Set<string>();
+    if (needle) for (const entry of list) for (const name of citiesOf(entry)) hit.add(name);
+    for (const chip of chipBox.querySelectorAll<HTMLElement>('.chip[data-city]')) {
+      const on = Boolean(chip.dataset.city) && hit.has(chip.dataset.city!);
+      if (on === chip.hasAttribute('data-hit')) continue;
+      if (on) chip.setAttribute('data-hit', '');
+      else chip.removeAttribute('data-hit');
+    }
+  }
 
+  // The hit is washed in place with the Custom Highlight API: one Range per match, no DOM
+  // rewriting per keystroke. Read through a cast because the registry is newer than the
+  // DOM types this project compiles against; absent (older Firefox) the wash never appears.
+  type HitHighlight = { clear(): void; add(range: Range): void };
+  const highlightCtor = (globalThis as unknown as { Highlight?: new () => HitHighlight }).Highlight;
+  const highlightRegistry = (globalThis as unknown as {
+    CSS?: { highlights?: { set(name: string, highlight: HitHighlight): void } };
+  }).CSS?.highlights;
+  const highlights = highlightCtor && highlightRegistry ? new highlightCtor() : null;
+  if (highlights && highlightRegistry) highlightRegistry.set('hit', highlights);
+
+  function paintHits(needle: string) {
+    if (!highlights) return;
+    highlights.clear();
+    if (!needle) return;
+    for (const holder of feed.querySelectorAll<HTMLElement>('.row-area, .row-streets')) {
+      for (let node = holder.firstChild; node; node = node.nextSibling) {
+        if (node.nodeType !== 3) continue;
+        const text = node.nodeValue || '';
+        const hay = text.toLowerCase();
+        let from = 0;
+        let at = hay.indexOf(needle, from);
+        while (at !== -1) {
+          // toLowerCase() is not length-preserving everywhere, so an offset can land past
+          // the node. A Range that would throw is skipped; the rest of the page still paints.
+          if (at + needle.length <= text.length) {
+            const range = document.createRange();
+            range.setStart(node, at);
+            range.setEnd(node, at + needle.length);
+            highlights.add(range);
+          }
+          from = at + needle.length;
+          at = hay.indexOf(needle, from);
+        }
+      }
+    }
+  }
+
+  const RAIL_TICKS = [0, 6, 12, 18, 24]
+    .map((hour) => {
+      const pct = (hour / 24) * 100;
+      const edge = hour === 0 ? 'start' : hour === 24 ? 'end' : 'mid';
+      const label = hour === 0 ? '12 AM' : hour === 12 ? '12 NN' : hour === 24 ? '12 MN' : `${hour > 12 ? hour - 12 : hour} ${hour < 12 ? 'AM' : 'PM'}`;
+      return `<span class="rail-tick" style="left:${pct}%"></span><span class="rail-hour" data-edge="${edge}" style="left:${pct}%">${label}</span>`;
+    })
+    .join('');
+
+  const pct = (value: number) => `${Math.round(value * 100) / 100}%`;
+
+  /** A clock, or nothing: Intl throws a RangeError on an unparseable date, and one bad
+   *  advisory must not take the whole feed down with it. */
+  const timeOf = (iso: string | null | undefined) => {
+    const ms = Date.parse(`${iso}`);
+    return Number.isFinite(ms) ? clock.format(ms) : '';
+  };
+
+  /** esc() stops HTML injection, not an executable scheme. These URLs come out of scraped
+   *  advisory HTML and out of hand-typed KV text, so a link is only a link when it parses
+   *  as http or https; anything else renders as no link at all. */
+  const safeUrl = (value: string | null | undefined) => {
+    try {
+      const { protocol } = new URL(`${value}`);
+      return protocol === 'http:' || protocol === 'https:' ? `${value}` : '';
+    } catch {
+      return '';
+    }
+  };
+
+  /** Where a window sits on a day's 24 hours, or null when the entry's clocks did not parse. */
+  function span(entry: Entry, key: string) {
+    const from = dayOffset(entry.start, key);
+    const to = dayOffset(entry.end, key);
+    if (!Number.isFinite(from) || !Number.isFinite(to)) return null;
+    return { left: (from / 1440) * 100, width: Math.max(((to - from) / 1440) * 100, 0.4) };
+  }
+
+  function rail(group: Entry[], key: string, now: number) {
     // Each block carries its row's key so the minute tick can age it in place.
     const blocks = group
       .map((entry) => {
-        const from = dayOffset(entry.start, key);
-        const to = dayOffset(entry.end, key);
+        const at = span(entry, key);
         const state = entryStatus(entry, now).state;
-        return `<span class="rail-block" data-key="${esc(keyOf(entry))}" data-state="${state}"${entry.possible ? ' data-possible' : ''} style="left:${(from / 1440) * 100}%;width:${Math.max(((to - from) / 1440) * 100, 0.4)}%"></span>`;
+        // A cancelled window is not a window: the count still names it, the rail does not.
+        if (!at || state === 'cancelled' || state === 'unknown') return '';
+        return `<span class="rail-block" data-key="${esc(keyOf(entry))}" data-state="${state}"${entry.possible ? ' data-possible' : ''}` +
+          ` style="left:${pct(at.left)};width:${pct(at.width)}"></span>`;
       })
       .join('');
 
     const marker = key === manilaDate(now)
-      ? `<span class="rail-now" style="left:${(dayOffset(new Date(now).toISOString(), key) / 1440) * 100}%"></span>`
+      ? `<span class="rail-now" style="left:${pct((dayOffset(new Date(now).toISOString(), key) / 1440) * 100)}"></span>`
       : '';
 
-    return `<div class="rail" data-day="${esc(key)}" aria-hidden="true">${ticks}${blocks}${marker}</div>`;
+    return `<div class="rail" data-day="${esc(key)}" aria-hidden="true">${RAIL_TICKS}${blocks}${marker}</div>`;
   }
 
   const CHEVRON =
     '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
 
+  // State is carried by the bar fill, this one word, and the live gutter rule. An entry
+  // whose clocks did not parse still gets an honest word rather than a broken mark.
+  function stateWord(entry: Entry, state: string, today: boolean) {
+    if (state === 'cancelled') return 'Cancelled';
+    if (state === 'unknown') return 'Time unclear';
+    if (state === 'done') return entry.possible ? 'Window passed' : 'Finished';
+    if (state === 'live') return entry.possible ? 'Possible now' : 'Out now';
+    if (entry.possible) return 'Possible';
+    return today ? 'Later today' : 'Scheduled';
+  }
+
+  // The countdown vocabulary stays in one place: badgeFor already says "1h 55m left" and
+  // "in 2h". A possible window reports its window instead, because it may never happen.
+  function stateSub(entry: Entry, state: string, now: number, today: boolean) {
+    if (state === 'cancelled' || state === 'unknown') return '';
+    if (state === 'done') return entry.possible ? 'possible only' : '';
+    if (state === 'live') return entry.possible ? `until ${clock.format(new Date(entry.end))}` : badgeFor(entry, now);
+    if (entry.possible) return 'if NGCP calls';
+    // Off today, the day header already carries the day; a second "in 3 days" adds nothing.
+    return today ? badgeFor(entry, now) : '';
+  }
+
+  /** The area, clipped by string not by CSS, so the trailing city survives. */
+  function areaCell(entry: Entry, needle: string) {
+    const split = splitArea(entry.area) as { shown: string; hidden: number; tail: string };
+    if (split.hidden === 0) return esc(entry.area);
+    const label = split.tail ? `+${split.hidden} more in ${split.tail}` : `+${split.hidden} more`;
+    // A hit past the clamp would otherwise show a row with the reason invisible. The test
+    // reads exactly what the collapsed row shows: the barangays in `shown` plus the city
+    // the label names, so a search for the city does not dump every long list in the LGU.
+    const hay = entry.area.toLowerCase();
+    const seen = `${split.shown} ${split.tail}`.toLowerCase();
+    const beyond = Boolean(needle) && hay.includes(needle) && !seen.includes(needle);
+    return beyond
+      ? `${esc(entry.area)}<button type="button" class="row-more" aria-expanded="true">show less</button>`
+      : `${esc(split.shown)}, <button type="button" class="row-more" aria-expanded="false">${esc(label)}</button>`;
+  }
+
   // A plain div, not an article: 336 article boundaries announced in a row is noise, and
   // naming each one only trades that for 336 redundant labels.
-  function row(entry: Entry, now: number) {
+  function row(entry: Entry, key: string, now: number, today: string) {
     const state = entryStatus(entry, now).state;
+    const isToday = key === today;
     const overnight = dayKey(entry.start) !== dayKey(entry.end);
-    const badge = badgeFor(entry, now);
+    const at = span(entry, key);
+    const sub = stateSub(entry, state, now, isToday);
+    const from = timeOf(entry.start);
+    const to = timeOf(entry.end);
+    const posted = timeOf(entry.postedAt);
+    const map = safeUrl(entry.map);
+    const source = safeUrl(entry.source);
     const tags = [
       entry.possible ? 'Possible rotational brownout' : entry.kind === 'rotational' ? 'Rotational brownout' : '',
       entry.flag && entry.flag !== 'cancelled' ? entry.flag : '',
     ].filter(Boolean).join(' · ');
-    const iconState = entry.possible && state === 'live' ? 'upcoming' : (state as keyof typeof STATE_ICONS);
+    const nowPct = isToday ? pct((dayOffset(new Date(now).toISOString(), key) / 1440) * 100) : '';
 
     return `
-      <div class="row" data-state="${state}" data-key="${esc(keyOf(entry))}"${entry.possible ? ' data-possible' : ''}>
-        <p class="row-time"><span class="row-clock">${clock.format(new Date(entry.start))}</span> – <span class="row-clock">${clock.format(new Date(entry.end))}</span>
-          <span class="row-span">${entry.hours}h${overnight ? ' · ends next day' : ''}</span>
-        </p>
-        <div>
-          <p class="row-area">${esc(entry.area)}</p>
-          ${entry.streets ? `<p class="row-streets">${esc(entry.streets)}</p>` : ''}
-          ${tags ? `<p class="row-streets">${esc(tags)}</p>` : ''}
-          ${entry.purpose ? `<details><summary>${CHEVRON}Why</summary><p>${esc(entry.purpose)}</p>${entry.map ? `<p><a href="${esc(entry.map)}" rel="noopener" target="_blank">See the affected-area map</a></p>` : ''}${entry.source ? `<p><a href="${esc(entry.source)}" rel="noopener" target="_blank">Read the advisory</a></p>` : ''}${entry.postedAt ? `<p>Posted by Visayan Electric ${clock.format(new Date(entry.postedAt))}</p>` : ''}</details>` : ''}
+      <div class="row" data-state="${state}" data-key="${esc(keyOf(entry))}" data-when="${isToday ? 'today' : 'other'}"${entry.possible ? ' data-possible' : ''}>
+        <div class="row-time">
+          <p class="row-range">${from && to ? `<span class="row-clock">${from}</span> <span class="row-clock">to ${to}</span>` : '<span class="row-clock">Time not listed</span>'}</p>
+          <p class="row-span">${entry.hours}h</p>
+          ${overnight ? '<p class="row-next">ends the next morning</p>' : ''}
         </div>
-        <span class="row-state" data-state="${state}"${entry.possible ? ' data-possible' : ''}>${STATE_ICONS[iconState] || ''}${badge}</span>
+        <div class="row-bar ticks" aria-hidden="true">
+          ${at ? `<span class="row-seg" style="left:${pct(at.left)};width:${pct(at.width)}"></span>` : ''}
+          ${isToday ? `<span class="row-now" style="left:${nowPct}"></span>` : ''}
+        </div>
+        <div class="row-body">
+          <p class="row-area">${areaCell(entry, query())}</p>
+          ${entry.streets ? `<p class="row-streets">Along ${esc(entry.streets)}</p>` : ''}
+          ${entry.streets && entry.streets.length > STREETS_CLAMP ? '<button type="button" class="row-more row-streets-more" aria-expanded="false">show all streets</button>' : ''}
+          ${tags ? `<p class="row-tags">${esc(tags)}</p>` : ''}
+          ${entry.purpose ? `<details><summary>${CHEVRON}Why this interruption</summary><div class="why-body"><p>${esc(entry.purpose)}</p>${map ? `<p><a href="${esc(map)}" rel="noopener" target="_blank">See the affected-area map</a></p>` : ''}${source ? `<p><a href="${esc(source)}" rel="noopener" target="_blank">Read the advisory</a></p>` : ''}${posted ? `<p>Posted by Visayan Electric ${posted}</p>` : ''}</div></details>` : ''}
+        </div>
+        <div class="row-state">
+          <span class="row-word">${esc(stateWord(entry, state, isToday))}</span>
+          ${sub ? `<span class="row-sub" aria-live="off">${esc(sub)}</span>` : ''}
+        </div>
       </div>`;
+  }
+
+  const nowLabel = (now: number) => `Now ${clock.format(new Date(now))}`;
+
+  const nowLineHtml = (now: number) =>
+    `<div class="now-line" role="separator" aria-label="${esc(nowLabel(now))}"><span>${esc(nowLabel(now))}</span></div>`;
+
+  /** The first row of a day that has not started yet: where the now line belongs. */
+  const nowAnchor = (group: Entry[], now: number) => group.findIndex((entry) => Date.parse(entry.start) > now);
+
+  function paintEmpty() {
+    const off: string[] = [];
+    if (hideDone.checked) off.push('finished');
+    if (hidePossible.checked) off.push('possible');
+    const tail = off.length ? ` with ${off.join(' and ')} hidden.` : '.';
+    const place = search.value.trim() || city;
+    const sentence = place ? `Nothing to show for ${place}${tail}` : `Nothing to show${tail}`;
+    if (emptyLine.textContent !== sentence) emptyLine.textContent = sentence;
+  }
+
+  /** Every day the API published, so a quiet day still gets its tick. */
+  function windowKeys(): string[] {
+    if (feedWindow?.from && feedWindow?.to) return windowDays(feedWindow.from, feedWindow.to) as string[];
+    if (!entries.length) return [];
+    const keys = entries.map((entry) => dayKey(entry.start)).sort();
+    return windowDays(keys[0], keys[keys.length - 1]) as string[];
+  }
+
+  /** Per-day counts over everything published, not over what the filters left standing. */
+  function dayTotals() {
+    const totals = new Map<string, number>();
+    for (const entry of entries) {
+      const key = dayKey(entry.start);
+      totals.set(key, (totals.get(key) || 0) + 1);
+    }
+    return totals;
+  }
+
+  // What a day carried is a property of the window, not of the current filters: with
+  // finished windows hidden, yesterday would otherwise report zero to a screen reader.
+  // Attributes only, patched in place, so the minute tick can age `data-live` here too
+  // without replacing the button under focus.
+  function paintFortnight(now: number) {
+    const totals = dayTotals();
+    const lit = new Set<string>();
+    for (const entry of entries) {
+      if (!entry.possible && entryStatus(entry, now).state === 'live') lit.add(dayKey(entry.start));
+    }
+    for (const button of fortnight.querySelectorAll<HTMLButtonElement>('.fn-day[data-key]')) {
+      const key = button.dataset.key!;
+      const count = totals.get(key) || 0;
+      const numeral = button.querySelector<HTMLElement>('.fn-count')!;
+      const text = count ? String(count) : '';
+      if (numeral.textContent !== text) numeral.textContent = text;
+      // The numeral stays honest about what the day carried; the button follows what the
+      // filters actually rendered, so a live target always has a section to scroll to.
+      const dead = !feed.querySelector(`.day[data-day="${key}"]`);
+      if (button.disabled !== dead) button.disabled = dead;
+      const live = lit.has(key);
+      if (live !== button.hasAttribute('data-live')) {
+        if (live) button.setAttribute('data-live', '');
+        else button.removeAttribute('data-live');
+      }
+      const noon = new Date(`${key}T12:00:00+08:00`);
+      const label = `${dayShort.format(noon)} ${monthDay.format(noon)}, ${count ? `${count} ${count === 1 ? 'interruption' : 'interruptions'}` : 'nothing listed'}`;
+      if (button.getAttribute('aria-label') !== label) button.setAttribute('aria-label', label);
+    }
+  }
+
+  // The only view of the whole window at once: which days are bad, and a way to reach one
+  // without scrolling three hundred rows. Structure is rebuilt only when the window (or
+  // the day it is read on) changes; the counts are patched in place, so a keystroke never
+  // replaces the button under focus.
+  function renderFortnight(now: number, today: string) {
+    const days = windowKeys();
+    const sig = `${today}|${days.join(',')}`;
+    if (sig !== fortnightSig) {
+      fortnightSig = sig;
+      fortnight.innerHTML = days
+        .map((key, index) => {
+          const noon = new Date(`${key}T12:00:00+08:00`);
+          const flag = key === today ? ' data-today' : key < today ? ' data-past' : '';
+          return `<button type="button" class="fn-day" data-key="${esc(key)}" style="left:${pct(((index + 0.5) / days.length) * 100)}"${flag}>` +
+            '<span class="fn-count" aria-hidden="true"></span><span class="fn-tick" aria-hidden="true"></span>' +
+            `<span class="fn-init" aria-hidden="true">${esc(dayShort.format(noon).charAt(0))}</span></button>`;
+        })
+        .join('');
+    }
+
+    paintFortnight(now);
   }
 
   function renderFeed() {
     const list = filtered();
     const now = Date.now();
-
     const today = manilaDate(now);
+    const needle = query();
+    renderedToday = today;
+
     const groups = new Map<string, Entry[]>();
     for (const entry of list) {
       const key = dayKey(entry.start);
-      groups.set(key, [...(groups.get(key) || []), entry]);
+      const bucket = groups.get(key);
+      if (bucket) bucket.push(entry);
+      else groups.set(key, [entry]);
     }
+    // Totals over everything published, so a filtered day can say "3 of 11" honestly.
+    const totals = dayTotals();
 
-    emptyNote.hidden = groups.size > 0;
+    emptyNote.hidden = groups.size > 0 || entries.length === 0;
+    if (!emptyNote.hidden) paintEmpty();
+
     feed.innerHTML = [...groups.entries()]
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([key, group]) => {
@@ -976,19 +1696,32 @@ const description =
         const offset = Math.round(
           (Date.parse(`${key}T00:00:00+08:00`) - Date.parse(`${today}T00:00:00+08:00`)) / 86400000,
         );
-        const name = offset === 0 ? 'Today' : offset === 1 ? 'Tomorrow' : offset === -1 ? 'Yesterday' : dayShort.format(noon);
+        const rel = offset === 0 ? 'Today' : offset === 1 ? 'Tomorrow' : offset === -1 ? 'Yesterday' : dayShort.format(noon);
+        const total = totals.get(key) || group.length;
+        const count = group.length === total
+          ? `${group.length} ${group.length === 1 ? 'interruption' : 'interruptions'}`
+          : `${group.length} of ${total}`;
+        // Exactly one now line on the page: inside today, between the last window that has
+        // started and the first that has not, or closing the section when none is left.
+        const anchor = key === today ? nowAnchor(group, now) : -1;
+        const rows = group
+          .map((entry, index) => `${index === anchor ? nowLineHtml(now) : ''}${row(entry, key, now, today)}`)
+          .join('');
         return `
-          <section class="day">
+          <section class="day" id="day-${esc(key)}" data-day="${esc(key)}">
             <div class="day-head">
-              <h2 class="day-name">${name}</h2>
-              <span class="day-date">${dayFull.format(noon)}</span>
-              <span class="day-count">${group.length} ${group.length === 1 ? 'interruption' : 'interruptions'}</span>
+              <h2 class="day-name"><span class="day-rel"${offset === 0 ? ' data-today' : ''}>${esc(rel)}</span><span class="day-date">${esc(dateShort.format(noon))}</span></h2>
+              <span class="day-count">${count}</span>
             </div>
             ${rail(group, key, now)}
-            ${group.map((entry) => row(entry, now)).join('')}
+            ${rows}${key === today && anchor === -1 ? nowLineHtml(now) : ''}
           </section>`;
       })
       .join('');
+
+    renderFortnight(now, today);
+    paintCityHits(list, needle);
+    paintHits(needle);
   }
 
   function render() {
@@ -999,36 +1732,85 @@ const description =
     renderFeed();
   }
 
+  // The now line is the page-scale cursor, so the minute tick has to move it rather than
+  // let it drift: same node, same label, one insertBefore when its anchor row changes.
+  function ageNowLine(now: number, today: string) {
+    const section = feed.querySelector<HTMLElement>(`.day[data-day="${today}"]`);
+    let line = feed.querySelector<HTMLElement>('.now-line');
+    const rows = section ? [...section.querySelectorAll<HTMLElement>('.row[data-key]')] : [];
+    if (!section || !rows.length) {
+      line?.remove();
+      return;
+    }
+    if (!line) {
+      line = document.createElement('div');
+      line.className = 'now-line';
+      line.setAttribute('role', 'separator');
+      line.append(document.createElement('span'));
+    }
+    const label = nowLabel(now);
+    if (line.getAttribute('aria-label') !== label) {
+      line.setAttribute('aria-label', label);
+      line.firstElementChild!.textContent = label;
+    }
+    const anchor = rows.find((node) => {
+      const entry = byKey.get(node.dataset.key || '');
+      return Boolean(entry) && Date.parse(entry!.start) > now;
+    }) || null;
+    // Only move it when the anchor actually changed, or every tick costs two mutations.
+    if (line.parentNode === section && line.nextElementSibling === anchor) return;
+    if (anchor) section.insertBefore(line, anchor);
+    else section.append(line);
+  }
+
   // The minute tick only ages statuses. Patching the rows in place keeps open "Why"
   // panels open and keyboard focus where the user left it; a full rebuild would not.
   function refresh() {
     const now = Date.now();
+    const today = manilaDate(now);
     renderVerdict();
 
-    const byKey = new Map(entries.map((entry) => [keyOf(entry), entry]));
+    // Past midnight every relative word, every "today" marker and the now line belong to
+    // a different day, and no amount of in-place patching can fix that.
+    if (renderedToday && renderedToday !== today) {
+      renderFeed();
+      return;
+    }
+
     for (const node of feed.querySelectorAll<HTMLElement>('.row[data-key]')) {
       const entry = byKey.get(node.dataset.key || '');
       if (!entry) continue;
       const state = entryStatus(entry, now).state;
-      const pill = node.querySelector<HTMLElement>('.row-state');
-      if (node.dataset.state !== state) {
-        node.dataset.state = state;
-        if (pill) {
-          pill.dataset.state = state;
-          const iconState = entry.possible && state === 'live' ? 'upcoming' : (state as keyof typeof STATE_ICONS);
-          pill.innerHTML = `${STATE_ICONS[iconState] || ''}${badgeFor(entry, now)}`;
-          continue;
-        }
+      const isToday = node.dataset.when === 'today';
+      if (node.dataset.state !== state) node.dataset.state = state;
+
+      const word = node.querySelector<HTMLElement>('.row-word');
+      const label = stateWord(entry, state, isToday);
+      if (word && word.textContent !== label) word.textContent = label;
+
+      // The countdown moves every minute, so it lives in a node that does not announce.
+      const text = stateSub(entry, state, now, isToday);
+      let sub = node.querySelector<HTMLElement>('.row-sub');
+      if (text && !sub) {
+        sub = document.createElement('span');
+        sub.className = 'row-sub';
+        sub.setAttribute('aria-live', 'off');
+        node.querySelector('.row-state')?.append(sub);
       }
-      if (pill) {
-        const badge = badgeFor(entry, now);
-        const label = pill.lastChild;
-        if (label && label.textContent !== badge) label.textContent = badge;
+      if (sub) {
+        if (!text) sub.remove();
+        else if (sub.textContent !== text) sub.textContent = text;
+      }
+
+      // The bar's own cursor, on today's rows only.
+      if (isToday) {
+        const tick = node.querySelector<HTMLElement>('.row-now');
+        if (tick) tick.style.left = pct((dayOffset(new Date(now).toISOString(), today) / 1440) * 100);
       }
     }
 
     // The rail is drawn once per render, so its blocks age here too — otherwise a window
-    // that just went live keeps the amber it was painted with while its row turns red.
+    // that just went live keeps the fill it was painted with while its row turns red.
     for (const block of feed.querySelectorAll<HTMLElement>('.rail-block[data-key]')) {
       const entry = byKey.get(block.dataset.key || '');
       if (!entry) continue;
@@ -1038,8 +1820,14 @@ const description =
 
     for (const railNode of feed.querySelectorAll<HTMLElement>('.rail[data-day]')) {
       const marker = railNode.querySelector<HTMLElement>('.rail-now');
-      if (marker) marker.style.left = `${(dayOffset(new Date(now).toISOString(), railNode.dataset.day!) / 1440) * 100}%`;
+      if (marker) marker.style.left = pct((dayOffset(new Date(now).toISOString(), railNode.dataset.day!) / 1440) * 100);
     }
+
+    // The fortnight's live numerals age with everything else: a tab open across a start
+    // must not keep a red row above an ink numeral.
+    paintFortnight(now);
+
+    ageNowLine(now, today);
   }
 
   function setHint(message: string, tone: 'neutral' | 'error' = 'neutral') {
@@ -1047,11 +1835,25 @@ const description =
     hint.dataset.tone = tone;
   }
 
-  // Remember whatever narrowed the view — typed area or the city we fell back to.
+  // Remember whatever narrowed the view: typed area or the city we fell back to. Storage
+  // throws outright when the visitor blocks site data, and a remembered area is a
+  // convenience, never a reason to take the schedule down with it.
   function remember() {
     const value = search.value.trim() || city;
-    if (value) localStorage.setItem(AREA_KEY, value);
-    else localStorage.removeItem(AREA_KEY);
+    try {
+      if (value) localStorage.setItem(AREA_KEY, value);
+      else localStorage.removeItem(AREA_KEY);
+    } catch {
+      /* blocked or full: the page works, it just will not greet you by area next time. */
+    }
+  }
+
+  function forget() {
+    try {
+      localStorage.removeItem(AREA_KEY);
+    } catch {
+      /* see remember(). */
+    }
   }
 
   async function locate() {
@@ -1084,7 +1886,7 @@ const description =
         if (cityHit) {
           search.value = '';
           city = cityHit[0];
-          setHint(`Nothing scheduled for ${barangay} itself — showing ${cityHit[0]}.`);
+          setHint(`Nothing scheduled for ${barangay} itself, showing ${cityHit[0]}.`);
         } else {
           setHint(`Located ${detected}.`);
         }
@@ -1120,9 +1922,15 @@ const description =
   });
 
   // The answer follows every keystroke; the 336-row list follows one frame after typing
-  // settles, because rebuilding it is style and paint on thousands of nodes.
+  // settles, because rebuilding it is style and paint on thousands of nodes. A typed area
+  // replaces the city filter rather than intersecting it: a Cebu City barangay typed with
+  // Talisay still pressed would otherwise answer "nothing scheduled" for an area that is.
   search.addEventListener('input', () => {
     detected = '';
+    if (city) {
+      city = '';
+      renderChips();
+    }
     renderVerdict();
     clearTimeout(typing);
     typing = window.setTimeout(() => {
@@ -1145,41 +1953,114 @@ const description =
     chipBox.querySelector<HTMLButtonElement>(`[data-city="${CSS.escape(city)}"]`)?.focus();
   });
 
+  // The long-area and long-street expanders. The area's full string is rebuilt from the
+  // entry, so 300 rows never carry two copies of their barangay list in the markup.
+  feed.addEventListener('click', (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('.row-more');
+    if (!button) return;
+    const open = button.getAttribute('aria-expanded') !== 'true';
+    button.setAttribute('aria-expanded', String(open));
+
+    if (button.classList.contains('row-streets-more')) {
+      button.closest('.row-body')?.querySelector('.row-streets')?.classList.toggle('open', open);
+      button.textContent = open ? 'show less' : 'show all streets';
+      paintHits(query());
+      return;
+    }
+
+    const rowNode = button.closest<HTMLElement>('.row');
+    const entry = byKey.get(rowNode?.dataset.key || '');
+    const label = rowNode?.querySelector<HTMLElement>('.row-area')?.firstChild;
+    if (!entry || !label) return;
+    const split = splitArea(entry.area) as { shown: string; hidden: number; tail: string };
+    label.nodeValue = open ? entry.area : `${split.shown}, `;
+    button.textContent = open
+      ? 'show less'
+      : split.tail ? `+${split.hidden} more in ${split.tail}` : `+${split.hidden} more`;
+    paintHits(query());
+  });
+
+  fortnight.addEventListener('click', (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('.fn-day');
+    if (!button || button.disabled) return;
+    const section = document.getElementById(`day-${button.dataset.key}`);
+    if (!section) return;
+    section.scrollIntoView({
+      behavior: matchMedia('(prefers-reduced-motion: no-preference)').matches ? 'smooth' : 'auto',
+      block: 'start',
+    });
+    // The rows scrolled past are only estimated heights until they render, so the first
+    // landing drifts by however wrong the estimate was. Correct it once, after the scroll
+    // settles, and only if it actually missed.
+    window.setTimeout(() => {
+      const margin = parseFloat(getComputedStyle(section).scrollMarginTop) || 0;
+      if (Math.abs(section.getBoundingClientRect().top - margin) > 2) {
+        section.scrollIntoView({ behavior: 'auto', block: 'start' });
+      }
+    }, 500);
+  });
+
   verdictMeta.addEventListener('click', (event) => {
     if (!(event.target as HTMLElement).closest('[data-reset]')) return;
     detected = '';
     search.value = '';
     city = '';
-    localStorage.removeItem(AREA_KEY);
+    forget();
     renderChips();
     render();
     search.focus();
   });
 
+  // "Show everything" means everything: the search, the city and both filters.
   clearBtn.addEventListener('click', () => {
     search.value = '';
     city = '';
     detected = '';
-    localStorage.removeItem(AREA_KEY);
+    hideDone.checked = false;
+    hidePossible.checked = false;
+    forget();
     renderChips();
     render();
     search.focus();
   });
 
   function stampFooter(data: Feed) {
-    const advisories = (data.posts || []).map((post) => post.title).join(' · ');
-    const facebook = ingestStale()
-      ? ` · Facebook not checked since ${whenChecked()}`
-      : ` · Facebook checked ${clock.format(new Date(ingest!.checkedAt!))}`;
+    const facebook = !ingestStale()
+      ? `Facebook checked ${clock.format(new Date(ingest!.checkedAt!))}`
+      : ingest?.checkedAt
+        ? `Facebook not checked since ${whenChecked()}`
+        : 'Facebook never checked';
+    const parts = [
+      `Checked ${stampFmt.format(new Date(data.updated))}`,
+      facebook,
+      `${entries.length} ${entries.length === 1 ? 'interruption' : 'interruptions'}`,
+      'Cebu time',
+    ];
     const latest = ingest?.latestPostAt
-      ? ` · latest VECO post ${clock.format(new Date(ingest.latestPostAt))}`
+      ? ` Latest Visayan Electric post ${clock.format(new Date(ingest.latestPostAt))}.`
       : '';
     // A half-read advisory is news, not something to swallow: the API says which post it
     // could not parse, so the stamp says it too.
-    const warnings = data.warnings?.length ? ` · ${data.warnings.join(' · ')}` : '';
-    updated.textContent =
-      `Checked ${stampFmt.format(new Date(data.updated))} · ${entries.length} interruptions${facebook}${latest}` +
-      `${advisories ? ` · ${advisories}` : ''}${warnings}`;
+    const warnings = data.warnings?.length ? ` ${data.warnings.map((line) => `${line.replace(/\.$/, '')}.`).join(' ')}` : '';
+    updated.textContent = `${parts.join(', ')}.${latest}${warnings}`;
+  }
+
+  /** Which parts of the page have anything to say. Hidden beats showing an empty control. */
+  function setChrome(mode: 'loading' | 'ok' | 'failed') {
+    const ok = mode === 'ok' && entries.length > 0;
+    failedNote.hidden = mode !== 'failed';
+    toolbar.hidden = !ok;
+    toolbarNote.hidden = !ok;
+    rangeHead.hidden = !ok;
+    fortnight.hidden = !ok;
+    citiesBox.hidden = !ok;
+    if (!ok) emptyNote.hidden = true;
+
+    const from = feedWindow?.from;
+    const to = feedWindow?.to;
+    rangeHead.textContent = ok && from && to
+      ? `Schedule, ${monthDay.format(new Date(`${from}T12:00:00+08:00`))} to ${monthDay.format(new Date(`${to}T12:00:00+08:00`))}, Cebu time`
+      : 'Schedule';
   }
 
   // One load path for the first paint and for every refresh. Nothing on screen is
@@ -1197,6 +2078,8 @@ const description =
     const moved = sig !== feedSig;
     feedSig = sig;
     entries = data.entries || [];
+    byKey = new Map(entries.map((entry) => [keyOf(entry), entry]));
+    feedWindow = data.window;
     ingest = data.ingest;
     fetchedAt = Date.parse(data.updated) || Date.now();
     stampFooter(data);
@@ -1210,8 +2093,7 @@ const description =
       const moved = await load();
       // A reload that succeeds after a failed first read is a recovery: clear the failure
       // note and bring the filters back rather than waiting for a manual retry.
-      failedNote.hidden = true;
-      toolbar.hidden = entries.length === 0;
+      setChrome('ok');
       renderStaleNotice();
       if (moved) {
         renderChips();
@@ -1228,35 +2110,49 @@ const description =
     }
   }
 
-  const saved = localStorage.getItem(AREA_KEY);
+  // Blocked site data throws on the read itself, and this runs before boot(): an
+  // unguarded getItem would abort the module and freeze the page on its seed markup.
+  let saved: string | null = null;
+  try {
+    saved = localStorage.getItem(AREA_KEY);
+  } catch {
+    /* see remember(). */
+  }
   if (saved) {
-    // A remembered city restores as the chip filter; anything else as the search term.
-    if (CITIES.some(([name]: [string, RegExp]) => name === saved)) city = saved;
+    // A remembered city restores as the strip filter; anything else as the search term.
+    if ((CITY_ORDER as readonly string[]).includes(saved)) city = saved;
     else search.value = saved;
     setHint('Using the area you checked last time.');
   }
 
+  // Placeholders on the real row grid: the list's shape is known before its contents are.
+  const SKELETON_ROW =
+    '<div class="row skel" aria-hidden="true"><div class="row-time"><span class="sk sk-t"></span></div>' +
+    '<div class="row-bar"><span class="sk-bar"></span></div>' +
+    '<div class="row-body"><span class="sk sk-a"></span><span class="sk sk-b"></span></div>' +
+    '<div class="row-state"></div></div>';
+
   async function boot() {
-    failedNote.hidden = true;
-    feed.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+    setChrome('loading');
+    feed.innerHTML = `<section class="day">${SKELETON_ROW.repeat(3)}</section>`;
     try {
       await load();
+      setChrome('ok');
       renderChips();
       renderStaleNotice();
       render();
-      toolbar.hidden = entries.length === 0;
     } catch (error) {
       // One voice for one failure: the verdict says the schedule could not be read, so the
       // staleness notice (which blames the Facebook poller) would be a second, wronger
-      // explanation of the same outage. The toolbar filters nothing, so it goes too.
+      // explanation of the same outage. Every control filters nothing, so they go too.
       feed.innerHTML = '';
-      emptyNote.hidden = true;
-      toolbar.hidden = true;
+      entries = [];
+      byKey = new Map();
       verdictStale.hidden = true;
       verdictStale.textContent = '';
       renderVerdict();
-      failedNote.hidden = false;
-      updated.textContent = 'Advisory feed unreachable.';
+      setChrome('failed');
+      updated.textContent = 'Feed unreachable.';
       console.error(error);
     }
   }
@@ -1272,9 +2168,9 @@ const description =
 
   await boot();
 
-  // The tick ages the badges and the rail; once the payload itself is old it gets re-read,
-  // and a tab coming back into view always does. Installed even if the first read failed,
-  // so an unreachable feed recovers on its own.
+  // The tick ages the words, the bars, the rail and the now line; once the payload itself
+  // is old it gets re-read, and a tab coming back into view always does. Installed even if
+  // the first read failed, so an unreachable feed recovers on its own.
   setInterval(() => {
     if (Date.now() - lastFetch > REFETCH_MS) void reload();
     else refresh();

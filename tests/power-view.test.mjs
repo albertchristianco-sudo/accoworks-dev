@@ -3,11 +3,16 @@ import test from 'node:test';
 
 import {
   badgeFor,
+  CITIES,
   citiesOf,
+  CITY_ORDER,
+  cityRows,
   dayOffset,
   gap,
   isVisible,
+  splitArea,
   verdictView,
+  windowDays,
 } from '../src/scripts/power-view.mjs';
 
 const at = (iso) => Date.parse(`2026-09-03T${iso}:00+08:00`);
@@ -144,4 +149,119 @@ test('with no area given the verdict asks for one instead of answering', () => {
   const empty = verdictView({ entries: [], scope: [], label: '', scoped: false, now });
   assert.equal(empty.tone, 'wait');
   assert.deepEqual(empty.head, ['No advisories available']);
+});
+
+// Two real Visayan Electric area strings: the rotational list that puts the city last,
+// and the parenthesised form that puts it first.
+const ROTATIONAL = 'Agsungot, Apas, Babag, Binaliw, Bonbon, Buot, Busay, Camputhaw, Guba, Lahug, Malubog, Pulangbato, Pung-ol Sibugay, San Roque, Sirao, Tabunan, Tagba-o, Taptap, Cebu City';
+const PARENTHESISED = 'City of Naga & Minglanilla (Alpaco, Balirong, Cantao-an, Cogon, Jaguimit, Lanas, Lutac, Mayana, Pangdan, South Poblacion, Tagjaguimit, Uling & Camp 8)';
+
+test('clamping a barangay list keeps the city a CSS clamp would have eaten', () => {
+  const long = splitArea(ROTATIONAL);
+  assert.equal(long.shown, 'Agsungot, Apas, Babag, Binaliw, Bonbon');
+  assert.equal(long.hidden, 13);
+  // The whole point: "Cebu City" survives as the tail, so the expander can name it.
+  assert.equal(long.tail, 'Cebu City');
+  assert.ok(!long.shown.includes('Cebu City'));
+  assert.ok(!long.shown.endsWith(','));
+
+  // A different budget moves the cut, never the city.
+  const tight = splitArea(ROTATIONAL, 2);
+  assert.equal(tight.shown, 'Agsungot, Apas');
+  assert.equal(tight.hidden, 16);
+  assert.equal(tight.tail, 'Cebu City');
+});
+
+test('a parenthesised area collapses inside the parens', () => {
+  const split = splitArea(PARENTHESISED);
+  assert.equal(split.shown, 'Alpaco, Balirong, Cantao-an, Cogon, Jaguimit');
+  // Eleven comma segments, and the last one is two barangays joined with "&".
+  assert.equal(split.hidden, 8);
+  assert.equal(split.tail, 'City of Naga & Minglanilla');
+
+  // The city phrase is never counted as a barangay, however few are listed.
+  const short = splitArea('City of Naga & Minglanilla (Alpaco, Cogon)');
+  assert.equal(short.shown, 'Alpaco, Cogon');
+  assert.equal(short.hidden, 0);
+  assert.equal(short.tail, 'City of Naga & Minglanilla');
+});
+
+test('a short area hides nothing, so the page prints it whole', () => {
+  assert.deepEqual(splitArea('Talamban, Cebu City'), { shown: 'Talamban', hidden: 0, tail: 'Cebu City' });
+  assert.deepEqual(splitArea('Guadalupe'), { shown: 'Guadalupe', hidden: 0, tail: '' });
+  assert.equal(splitArea(ROTATIONAL, 18).hidden, 0);
+});
+
+// The tail rule cuts both ways: the trailing segment is the city only when it is one.
+test('a trailing barangay stays a barangay, and only an LGU becomes the tail', () => {
+  const brgys = 'Agsungot, Apas, Babag, Binaliw, Bonbon, Buot, Busay, Guba, Lahug, Malubog, Sirao, Tabunan, Tagba-o, Taptap';
+  const pure = splitArea(brgys);
+  assert.equal(pure.tail, '');
+  // Taptap is a barangay, so it stays in the list and still counts towards the hidden.
+  assert.equal(pure.hidden, 9);
+  assert.equal(splitArea(brgys, 14).shown, brgys);
+  assert.equal(splitArea(brgys, 14).hidden, 0);
+
+  // A franchise LGU still wins the city slot, with or without its "City" suffix.
+  assert.equal(splitArea(ROTATIONAL).tail, 'Cebu City');
+  assert.deepEqual(splitArea('Talamban, Cebu City'), { shown: 'Talamban', hidden: 0, tail: 'Cebu City' });
+  assert.deepEqual(splitArea('Maguikay, Mandaue City'), { shown: 'Maguikay', hidden: 0, tail: 'Mandaue City' });
+  // The parenthesised form never read the trailing segment, so its city phrase is untouched.
+  assert.equal(splitArea(PARENTHESISED).tail, 'City of Naga & Minglanilla');
+
+  // The doc comment's own example: "Portions of ..." is no LGU either, so it stays put.
+  const portions = splitArea('Talisay City, Portions of Corona del Mar');
+  assert.equal(portions.tail, '');
+  assert.equal(portions.shown, 'Talisay City, Portions of Corona del Mar');
+});
+
+test('every city in the strip order is a franchise LGU, ordered north to south', () => {
+  const known = CITIES.map(([name]) => name);
+  for (const name of CITY_ORDER) assert.ok(known.includes(name), `${name} is not a CITIES entry`);
+  assert.equal(CITY_ORDER.length, known.length);
+  assert.ok(Object.isFrozen(CITY_ORDER));
+  // Geographic, not alphabetical: Danao is the far north, San Fernando the far south.
+  assert.equal(CITY_ORDER[0], 'Danao');
+  assert.equal(CITY_ORDER.at(-1), 'San Fernando');
+  assert.ok(CITY_ORDER.indexOf('Mandaue') < CITY_ORDER.indexOf('Cebu City'));
+});
+
+test('the city strip counts one advisory in both LGUs it spans', () => {
+  const both = 'City of Naga & Minglanilla (Alpaco, Cogon)';
+  const rows = cityRows([entry({ area: both, areasRaw: both })]);
+  const counts = new Map(rows.map((row) => [row.name, row.count]));
+  assert.equal(counts.get('Naga'), 1);
+  assert.equal(counts.get('Minglanilla'), 1);
+  // The seven the page always shows stay, at zero; the outer LGUs stay out.
+  assert.deepEqual(rows.map((row) => row.name), [
+    'Liloan', 'Consolacion', 'Mandaue', 'Cebu City', 'Talisay', 'Minglanilla', 'Naga',
+  ]);
+  assert.equal(counts.get('Cebu City'), 0);
+  assert.equal(counts.has('Other'), false);
+});
+
+test('an outer LGU earns a row by having something, and Other comes last', () => {
+  const rows = cityRows([
+    entry({ area: 'Danao City', areasRaw: 'Danao City' }),
+    entry({ area: 'Barili', areasRaw: 'Barili' }),
+    entry({ area: 'Barili', areasRaw: 'Barili' }),
+  ]);
+  assert.deepEqual(rows.map((row) => row.name), [
+    'Danao', 'Liloan', 'Consolacion', 'Mandaue', 'Cebu City', 'Talisay', 'Minglanilla', 'Naga', 'Other',
+  ]);
+  assert.deepEqual(rows.at(-1), { name: 'Other', count: 2 });
+  assert.equal(rows[0].count, 1);
+  assert.deepEqual(cityRows([]).map((row) => row.count), [0, 0, 0, 0, 0, 0, 0]);
+});
+
+test('the day window is inclusive and survives month and year ends', () => {
+  assert.deepEqual(windowDays('2026-09-03', '2026-09-05'), ['2026-09-03', '2026-09-04', '2026-09-05']);
+  assert.deepEqual(windowDays('2026-09-03', '2026-09-03'), ['2026-09-03']);
+  // The page publishes 14 days, today included.
+  assert.equal(windowDays('2026-09-03', '2026-09-16').length, 14);
+  assert.deepEqual(windowDays('2026-08-30', '2026-09-02'), ['2026-08-30', '2026-08-31', '2026-09-01', '2026-09-02']);
+  assert.deepEqual(windowDays('2026-12-30', '2027-01-02'), ['2026-12-30', '2026-12-31', '2027-01-01', '2027-01-02']);
+  assert.deepEqual(windowDays('2028-02-28', '2028-03-01'), ['2028-02-28', '2028-02-29', '2028-03-01']);
+  // A backwards range is empty, never a loop that never ends.
+  assert.deepEqual(windowDays('2026-09-05', '2026-09-03'), []);
 });
