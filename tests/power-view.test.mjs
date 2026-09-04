@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { lookupPlace } from '../src/scripts/franchise.mjs';
 import {
   badgeFor,
   CITIES,
@@ -10,6 +11,7 @@ import {
   dayOffset,
   gap,
   isVisible,
+  matches,
   splitArea,
   verdictView,
   windowDays,
@@ -85,11 +87,11 @@ test('a confirmed outage beats a possible window in the same hour', () => {
   const scope = [slot, sure];
   const view = verdictView({ entries: scope, scope, label: 'Cebu City', scoped: true, now });
   assert.equal(view.tone, 'out');
-  assert.deepEqual(view.head, ['Yes — power is out now in Cebu City']);
+  assert.deepEqual(view.head, ['Yes, power is out now in Cebu City']);
 
   const possibleOnly = verdictView({ entries: [slot], scope: [slot], label: 'Cebu City', scoped: true, now });
   assert.equal(possibleOnly.tone, 'wait');
-  assert.match(possibleOnly.head[0], /^Maybe —/);
+  assert.match(possibleOnly.head[0], /^Maybe,/);
 });
 
 test('the live-region key holds still through a minute tick', () => {
@@ -264,4 +266,149 @@ test('the day window is inclusive and survives month and year ends', () => {
   assert.deepEqual(windowDays('2028-02-28', '2028-03-01'), ['2028-02-28', '2028-02-29', '2028-03-01']);
   // A backwards range is empty, never a loop that never ends.
   assert.deepEqual(windowDays('2026-09-05', '2026-09-03'), []);
+});
+
+// Visayan Electric and its readers spell the same barangay differently, and the difference
+// is always punctuation: To-ong or Toong, Tolo-tolo or Tolotolo, Sto. Niño or Sto. Nino.
+// A search that answers "no rows" because of a hyphen is the worst kind of wrong.
+test('a hyphen, a period or an enye never hides a row', () => {
+  const of = (name) => entry({ area: `${name}, Cebu City`, streets: `portions of ${name}`, areasRaw: `Portion of ${name}, Cebu City` });
+
+  // Both directions: the feed's spelling against the reader's, and back.
+  assert.equal(isVisible(of('Toong Pardo'), { needle: 'to-ong', now }), true);
+  assert.equal(isVisible(of('To-ong Pardo'), { needle: 'toong', now }), true);
+  assert.equal(matches(of('Tolotolo'), 'tolo-tolo'), true);
+  assert.equal(matches(of('Tolo-tolo'), 'tolotolo'), true);
+  assert.equal(matches(of('Calajoan'), 'calajo-an'), true);
+  assert.equal(matches(of('Kinasang-an'), 'kinasangan'), true);
+  assert.equal(matches(of('Sto. Niño'), 'sto nino'), true);
+  // An enye typed against the plain spelling the feed actually uses, and the reverse.
+  assert.equal(matches(of('Sto. Nino'), 'niño'), true);
+  assert.equal(matches(of('Sto. Niño'), 'nino'), true);
+
+  // Folding is not licence to match anything: the old answers still hold.
+  assert.equal(matches(entry(), 'highway 77'), true);
+  assert.equal(matches(entry(), 'talisay'), false);
+  assert.equal(matches(entry(), ''), true);
+  assert.equal(isVisible(entry(), { needle: 'talamban', now }), true);
+  assert.equal(isVisible(entry(), { needle: 'guadalupe', now }), false);
+});
+
+// A place outside the franchise is the one question this page used to answer with a
+// confident, green, completely wrong "nothing scheduled".
+test('a place Visayan Electric does not serve is told so, not told it is quiet', () => {
+  const row = entry();
+  const place = lookupPlace('Lapu-Lapu');
+  assert.equal(place?.kind, 'outside');
+  const view = verdictView({ entries: [row], scope: [], label: 'Lapu-Lapu', scoped: true, now, place });
+
+  assert.equal(view.tone, 'wait');
+  assert.deepEqual(view.head, ['Visayan Electric does not serve Lapu-Lapu City']);
+  const said = `${view.head.join('')} ${view.detail.join('')}`;
+  // The utility that does serve them, by name, twice over: what it is and who to ask.
+  assert.equal(said.split('Mactan Electric Company (MECO)').length - 1, 2);
+  assert.doesNotMatch(said, /nothing scheduled|no interruption is published/i);
+  assert.ok(view.detail.every((seg) => typeof seg === 'string'));
+
+  // Even with the feed unread, the answer is the same: it was never in this feed.
+  const blind = verdictView({ entries: [], scope: [], label: 'Lapu-Lapu', scoped: true, stale: true, now, place });
+  assert.deepEqual(blind.head, view.head);
+  assert.equal(blind.tone, 'wait');
+
+  // Its own tone deserves its own key, or the live region announces the wrong change.
+  const unknown = verdictView({ entries: [row], scope: [], label: 'Lapu-Lapu', scoped: true, now, place: null });
+  assert.notEqual(view.key, unknown.key);
+  assert.ok(!/\d/.test(view.key.replace(/T\d\d:\d\d:\d\d\+\d\d:\d\d|\d{4}-\d\d-\d\d/g, '')));
+});
+
+test('a franchise barangay with nothing published reads as covered, not unknown', () => {
+  const elsewhere = entry({ area: 'Guadalupe, Cebu City' });
+  const args = { entries: [elsewhere], scope: [], label: 'Kalunasan', scoped: true, now };
+
+  const covered = verdictView({ ...args, place: { kind: 'barangay', place: 'Kalunasan', lgus: ['Cebu City'] } });
+  assert.equal(covered.tone, 'clear');
+  assert.deepEqual(covered.head, ['No, nothing scheduled for Kalunasan']);
+  assert.deepEqual(covered.detail, [
+    'Kalunasan is inside Visayan Electric’s franchise in Cebu City, and no interruption is published for it in the next 14 days.',
+  ]);
+
+  // The same empty scope, a name nobody recognises: a different answer and a different key.
+  const unknown = verdictView({ ...args, place: null });
+  assert.equal(unknown.tone, 'clear');
+  assert.deepEqual(unknown.head, ['No, nothing scheduled for Kalunasan']);
+  assert.match(unknown.detail[0], /^No interruption is published for that area in the next 14 days\. /);
+  // The limit is stated as a condition, never as a claim that the name is not covered:
+  // `lookupPlace` knows barangays and cities, so every street arrives here as `null` too.
+  assert.match(unknown.detail[0], /covers only the 8 cities and towns/);
+  assert.match(unknown.detail[0], /If you are outside those/);
+  assert.doesNotMatch(unknown.detail[0], /not one Visayan Electric lists/);
+  assert.notEqual(covered.key, unknown.key);
+
+  // An LGU the strip always shows arrives as `null` as well, because nothing was typed to
+  // look up, and it is not an unknown name.
+  const chip = verdictView({ ...args, label: 'Liloan', place: null });
+  assert.deepEqual(chip.detail, ['No interruption is published for that area in the next 14 days.']);
+
+  // A scope holding only a finished row published something, so it keeps the old copy.
+  const done = entry({ start: '2026-09-02T09:00:00+08:00', end: '2026-09-02T15:00:00+08:00' });
+  const quiet = verdictView({ ...args, scope: [done], place: { kind: 'barangay', place: 'Talamban', lgus: ['Cebu City'] } });
+  assert.deepEqual(quiet.detail, ['No interruption is published for that area in the next 14 days.']);
+});
+
+// Twelve barangay names occur in two franchise LGUs, and Casili is the sharpest: a Mandaue
+// reader searching it gets nine Consolacion rows and none of their own.
+test('a barangay name two LGUs share adds exactly one sentence, and only over rows', () => {
+  const row = entry({ area: 'Casili, Consolacion', areasRaw: 'Casili, Consolacion' });
+  const args = { entries: [row], scope: [row], label: 'Casili', scoped: true, now };
+  const place = { kind: 'barangay', place: 'Casili', lgus: ['Mandaue', 'Consolacion'] };
+
+  const base = verdictView(args);
+  const shared = verdictView({ ...args, place });
+  assert.equal(shared.tone, base.tone);
+  assert.deepEqual(shared.head, base.head);
+  assert.deepEqual(shared.detail.slice(0, base.detail.length), base.detail);
+  assert.equal(shared.detail.length, base.detail.length + 1);
+  const added = shared.detail.at(-1);
+  assert.equal(added, ' Casili names a barangay in Mandaue and Consolacion, so check the city on each row.');
+  // Exactly one sentence, so the answer gains a caveat and not a paragraph.
+  assert.equal(added.match(/\./g).length, 1);
+  assert.notEqual(shared.key, base.key);
+
+  // Three-way names read as a list, not as a run of "and".
+  const three = verdictView({
+    ...args,
+    label: 'San Roque',
+    place: { kind: 'barangay', place: 'San Roque', lgus: ['Cebu City', 'Talisay', 'Liloan'] },
+  });
+  assert.match(three.detail.at(-1), / in Cebu City, Talisay and Liloan, /);
+
+  // With no rows below, there is no city to check on anything.
+  const empty = verdictView({ ...args, scope: [], place });
+  assert.ok(empty.detail.every((seg) => !/check the city/.test(String(seg))));
+});
+
+// The whole `place` argument is additive: a caller that never passes it must get the same
+// four values it got before the argument existed, key included.
+test('omitting place answers exactly what the page answered before', () => {
+  const done = entry({ start: '2026-09-02T09:00:00+08:00', end: '2026-09-02T15:00:00+08:00' });
+  const args = { entries: [done], label: 'Talamban', scoped: true, now };
+
+  for (const scope of [[done], []]) {
+    const view = verdictView({ ...args, scope });
+    assert.equal(view.tone, 'clear');
+    assert.deepEqual(view.head, ['No, nothing scheduled for Talamban']);
+    assert.deepEqual(view.detail, ['No interruption is published for that area in the next 14 days.']);
+    assert.equal(view.key, 'clear|Talamban||');
+  }
+
+  const live = entry();
+  const out = verdictView({ entries: [live], scope: [live], label: 'Talamban', scoped: true, now });
+  assert.equal(out.tone, 'out');
+  assert.deepEqual(out.head, ['Yes, power is out now in Talamban']);
+  assert.equal(out.key, 'out|Talamban|2026-09-03T09:00:00+08:00|');
+  assert.equal(out.detail.length, 3);
+
+  const asking = verdictView({ entries: [live], scope: [live], label: '', scoped: false, now });
+  assert.deepEqual(asking.head, ['Tell me where you are']);
+  assert.equal(asking.key, 'idle||2026-09-03T09:00:00+08:00|');
 });

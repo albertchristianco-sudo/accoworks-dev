@@ -2,6 +2,7 @@
 // what the verdict box answers. No DOM — the page owns the plumbing, this owns the
 // answers, and tests/power-view.test.mjs owns the proof.
 
+import { fold } from './franchise.mjs';
 import { addDays, entryStatus, manilaDate } from './outages.mjs';
 
 // Areas read like "Talisay City, Portions of Corona del Mar" or "City of Naga &
@@ -127,8 +128,40 @@ export function splitArea(area, keep = 5) {
   return { shown: names.slice(0, keep).join(', '), hidden: Math.max(0, names.length - keep), tail };
 }
 
+// One folded haystack per entry, built the first time that entry is searched and keyed by
+// the entry object itself. A refresh replaces the array wholesale with freshly parsed
+// objects (`entries = data.entries`), so a re-fetched advisory arrives as a new key with
+// no cache slot: this map can never hand back text the feed has since changed, and the
+// superseded objects take their strings with them when they are collected.
+const hays = new WeakMap();
+
+// `fold` turns a hyphen into a space, which is right for reading and wrong for matching:
+// "to-ong" would still miss "Toong". Dropping the spaces on both sides is what makes
+// to-ong/Toong, tolo-tolo/Tolotolo and calajo-an/Calajoan the same needle. It can also
+// join two words into one hit ("Pepito Sr." contains "pitos"), which is over-inclusive
+// rather than wrong, and cheaper than tokenising 400 rows a keystroke.
+// Exported because the page's area clamp must decide "is the hit visible" on exactly the
+// string this matched on; two normalisers would show a row with its reason clipped off.
+export const squeeze = (text) => fold(text).replace(/ /g, '');
+
+// One keystroke calls matches() once per entry, ~400 times with the identical needle, so
+// the needle is folded once and remembered until it changes.
+let lastNeedle;
+let lastSqueezed = '';
+
 export function matches(entry, needle) {
-  return !needle || `${entry.area} ${entry.streets} ${entry.areasRaw}`.toLowerCase().includes(needle);
+  // Pure punctuation folds away to nothing, and ''.includes() is true for every row.
+  if (!needle || !squeeze(needle)) return true;
+  if (needle !== lastNeedle) {
+    lastNeedle = needle;
+    lastSqueezed = squeeze(needle);
+  }
+  let hay = hays.get(entry);
+  if (hay === undefined) {
+    hay = squeeze(`${entry.area} ${entry.streets} ${entry.areasRaw}`);
+    hays.set(entry, hay);
+  }
+  return hay.includes(lastSqueezed);
 }
 
 /** One row's visibility under the current filters. */
@@ -160,6 +193,8 @@ export function dayOffset(iso, key) {
   return Math.max(0, Math.min(1440, Math.round((Date.parse(iso) - base) / 60000)));
 }
 
+const andList = (names) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names.join(''));
+
 /**
  * The whole verdict: tone, the two lines, and a stable identity for the aria-live region.
  *
@@ -167,8 +202,23 @@ export function dayOffset(iso, key) {
  * countdown. The countdown is the only part that moves every minute, so the page paints
  * it into a node that does not announce; everything else is rewritten (and announced)
  * only when `key` changes.
+ *
+ * `place` is the caller's `lookupPlace()` result: an object, or `null` for text that was
+ * looked up and not recognised. Omitting it entirely is the third state, and it answers
+ * exactly what this function answered before `place` existed. The three states are the
+ * whole point of the annotation below: absent, `null`, or a result.
+ *
+ * @param {{
+ *   entries: any[],
+ *   scope: any[],
+ *   label: string,
+ *   scoped: boolean,
+ *   stale?: boolean,
+ *   now?: number,
+ *   place?: { kind: string, place: string, lgus: readonly string[], utility?: string } | null,
+ * }} args
  */
-export function verdictView({ entries, scope, label, scoped, stale = false, now = Date.now() }) {
+export function verdictView({ entries, scope, label, scoped, stale = false, now = Date.now(), place = undefined }) {
   // Confirmed interruptions answer the question; "possible" rotational slots only ever
   // warn, because VECO implements them solely when NGCP calls for load reduction.
   const live = scope
@@ -183,8 +233,20 @@ export function verdictView({ entries, scope, label, scoped, stale = false, now 
   let tone = 'idle';
   let head = [];
   let detail = [];
+  // A suffix for the live-region key. It stays empty for every answer this page already
+  // gave, so those keys are byte for byte what they were before `place` existed.
+  let mark = '';
 
-  if (!entries.length) {
+  if (place?.kind === 'outside') {
+    // True whether or not the feed loaded: the reader's distributor is not the one this
+    // page reads, so there is no schedule here to call quiet.
+    tone = 'wait';
+    mark = 'outside';
+    head = [`Visayan Electric does not serve ${place.place}`];
+    detail = [
+      `${place.utility} distributes power there, not Visayan Electric, so no schedule for ${place.place} will ever appear on this page. Check with ${place.utility} for that area.`,
+    ];
+  } else if (!entries.length) {
     tone = 'wait';
     head = ['No advisories available'];
     detail = ['Visayan Electric’s schedule could not be read just now. Try again in a few minutes.'];
@@ -201,7 +263,7 @@ export function verdictView({ entries, scope, label, scoped, stale = false, now 
     tone = 'out';
     const soonest = liveSure[0];
     const left = entryStatus(soonest, now).minutes ?? 0;
-    head = [`Yes — power is out now in ${label}`];
+    head = [`Yes, power is out now in ${label}`];
     detail = [
       `${soonest.area}: back around ${clock.format(new Date(soonest.end))}, `,
       { count: `about ${gap(left)} from now` },
@@ -210,7 +272,7 @@ export function verdictView({ entries, scope, label, scoped, stale = false, now 
   } else if (livePossible.length) {
     tone = 'wait';
     const slot = livePossible[0];
-    head = [`Maybe — ${label} is in a rotational brownout window now`];
+    head = [`Maybe, ${label} is in a rotational brownout window now`];
     detail = [
       `Window ${clock.format(new Date(slot.start))} to ${clock.format(new Date(slot.end))}. Visayan Electric only cuts power if NGCP calls for load reduction, so it may not happen.`,
     ];
@@ -225,13 +287,45 @@ export function verdictView({ entries, scope, label, scoped, stale = false, now 
       : ['Power goes out in ', { count: gap(away) }];
     detail = [
       next.possible
-        ? `Next rotational window: ${when} to ${clock.format(new Date(next.end))} (${next.hours}h) — possible, not confirmed.`
-        : `Next: ${next.area} — ${when} to ${clock.format(new Date(next.end))} (${next.hours}h).`,
+        ? `Next rotational window: ${when} to ${clock.format(new Date(next.end))} (${next.hours}h), possible, not confirmed.`
+        : `Next: ${next.area}, ${when} to ${clock.format(new Date(next.end))} (${next.hours}h).`,
     ];
   } else {
     tone = 'clear';
-    head = [`No — nothing scheduled for ${label}`];
+    head = [`No, nothing scheduled for ${label}`];
     detail = ['No interruption is published for that area in the next 14 days.'];
+    // An empty scope has more than one reason, and only one of them is "nothing is
+    // scheduled". The name can be a barangay this franchise covers on a quiet fortnight,
+    // or a name it has never heard of. A scope holding only finished rows keeps the copy
+    // above, because something really was published for it.
+    if (!scope.length && (place?.kind === 'barangay' || place?.kind === 'city')) {
+      mark = 'covered';
+      const where = place.kind === 'barangay' && place.lgus?.length ? ` in ${andList(place.lgus)}` : '';
+      head = [`No, nothing scheduled for ${label}`];
+      detail = [`${label} is inside Visayan Electric’s franchise${where}, and no interruption is published for it in the next 14 days.`];
+      // A city chip with nothing listed hands us `null` too, since nothing was typed to
+      // look up. A franchise LGU is not an unknown name, so it keeps the plain copy.
+    } else if (!scope.length && place === null && !CITIES.some(([, re]) => re.test(label.toLowerCase()))) {
+      mark = 'unknown';
+      // `lookupPlace` knows barangays and cities, never streets, so an unrecognised name
+      // is not evidence of anything. State the limit as a condition, not as a verdict on
+      // the name: a Gorordo Avenue reader is inside the franchise and must not be sent
+      // to another utility.
+      detail = [
+        `${detail[0]} This page covers only the 8 cities and towns Visayan Electric ` +
+          'distributes to: Cebu City, Mandaue, Talisay, Naga, Liloan, Consolacion, ' +
+          'Minglanilla and San Fernando. If you are outside those, or the spelling differs ' +
+          'from the advisory, that is why nothing is showing.',
+      ];
+    }
+  }
+
+  // A barangay name two LGUs share answers confidently wrong on its own: a Mandaue reader
+  // searching Casili is shown Consolacion's rows. Say so once, and only while there are
+  // rows to check the city on.
+  if (scoped && scope.length && place?.lgus?.length > 1) {
+    mark = 'shared';
+    detail = [...detail, ` ${place.place} names a barangay in ${andList(place.lgus)}, so check the city on each row.`];
   }
 
   // A green "nothing scheduled" is not honest while the Facebook feed is unread: the
@@ -241,7 +335,7 @@ export function verdictView({ entries, scope, label, scoped, stale = false, now 
 
   // What the answer *is*, with no clock in it: the same answer one minute later produces
   // the same key, so the live region stays quiet while the countdown keeps moving.
-  const key = `${tone}|${label}|${live.map((e) => e.start).join(',')}|${next?.start ?? ''}`;
+  const key = `${tone}|${label}|${live.map((e) => e.start).join(',')}|${next?.start ?? ''}` + (mark ? `|${mark}` : '');
 
   return { tone, key, head, detail };
 }

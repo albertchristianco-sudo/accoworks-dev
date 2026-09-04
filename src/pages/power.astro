@@ -1,9 +1,36 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { FRANCHISE, fold } from '../scripts/franchise.mjs';
 
 const title = 'Will I have a power interruption? | Cebu outage tracker';
 const description =
-  'Check whether Visayan Electric has a power interruption scheduled for your barangay in Metro Cebu: what time it starts, how long it lasts, and when power returns.';
+  'Check whether Visayan Electric has a power interruption scheduled for your barangay in Cebu City, Mandaue, Talisay, Naga, Liloan, Consolacion, Minglanilla or San Fernando: what time it starts, how long it lasts, and when power returns.';
+
+type Suggestion = { value: string; lgus: string[] };
+
+// The barangay suggestions, built here at build time from the franchise roster: no runtime
+// fetch and no client script for any of it. Deduped by folded name so one spelling is
+// offered once, and where a name belongs to more than one LGU the single option says which,
+// because that is the case a reader has to settle before trusting a row.
+const suggestions: Suggestion[] = [];
+const byFold = new Map<string, Suggestion>();
+for (const lgu of FRANCHISE) {
+  for (const barangay of lgu.barangays) {
+    const key = fold(barangay);
+    const seen = byFold.get(key);
+    if (seen) {
+      if (!seen.lgus.includes(lgu.name)) seen.lgus.push(lgu.name);
+      continue;
+    }
+    const option: Suggestion = { value: barangay, lgus: [lgu.name] };
+    byFold.set(key, option);
+    suggestions.push(option);
+  }
+}
+
+/** "Banilad, in Cebu City and Mandaue". A label only earns its place on a collision. */
+const optionLabel = ({ value, lgus }: Suggestion) =>
+  lgus.length < 2 ? undefined : `${value}, in ${lgus.slice(0, -1).join(', ')} and ${lgus[lgus.length - 1]}`;
 ---
 
 <BaseLayout title={title} description={description} image="/og-power.png">
@@ -11,23 +38,44 @@ const description =
     <header class="ask">
       <h1 id="outage-title">Will I have a power interruption in my area?</h1>
       <p class="ask-lede">
-        Read straight from Visayan Electric’s published advisories for Metro Cebu. Cebu time,
-        next 14 days.
+        Read straight from Visayan Electric’s published advisories for the 8 cities and towns
+        it distributes to, Cebu time, next 14 days. Lapu-Lapu and Cordova run on Mactan
+        Electric, so this page cannot answer for them.
       </p>
 
       <form class="locator" data-form novalidate>
         <label class="eyebrow" for="area">Your barangay, street or city</label>
-        <input
-          id="area"
-          name="area"
-          type="text"
-          data-search
-          placeholder="For example, Guadalupe"
-          autocomplete="address-level4"
-          enterkeyhint="search"
-          aria-describedby="area-desc"
-          spellcheck="false"
-        />
+        <div class="ask-row">
+          <div class="field">
+            <svg class="field-ico" viewBox="0 0 20 20" aria-hidden="true">
+              <circle cx="9" cy="9" r="5.4" fill="none" stroke="currentColor" stroke-width="1.7" />
+              <path d="M13.1 13.1 17.4 17.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            </svg>
+            <input
+              id="area"
+              name="area"
+              type="text"
+              data-search
+              list="barangays"
+              placeholder="Barangay, street or city"
+              autocomplete="address-level4"
+              enterkeyhint="search"
+              aria-describedby="area-desc"
+              spellcheck="false"
+            />
+            <!-- Shown by CSS off :placeholder-shown, so a value set by geolocation or by the
+                 remembered area reveals it too, and it never sits in the tab order empty. -->
+            <button type="button" class="field-clear" data-clear-input aria-label="Clear">
+              <svg viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+              </svg>
+            </button>
+          </div>
+          <button type="submit" class="btn" data-check>Check</button>
+        </div>
+        <datalist id="barangays">
+          {suggestions.map((item) => <option value={item.value} label={optionLabel(item)} />)}
+        </datalist>
         <p class="search-aux">
           <button type="button" class="txtbtn" data-locate>
             <svg class="ico" viewBox="0 0 20 20" aria-hidden="true">
@@ -37,9 +85,12 @@ const description =
             </svg>
             Use my location
           </button>
-          <button type="submit" class="txtbtn" data-check>Check</button>
         </p>
-        <p class="field-hint visually-hidden" id="area-desc">Type a barangay, street or city in Metro Cebu.</p>
+        <p class="field-hint visually-hidden" id="area-desc">
+          Type a barangay, street or city in Visayan Electric’s franchise: Cebu City, Mandaue,
+          Talisay, Naga, Liloan, Consolacion, Minglanilla or San Fernando. Suggestions are
+          offered as you type.
+        </p>
         <p class="field-hint" role="status" data-hint>Or let the browser read your location once.</p>
       </form>
 
@@ -99,6 +150,14 @@ const description =
       <p class="fine">
         An unofficial mirror of Visayan Electric service interruption advisories and of their
         Facebook posts. Rotational brownout posts are picked up automatically every 15 minutes.
+      </p>
+      <p class="fine">
+        Visayan Electric distributes to 8 local governments, and this page can only answer for
+        those: Cebu City, Mandaue, Talisay, Naga, Liloan, Consolacion, Minglanilla and San
+        Fernando. Lapu-Lapu, Olango and Cordova are Mactan Electric. Danao, Compostela, Carmen
+        and Bogo are Cebu II Electric Cooperative. Carcar, Barili and Dumanjug are Cebu I.
+        Toledo, Balamban and Asturias are Cebu III. Interruptions in those areas are announced
+        by those utilities and never appear here.
       </p>
       <p class="fine">
         Schedules get moved, shortened, extended and cancelled without notice. Confirm on the
@@ -171,34 +230,129 @@ const description =
 
   .outage .locator label { display: block; margin-bottom: 8px; }
 
+  /* The field and its Check read as one control from 560px up; below that Check stacks
+     under it and goes full width. */
+  .outage .ask-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    max-width: 34em;
+  }
+
+  /* A surface, a boundary all round and a magnifier: at a glance this is something you
+     type into, which a 1px bottom rule alone never said. Still not a card. */
+  .outage .field {
+    position: relative;
+    display: flex;
+    flex: 1 1 15em;
+    align-items: center;
+    height: 56px;
+    background: var(--surface);
+    /* 0.47 alpha ink: the 3:1 a control boundary needs. Anything lighter is decoration. */
+    border: 1px solid var(--line-control);
+    border-radius: var(--radius);
+    transition: border-color 150ms var(--ease), box-shadow 150ms var(--ease);
+  }
+
+  .outage .field-ico {
+    position: absolute;
+    left: 16px;
+    width: 18px;
+    height: 18px;
+    color: var(--ink-3);
+    pointer-events: none;
+  }
+
   .outage input[type='text'] {
     display: block;
     width: 100%;
-    max-width: 34em;
-    padding: 0 0 10px;
+    min-width: 0;
+    height: 100%;
+    padding: 0 4px 0 46px;
     color: var(--ink);
     background: transparent;
     border: 0;
-    /* 0.47 alpha ink: the 3:1 a control boundary needs. Anything lighter is decoration. */
-    border-bottom: 1px solid var(--line-control);
-    border-radius: 0;
+    border-radius: var(--radius);
     font-family: var(--font-sans);
-    font-size: clamp(20px, 3.4vw, 24px);
+    font-size: clamp(18px, 3.4vw, 22px);
     line-height: 1.25;
     letter-spacing: -0.02em;
-    transition: border-color 150ms var(--ease);
   }
 
   .outage input[type='text']::placeholder { color: var(--ink-3); opacity: 1; }
+  .outage input[type='text']:focus { outline: none; }
 
-  /* 2px on focus with one less pixel of padding, so the field never shifts. */
-  .outage input[type='text']:focus {
-    outline: none;
-    padding-bottom: 9px;
-    border-bottom: 2px solid var(--accent);
+  /* Chrome draws its own black arrow for a `list` input, off-brand and right where the clear
+     sits. The magnifier and type-ahead are the affordance, and suggestions still filter as
+     you type, which is all Safari and Firefox ever offered. The !important is not a shortcut:
+     Chrome's UA sheet wins this pseudo-element without it, verified in the browser. */
+  .outage input[type='text']::-webkit-calendar-picker-indicator { display: none !important; }
+
+  /* 2px of accent drawn as a 1px border plus a 1px inset shadow, so nothing about the box
+     changes size on focus. Never a padding swap here: the icon is positioned off this edge. */
+  .outage .field:focus-within {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
   }
 
-  .outage input[type='text']:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+  /* The keyboard ring belongs to the whole control, not to the text inside its border. */
+  .outage .field:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 4px; }
+
+  /* Only ever meaningful when there is something to clear, and the placeholder is the tell:
+     no keystroke listener, and no invisible button in the tab order. */
+  .outage .field-clear {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    /* 44 square, centred in the control rather than stretched to it: the touch target the
+       guideline asks for, and a focus ring that clears the field's own border. */
+    width: 44px;
+    height: 44px;
+    margin-right: 4px;
+    padding: 0;
+    color: var(--ink-3);
+    background: none;
+    border: 0;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: color 160ms var(--ease);
+  }
+
+  .outage .field-clear:hover { color: var(--ink); }
+  .outage .field-clear:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+  .outage .field-clear svg { width: 20px; height: 20px; }
+  .outage input[type='text']:placeholder-shown ~ .field-clear { display: none; }
+
+  /* Check is the page's one solid action. It stays the submit, which is what makes Enter
+     answer at all. */
+  .outage .btn {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 20px;
+    color: var(--accent-ink);
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background-color 160ms var(--ease), border-color 160ms var(--ease);
+  }
+
+  .outage .btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .outage .btn:active { background: var(--accent-active); border-color: var(--accent-active); }
+  .outage .btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+  @media (max-width: 559px) {
+    .outage .btn { width: 100%; }
+  }
 
   .outage .search-aux {
     display: flex;
@@ -1073,6 +1227,8 @@ const description =
 
   @media (max-width: 680px) {
     .outage h1 { max-width: none; }
+    /* One step shorter, still well past the 44px a thumb needs. */
+    .outage .field { height: 52px; }
 
     .outage .row {
       grid-template-areas:
@@ -1151,9 +1307,11 @@ const description =
     isVisible,
     matches,
     splitArea,
+    squeeze,
     verdictView,
     windowDays,
   } from '../scripts/power-view.mjs';
+  import { lookupPlace } from '../scripts/franchise.mjs';
 
   type Entry = {
     kind: 'scheduled' | 'rotational';
@@ -1191,6 +1349,7 @@ const description =
 
   const form = el<HTMLFormElement>('[data-form]');
   const search = el<HTMLInputElement>('[data-search]');
+  const clearInput = el<HTMLButtonElement>('[data-clear-input]');
   const hint = el('[data-hint]');
   const locateBtn = el<HTMLButtonElement>('[data-locate]');
   const verdict = el('[data-verdict]');
@@ -1251,6 +1410,9 @@ const description =
   // Which Cebu day the list was built for: past midnight, in-place patching cannot fix it.
   let renderedToday = '';
   let loading = false;
+  // Which chrome the page is showing. The staleness line reads it: a failed feed must not
+  // also be blamed on the Facebook poller.
+  let chrome: 'loading' | 'ok' | 'failed' = 'loading';
   let typing = 0;
   let frame = 0;
 
@@ -1260,7 +1422,27 @@ const description =
   // One entry, one identity — shared by its row, its rail block and the minute tick.
   const keyOf = (entry: Entry) => `${entry.start}|${entry.area}`;
 
-  const query = () => search.value.trim().toLowerCase();
+  // A needle of pure punctuation folds away to nothing, so it must read as no query at all:
+  // otherwise the label, `scoped` and the matcher disagree and the page answers "Yes, power
+  // is out now in ." over all 400 rows.
+  const query = () => (squeeze(search.value) ? search.value.trim().toLowerCase() : '');
+
+  /** What the roster makes of the typed name, so the answer can say "not our franchise". */
+  type Place = {
+    kind: 'city' | 'barangay' | 'outside';
+    place: string;
+    lgus: readonly string[];
+    utility?: string;
+  };
+
+  // The typed name first, then the city the strip or the remembered area selected: a chip
+  // for a place this franchise does not serve must not answer the plain "nothing scheduled".
+  const placeOf = () => {
+    const typed = query() ? (lookupPlace(search.value) as Place | null) : null;
+    if (typed) return typed;
+    const byCity = city ? (lookupPlace(city) as Place | null) : null;
+    return byCity?.kind === 'outside' ? byCity : null;
+  };
 
   const filtered = (opts: { includeDone?: boolean } = {}) => {
     const needle = query();
@@ -1285,8 +1467,13 @@ const description =
   };
 
   function renderStaleNotice() {
+    // Two answers make this line wrong rather than merely redundant: a reader this
+    // franchise does not reach was just told no schedule here can apply to them, and a
+    // failed feed already says the whole schedule is unreadable, so blaming the Facebook
+    // poller would be a second, wronger explanation of the same outage.
+    const mute = chrome === 'failed' || verdict.dataset.key?.endsWith('|outside');
     // "since never" is not a sentence: an unread feed says so plainly.
-    const text = !ingestStale()
+    const text = mute || !ingestStale()
       ? ''
       : ingest?.checkedAt
         ? `Facebook has not been checked since ${whenChecked()}, so rotational brownouts may be missing.`
@@ -1333,6 +1520,9 @@ const description =
       scoped: Boolean(query() || city),
       stale: ingestStale(),
       now: Date.now(),
+      // Lets the answer tell "outside the franchise" apart from "nothing scheduled" and
+      // from a name nobody recognises.
+      place: placeOf(),
     }) as { tone: string; key: string; head: Segment[]; detail: Segment[] };
 
     // The identity of the answer, with no clock in it: a minute later it is the same key,
@@ -1344,6 +1534,8 @@ const description =
     verdictMark.hidden = view.tone === 'idle';
     paint(verdictHead, view.head, changed);
     paint(verdictDetail, view.detail, changed);
+    // The notice reads the key just written, so it can stand down under an outside answer.
+    renderStaleNotice();
 
     const meta = detected ? `Located: ${esc(detected)} <button type="button" data-reset>Not my area</button>` : '';
     if (verdictMeta.innerHTML !== meta) {
@@ -1409,6 +1601,11 @@ const description =
   const highlights = highlightCtor && highlightRegistry ? new highlightCtor() : null;
   if (highlights && highlightRegistry) highlightRegistry.set('hit', highlights);
 
+  // Known ceiling: the wash needs offsets into the ORIGINAL text, and `squeeze` is not
+  // length-preserving (NFD decomposition and dropped spaces both move offsets), so a row
+  // matched only through folding ("Tag-bao" found by "tagbao") lists correctly but paints
+  // nothing. Fixing it means an offset-preserving fold, which is more code than the wash
+  // is worth; the row itself is still the answer.
   function paintHits(needle: string) {
     if (!highlights) return;
     highlights.clear();
@@ -1524,12 +1721,13 @@ const description =
     const split = splitArea(entry.area) as { shown: string; hidden: number; tail: string };
     if (split.hidden === 0) return esc(entry.area);
     const label = split.tail ? `+${split.hidden} more in ${split.tail}` : `+${split.hidden} more`;
-    // A hit past the clamp would otherwise show a row with the reason invisible. The test
-    // reads exactly what the collapsed row shows: the barangays in `shown` plus the city
-    // the label names, so a search for the city does not dump every long list in the LGU.
-    const hay = entry.area.toLowerCase();
-    const seen = `${split.shown} ${split.tail}`.toLowerCase();
-    const beyond = Boolean(needle) && hay.includes(needle) && !seen.includes(needle);
+    // A hit past the clamp would otherwise show a row with the reason invisible. Compare on
+    // the SAME normalised form `matches()` used, or a row matched through folding (the feed
+    // writes "Tag-bao", the reader types "Tagbao") collapses with its barangay hidden.
+    const hay = squeeze(entry.area);
+    const seen = squeeze(`${split.shown} ${split.tail}`);
+    const want = squeeze(needle);
+    const beyond = Boolean(want) && hay.includes(want) && !seen.includes(want);
     return beyond
       ? `${esc(entry.area)}<button type="button" class="row-more" aria-expanded="true">show less</button>`
       : `${esc(split.shown)}, <button type="button" class="row-more" aria-expanded="false">${esc(label)}</button>`;
@@ -1593,7 +1791,14 @@ const description =
     if (hidePossible.checked) off.push('possible');
     const tail = off.length ? ` with ${off.join(' and ')} hidden.` : '.';
     const place = search.value.trim() || city;
-    const sentence = place ? `Nothing to show for ${place}${tail}` : `Nothing to show${tail}`;
+    const outside = placeOf();
+    // A Lapu-Lapu search has nothing to show and never will: saying "nothing to show" there
+    // reads as "no interruption", which is the one answer this page cannot give.
+    const sentence = outside?.kind === 'outside'
+      ? `${outside.place} is served by ${outside.utility}, not Visayan Electric, so no advisory for it ever reaches this page.`
+      : place
+        ? `Nothing to show for ${place}${tail}`
+        : `Nothing to show${tail}`;
     if (emptyLine.textContent !== sentence) emptyLine.textContent = sentence;
   }
 
@@ -2000,28 +2205,39 @@ const description =
     }, 500);
   });
 
-  verdictMeta.addEventListener('click', (event) => {
-    if (!(event.target as HTMLElement).closest('[data-reset]')) return;
-    detected = '';
+  // Dropping the area scope: the field's clear, "Not my area" and "Show everything" all
+  // mean this much, and only the last one also reaches for the two filters.
+  function resetArea() {
     search.value = '';
     city = '';
+    detected = '';
     forget();
     renderChips();
+    render();
+    search.focus();
+  }
+
+  verdictMeta.addEventListener('click', (event) => {
+    if (!(event.target as HTMLElement).closest('[data-reset]')) return;
+    resetArea();
+  });
+
+  // The x inside the field clears the field. It leaves a selected city and a located area
+  // alone, because a control that sits inside the text box must not silently undo the two
+  // controls beside it; "Not my area" and "Show everything" are what drop those.
+  clearInput.addEventListener('click', () => {
+    search.value = '';
+    detected = '';
+    remember();
     render();
     search.focus();
   });
 
   // "Show everything" means everything: the search, the city and both filters.
   clearBtn.addEventListener('click', () => {
-    search.value = '';
-    city = '';
-    detected = '';
     hideDone.checked = false;
     hidePossible.checked = false;
-    forget();
-    renderChips();
-    render();
-    search.focus();
+    resetArea();
   });
 
   function stampFooter(data: Feed) {
@@ -2047,6 +2263,7 @@ const description =
 
   /** Which parts of the page have anything to say. Hidden beats showing an empty control. */
   function setChrome(mode: 'loading' | 'ok' | 'failed') {
+    chrome = mode;
     const ok = mode === 'ok' && entries.length > 0;
     failedNote.hidden = mode !== 'failed';
     toolbar.hidden = !ok;
@@ -2145,13 +2362,12 @@ const description =
       // One voice for one failure: the verdict says the schedule could not be read, so the
       // staleness notice (which blames the Facebook poller) would be a second, wronger
       // explanation of the same outage. Every control filters nothing, so they go too.
+      // setChrome runs FIRST so renderVerdict's own staleness pass already knows it failed.
       feed.innerHTML = '';
       entries = [];
       byKey = new Map();
-      verdictStale.hidden = true;
-      verdictStale.textContent = '';
-      renderVerdict();
       setChrome('failed');
+      renderVerdict();
       updated.textContent = 'Feed unreachable.';
       console.error(error);
     }
