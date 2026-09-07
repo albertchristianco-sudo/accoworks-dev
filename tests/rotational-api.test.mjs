@@ -40,7 +40,8 @@ const put = (body, token = 't') => new Request('https://accoworks.dev/api/rotati
   body: JSON.stringify(body),
 });
 
-test('stamps poller provenance onto every stored slot', async () => {
+test('stamps poller provenance onto every stored slot', async (t) => {
+  t.mock.method(Date, 'now', () => Date.parse('2026-09-03T13:30:00+08:00'));
   const { env } = environment();
   const response = await onRequestPost({
     request: post({ text: ADVISORY, via: 'auto', postedAt: '2026-09-03T13:29:30+08:00' }),
@@ -56,7 +57,8 @@ test('stamps poller provenance onto every stored slot', async () => {
   }
 });
 
-test('defaults an unstamped submission to a hand paste', async () => {
+test('defaults an unstamped submission to a hand paste', async (t) => {
+  t.mock.method(Date, 'now', () => Date.parse('2026-09-03T13:30:00+08:00'));
   const { env } = environment();
   const response = await onRequestPost({ request: post({ text: ADVISORY }), env });
 

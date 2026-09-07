@@ -107,8 +107,18 @@ ul.points b{font-weight:600}
 
 .kbd-hint{position:fixed;bottom:10px;right:14px;color:#666;font-size:11px;z-index:5;
   font-family:var(--body);letter-spacing:.05em}
+ [data-reveal]{transition:opacity .15s ease}
+ [data-reveal][aria-hidden="true"]{
+   visibility:hidden;
+   opacity:0 !important;
+   animation:none !important;
+ }
+ [data-reveal][aria-hidden="true"] *{animation:none !important}
+ @media (prefers-reduced-motion:reduce){
+   [data-reveal]{transition:none !important}
+ }
 @media (prefers-reduced-motion:no-preference){
-  .slide.active>*:not(.footer):not(.brand):not(.prog):not(.hero-center){animation:rise .4s cubic-bezier(.22,1,.36,1) both}
+  .slide.active>*:not(.footer):not(.brand):not(.prog):not(.hero-center):not([data-reveal]){animation:rise .4s cubic-bezier(.22,1,.36,1) both}
   .slide.active>*:nth-child(2){animation-delay:.06s}
   .slide.active>*:nth-child(3){animation-delay:.12s}
   .slide.active>*:nth-child(4){animation-delay:.18s}
@@ -160,11 +170,11 @@ ul.points b{font-weight:600}
   <div class="eyebrow">Definition</div>
   <h2>What is a system?</h2>
   <ul class="points">
-    <li><span class="tag">Trigger</span><span>It starts on a schedule or an event, not on your memory.</span></li>
-    <li><span class="tag">Owner</span><span>You, a coach, or a machine runs it the same way every time.</span></li>
-    <li><span class="tag">Verify</span><span>Your job shifts from doing everything to checking it ran.</span></li>
+    <li data-reveal="1" aria-hidden="true"><span class="tag">Trigger</span><span>It starts on a schedule or an event, not on your memory.</span></li>
+    <li data-reveal="1" aria-hidden="true"><span class="tag">Owner</span><span>You, a coach, or a machine runs it the same way every time.</span></li>
+    <li data-reveal="2" aria-hidden="true"><span class="tag">Verify</span><span>Your job shifts from doing everything to checking it ran.</span></li>
   </ul>
-  <p class="lead" style="margin-top:4vh">If it lives only in your head, it is a task.<br><b>And you are the bottleneck.</b></p>
+  <p class="lead" style="margin-top:4vh" data-reveal="3" aria-hidden="true">If it lives only in your head, it is a task.<br><b>And you are the bottleneck.</b></p>
 </section>
 
 <!-- 5 · SUBTERO STORY -->
@@ -173,10 +183,10 @@ ul.points b{font-weight:600}
   <h2>I was the bottleneck</h2>
   <ul class="points">
     <li><span class="tag">Stall</span><span>Members quietly leaving. All marketing depended on my bandwidth.</span></li>
-    <li><span class="tag">System</span><span>Hired a marketing manager, from inside the gym.</span></li>
-    <li><span class="tag">Result</span><span>Consistent branding, content ships without me, inquiries keep coming.</span></li>
+    <li data-reveal="1" aria-hidden="true"><span class="tag">System</span><span>Hired a marketing manager, from inside the gym.</span></li>
+    <li data-reveal="2" aria-hidden="true"><span class="tag">Result</span><span>Consistent branding, content ships without me, inquiries keep coming.</span></li>
   </ul>
-  <p class="lead">My job now is to <b>verify</b> it ran, not to run it myself.</p>
+  <p class="lead" data-reveal="3" aria-hidden="true">My job now is to <b>verify</b> it ran, not to run it myself.</p>
 </section>
 
 <!-- 6 · THE FRAMEWORK -->
@@ -196,10 +206,10 @@ ul.points b{font-weight:600}
   <div class="eyebrow">Foundation</div>
   <h2>Leadership</h2>
   <ul class="points">
-    <li><span class="tag">01</span><span><b>Decide what the gym is for.</b> What you are building, and for whom.</span></li>
-    <li><span class="tag">02</span><span><b>Set the standard, and answer for it.</b> Your team meets the standard you set. Results are on you.</span></li>
+    <li data-reveal="1" aria-hidden="true"><span class="tag">01</span><span><b>Decide what the gym is for.</b> What you are building, and for whom.</span></li>
+    <li data-reveal="2" aria-hidden="true"><span class="tag">02</span><span><b>Set the standard, and answer for it.</b> Your team meets the standard you set. Results are on you.</span></li>
   </ul>
-  <p class="lead">The systems will not hold if the leadership is not there.</p>
+  <p class="lead" data-reveal="3" aria-hidden="true">The systems will not hold if the leadership is not there.</p>
   <div class="mini-house house" data-house="foundation"></div>
 </section>
 
@@ -208,11 +218,11 @@ ul.points b{font-weight:600}
   <div class="eyebrow">The floor</div>
   <h2>Mission · Vision · Values</h2>
   <ul class="points">
-    <li><span class="tag">Mission</span><span>What you do every day, and for whom.</span></li>
-    <li><span class="tag">Vision</span><span>The affiliate three years from now, clear enough to say no.</span></li>
-    <li><span class="tag">Values</span><span>The line you do not cross when the call is hard.</span></li>
+    <li data-reveal="1" aria-hidden="true"><span class="tag">Mission</span><span>What you do every day, and for whom.</span></li>
+    <li data-reveal="2" aria-hidden="true"><span class="tag">Vision</span><span>The affiliate three years from now, clear enough to say no.</span></li>
+    <li data-reveal="3" aria-hidden="true"><span class="tag">Values</span><span>The line you do not cross when the call is hard.</span></li>
   </ul>
-  <p class="lead">One page. Where your team sees it. Tested daily.</p>
+  <p class="lead" data-reveal="4" aria-hidden="true">One page. Where your team sees it. Tested daily.</p>
   <div class="mini-house house" data-house="floor"></div>
 </section>
 
@@ -230,21 +240,21 @@ ul.points b{font-weight:600}
   <h2>Get your name out there</h2>
   <ul class="points">
     <li><span class="tag">Events</span><span>Community runs, wellness days, expos, school fairs. Every room is a pipeline.</span></li>
-    <li><span class="tag">Cold email</span><span>Companies with health programs → the HR manager, one by one.</span></li>
+    <li data-reveal="1" aria-hidden="true"><span class="tag">Cold email</span><span>Companies with health programs → the HR manager, one by one.</span></li>
   </ul>
-  <p class="lead"><b>Be aggressive.</b> Nobody is coming to find your gym.</p>
+  <p class="lead" data-reveal="2" aria-hidden="true"><b>Be aggressive.</b> Nobody is coming to find your gym.</p>
   <div class="mini-house house" data-house="p1"></div>
 </section>
 
 <!-- 11 · CULTURE CAVEAT -->
 <section class="slide">
-  <div class="eyebrow">Pillar 1 · West ≠ Asia</div>
+  <div class="eyebrow">Pillar 1 · Adapt the channel</div>
   <h2>The principle travels.<br>The tactic does not always.</h2>
   <div class="cols">
     <div class="col neg"><h4>The playbook says</h4><ol><li>Pick up the phone and call your leads</li></ol></div>
-    <div class="col"><h4>Our market says</h4><ol><li>Text first</li><li>Instagram message</li><li>Email</li></ol></div>
+    <div class="col" data-reveal="1" aria-hidden="true"><h4>What works for us in the Philippines</h4><ol><li>Text first</li><li>Instagram message</li><li>Email</li></ol></div>
   </div>
-  <p class="lead">Same follow-up, different channel. You know your market better than any playbook.</p>
+  <p class="lead" data-reveal="2" aria-hidden="true">Same follow-up, different channel. You know your market better than any playbook.</p>
 </section>
 
 <!-- 12 · PIPELINE -->
@@ -270,9 +280,9 @@ ul.points b{font-weight:600}
   <div class="eyebrow">Pillar 2 · The system</div>
   <h2>Day zero → First month</h2>
   <div class="steps">
-    <div class="step"><div class="n">0</div><h4>Day zero</h4><p>Welcomed by name. Goals written down. Told what to expect. Expected back.</p></div>
-    <div class="step"><div class="n">7</div><h4>First week</h4><p>Introduced to members. One check-in message around day four.</p></div>
-    <div class="step"><div class="n">30</div><h4>First month</h4><p>Five-minute check-in: past, win, future.</p></div>
+    <div class="step" data-reveal="1" aria-hidden="true"><div class="n">0</div><h4>Day zero</h4><p>Welcomed by name. Goals written down. Told what to expect. Expected back.</p></div>
+    <div class="step" data-reveal="2" aria-hidden="true"><div class="n">7</div><h4>First week</h4><p>Introduced to members. One check-in message around day four.</p></div>
+    <div class="step" data-reveal="3" aria-hidden="true"><div class="n">30</div><h4>First month</h4><p>Five-minute check-in: past, win, future.</p></div>
   </div>
   <div class="mini-house house" data-house="p2"></div>
 </section>
@@ -281,27 +291,27 @@ ul.points b{font-weight:600}
 <section class="slide">
   <div class="eyebrow">Pillar 2 · A script, not a hope</div>
   <h2>The actual words</h2>
-  <div class="quote"><i>In class, day zero</i>"Everyone, this is Ana, it is her first day. Make her feel at home."</div>
-  <div class="quote"><i>Same evening</i>"Great work today, Ana. Tuesday 6pm, I am saving you a spot. See you there?"</div>
-  <p class="lead" style="font-size:1.5vw">The question asks for a reply, and a reply is a commitment.</p>
+  <div class="quote" data-reveal="1" aria-hidden="true"><i>In class, day zero</i>"Everyone, this is Ana, it is her first day. Make her feel at home."</div>
+  <div class="quote" data-reveal="2" aria-hidden="true"><i>Same evening</i>"Great work today, Ana. Tuesday 6pm, I am saving you a spot. See you there?"</div>
+  <p class="lead" style="font-size:1.5vw" data-reveal="3" aria-hidden="true">The question asks for a reply, and a reply is a commitment.</p>
 </section>
 
-<!-- 16 · COMPOUNDS -->
+<!-- 16 · INTEGRATION EARNS MONTH TWO -->
 <section class="slide">
   <div class="hero-center">
     <div class="eyebrow">Pillar 2 · Why it matters</div>
-    <h2>Integration is cheap,<br>and it <span class="red">compounds</span></h2>
-    <p class="lead">Prospecting costs money to find one member. Integration costs attention to keep one, and that member stays for years, brings referrals, and does your prospecting for you.</p>
+    <h2>Integration earns<br>the <span class="red">second month</span></h2>
+    <p class="lead">The first 30 days build the habit, relationships, and clear next goal that carry a new member forward.</p>
   </div>
 </section>
 
 <!-- 17 · PILLAR 3 + RESEARCH -->
 <section class="slide">
   <div class="eyebrow">Pillar 3 · Service &amp; Retention · What the region's reviews say</div>
-  <h3 style="margin-bottom:1vh">50 most-reviewed affiliates · South &amp; Southeast Asia · Google reviews</h3>
+  <h3 style="margin-bottom:1vh">Google review themes · 50 regional affiliates · 9 Aug 2026 snapshot</h3>
   <div class="cols">
-    <div class="col"><h4>Top praise</h4><ol><li>Skilled, attentive coaching</li><li>Welcoming community</li><li>Visible progress</li><li>Clean, well-run facility</li><li>Easy first-timer experience</li></ol></div>
-    <div class="col neg"><h4>Top complaints</h4><ol><li>Price ≠ experience</li><li>Overcrowded classes</li><li>Dismissive service</li><li>Facility gaps</li><li>Confusing rules</li></ol></div>
+    <div class="col" data-reveal="1" aria-hidden="true"><h4>Common praise</h4><ol><li>Skilled, attentive coaching</li><li>Welcoming community</li><li>Visible progress</li><li>Clean, well-run facility</li><li>Easy first-timer experience</li></ol></div>
+    <div class="col neg" data-reveal="2" aria-hidden="true"><h4>Common complaints</h4><ol><li>Price ≠ experience</li><li>Overcrowded classes</li><li>Dismissive service</li><li>Facility gaps</li><li>Confusing rules</li></ol></div>
   </div>
   <div class="mini-house house" data-house="p3"></div>
 </section>
@@ -311,10 +321,10 @@ ul.points b{font-weight:600}
   <div class="eyebrow">Pillar 3 · Service stacks in four levels</div>
   <h2>From the floor up</h2>
   <ul class="points">
-    <li><span class="tag">1</span><span><b>The facility.</b> The 2026 bare minimum. Nothing survives a dirty gym.</span></li>
-    <li><span class="tag">2</span><span><b>The experience.</b> On time, every time. Boring and consistent builds trust.</span></li>
-    <li><span class="tag">3</span><span><b>The relationship.</b> Weekly attendance scan → one personal message.</span></li>
-    <li><span class="tag">4</span><span><b>The recovery.</b> The complaint is a gift. Respond fast and mean it.</span></li>
+    <li data-reveal="1" aria-hidden="true"><span class="tag">1</span><span><b>The facility.</b> The 2026 bare minimum. Nothing survives a dirty gym.</span></li>
+    <li data-reveal="2" aria-hidden="true"><span class="tag">2</span><span><b>The experience.</b> On time, every time. Boring and consistent builds trust.</span></li>
+    <li data-reveal="3" aria-hidden="true"><span class="tag">3</span><span><b>The relationship.</b> Weekly attendance scan → one personal message.</span></li>
+    <li data-reveal="4" aria-hidden="true"><span class="tag">4</span><span><b>The recovery.</b> The complaint is a gift. Respond fast and mean it.</span></li>
   </ul>
   <div class="mini-house house" data-house="p3"></div>
 </section>
@@ -340,11 +350,11 @@ ul.points b{font-weight:600}
   <div class="eyebrow">The roof · Your first homework</div>
   <h2>Three numbers + one hour</h2>
   <div class="steps">
-    <div class="step"><div class="n">1</div><h4>Cost per member</h4><p>Everything it costs, divided by members.</p></div>
-    <div class="step"><div class="n">2</div><h4>Revenue per member</h4><p>The real average, not the sticker price.</p></div>
-    <div class="step"><div class="n">3</div><h4>Cash runway</h4><p>Months you survive if revenue stops.</p></div>
+    <div class="step" data-reveal="1" aria-hidden="true"><div class="n">1</div><h4>Cost per member</h4><p>Everything it costs, divided by members.</p></div>
+    <div class="step" data-reveal="2" aria-hidden="true"><div class="n">2</div><h4>Revenue per member</h4><p>The real average, not the sticker price.</p></div>
+    <div class="step" data-reveal="3" aria-hidden="true"><div class="n">3</div><h4>Cash runway</h4><p>Months you survive if revenue stops.</p></div>
   </div>
-  <p class="lead"><b>The monthly money hour:</b> one hour, same day every month. A notebook is enough. One hour a month, and your business stops being a mystery.</p>
+  <p class="lead" data-reveal="4" aria-hidden="true"><b>The monthly money hour:</b> one hour, same day every month. A notebook is enough. One hour a month, and your business stops being a mystery.</p>
   <div class="mini-house house" data-house="roof"></div>
 </section>
 
@@ -353,8 +363,8 @@ ul.points b{font-weight:600}
   <div class="eyebrow">The chimney · Secondary revenue</div>
   <h2>One income stream is fragile</h2>
   <div class="cols">
-    <div class="col"><h4>Nutrition coaching</h4><ol><li>They already trust you</li><li>No extra space or equipment</li><li>High-margin, rarely sold</li></ol></div>
-    <div class="col"><h4>HYROX / hybrid racing</h4><ol><li>The wave our region is riding</li><li>Premium specialty program</li><li>Pulls in non-CrossFit athletes</li></ol></div>
+    <div class="col" data-reveal="1" aria-hidden="true"><h4>Nutrition coaching</h4><ol><li>They already trust you</li><li>No extra space or equipment</li><li>High-margin, rarely sold</li></ol></div>
+    <div class="col" data-reveal="2" aria-hidden="true"><h4>HYROX / hybrid racing</h4><ol><li>The wave our region is riding</li><li>Premium specialty program</li><li>Pulls in non-CrossFit athletes</li></ol></div>
   </div>
   <div class="mini-house house" data-house="chimney"></div>
 </section>
@@ -374,9 +384,9 @@ ul.points b{font-weight:600}
   <div class="eyebrow">Part 1 · Be in the AI's answer</div>
   <h2>"Best CrossFit gyms<br>in my area?"</h2>
   <ul class="points">
-    <li><span class="tag">01</span><span><b>Google reviews.</b> Real, steady, replied-to. Ask on milestone days.</span></li>
-    <li><span class="tag">02</span><span><b>Website + Business Profile.</b> Schedule, prices, hours, drop-ins, in plain text, current.</span></li>
-    <li><span class="tag">03</span><span><b>Organic talk.</b> Reddit and forums. Earned and invited, never faked.</span></li>
+    <li data-reveal="1" aria-hidden="true"><span class="tag">01</span><span><b>Google reviews.</b> Real, steady, replied-to. Ask on milestone days.</span></li>
+    <li data-reveal="2" aria-hidden="true"><span class="tag">02</span><span><b>Website + Business Profile.</b> Schedule, prices, hours, drop-ins, in plain text, current.</span></li>
+    <li data-reveal="3" aria-hidden="true"><span class="tag">03</span><span><b>Organic talk.</b> Reddit and forums. Earned and invited, never faked.</span></li>
   </ul>
 </section>
 
@@ -391,26 +401,26 @@ ul.points b{font-weight:600}
 
 <!-- 26 · PART 2 -->
 <section class="slide">
-  <div class="eyebrow">Part 2 · Let AI run the systems</div>
-  <h2>The machine drafts.<br>You verify.</h2>
+  <div class="eyebrow">Part 2 · Keep relationships human</div>
+  <h2>AI organizes the work.<br>You own the relationship.</h2>
   <ul class="points">
-    <li><span class="tag">Sales</span><span>Follow-ups drafted, outreach personalized, pipeline stops slipping.</span></li>
-    <li><span class="tag">Members</span><span>Day-zero, week-one, month-one messages on schedule. Quiet members flagged.</span></li>
-    <li><span class="tag">Admin</span><span>Breakdowns and content drafted, so your hours go to the floor.</span></li>
+    <li data-reveal="1" aria-hidden="true"><span class="tag" style="min-width:8em">Internal SOP</span><span>Turn existing notes into a checklist. You verify and assign.</span></li>
+    <li data-reveal="2" aria-hidden="true"><span class="tag" style="min-width:8em">Monthly admin</span><span>Organize supplied figures. You check the numbers and decide.</span></li>
+    <li data-reveal="3" aria-hidden="true"><span class="tag" style="min-width:8em">Public content</span><span>Draft from real gym facts. You add the voice and verify.</span></li>
   </ul>
-  <p class="lead"><b>And do not get lazy:</b> AI should make you more consistent, never more generic.</p>
+  <p class="lead" style="max-width:100%" data-reveal="4" aria-hidden="true"><b>Keep data private.</b> AI never handles lead or member conversations.</p>
 </section>
 
 <!-- 27 · TONIGHT -->
 <section class="slide">
-  <div class="eyebrow">Try this tonight · free ChatGPT</div>
+  <div class="eyebrow">Try this tonight · one internal checklist</div>
   <h2>Your starter workflow</h2>
   <div class="steps">
-    <div class="step"><div class="n">1</div><h4>Teach it once</h4><p>Name, location, schedule, prices, who you serve.</p></div>
-    <div class="step"><div class="n">2</div><h4>Paste one lead</h4><p>The message you forgot to answer. First name only, no private data.</p></div>
-    <div class="step"><div class="n">3</div><h4>Fix + send</h4><p>"Short, warm, one clear next step." Fix one sentence. Send.</p></div>
+    <div class="step" data-reveal="1" aria-hidden="true"><div class="n">1</div><h4>Choose one task</h4><p>Pick a recurring internal task.</p></div>
+    <div class="step" data-reveal="2" aria-hidden="true"><div class="n">2</div><h4>Supply existing notes</h4><p>Give AI non-personal notes. Ask for trigger, owner, steps, and proof.</p></div>
+    <div class="step" data-reveal="3" aria-hidden="true"><div class="n">3</div><h4>Verify + assign</h4><p>Correct it, name the owner, and confirm the proof.</p></div>
   </div>
-  <p class="lead">Ten minutes. One recovered lead. The machine worked, you verified.</p>
+  <p class="lead" data-reveal="4" aria-hidden="true">Trial it once. AI organizes the draft; you own the process.</p>
 </section>
 
 <!-- 28 · 30-DAY PLAN -->
@@ -418,9 +428,9 @@ ul.points b{font-weight:600}
   <div class="eyebrow">The 30-day plan</div>
   <h2>Three steps. That's all.</h2>
   <div class="steps">
-    <div class="step"><div class="n">1</div><h4>Fix one gap</h4><p>One thing the AI should verify about you and cannot.</p></div>
-    <div class="step"><div class="n">2</div><h4>One workflow / week</h4><p>One repetitive task handed to a system, reviewed, improved.</p></div>
-    <div class="step"><div class="n">3</div><h4>Measure one result</h4><p>Signups, retention, or revenue. A result, not effort.</p></div>
+    <div class="step" data-reveal="1" aria-hidden="true"><div class="n">1</div><h4>Fix one gap</h4><p>Fix one public fact AI cannot verify.</p></div>
+    <div class="step" data-reveal="2" aria-hidden="true"><div class="n">2</div><h4>One process / week</h4><p>Document one process. Improve it.</p></div>
+    <div class="step" data-reveal="3" aria-hidden="true"><div class="n">3</div><h4>Measure one result</h4><p>Track one business result, not effort.</p></div>
   </div>
 </section>
 
@@ -527,21 +537,77 @@ slides.forEach((s,i)=>{
   s.appendChild(f);
 });
 
-let idx=Math.min(Math.max(parseInt(location.hash.slice(1))||1,1),slides.length)-1;
-function show(n){
-  idx=Math.min(Math.max(n,0),slides.length-1);
-  slides.forEach((s,i)=>s.classList.toggle('active',i===idx));
-  location.hash=idx+1;
+const revealGroups=slides.map(s=>[...new Set([...s.querySelectorAll('[data-reveal]')].map(el=>Number(el.dataset.reveal)).filter(n=>Number.isInteger(n)&&n>0))].sort((a,b)=>a-b));
+const clamp=(value,min,max)=>Math.min(Math.max(value,min),max);
+function parseHash(){
+  const match=/^#(\d+)$/.exec(location.hash);
+  const value=match?Number(match[1]):1;
+  const slide=Number.isSafeInteger(value)?clamp(value-1,0,slides.length-1):0;
+  return {idx:slide,reveal:0};
+}
+function maxReveal(slide){ return revealGroups[slide].length; }
+let {idx,reveal}=parseHash();
+function syncHash(){
+  const hash=`#${idx+1}`;
+  if(location.hash!==hash) history.replaceState(null,'',hash);
+}
+function render(){
+  slides.forEach((s,i)=>{
+    s.classList.toggle('active',i===idx);
+    s.querySelectorAll('[data-reveal]').forEach(el=>{
+      const hidden=i>idx || (i===idx && Number(el.dataset.reveal)>reveal);
+      el.classList.toggle('reveal-hidden',hidden);
+      if(hidden) el.setAttribute('aria-hidden','true');
+      else el.removeAttribute('aria-hidden');
+    });
+  });
+}
+function show(nextIdx,nextReveal=0){
+  idx=clamp(nextIdx,0,slides.length-1);
+  reveal=clamp(nextReveal,0,maxReveal(idx));
+  render();
+  syncHash();
+}
+function nextState(){
+  if(reveal<maxReveal(idx)) show(idx,reveal+1);
+  else if(idx<slides.length-1) show(idx+1);
+}
+function previousState(){
+  if(reveal>0) show(idx,reveal-1);
+  else if(idx>0) show(idx-1,maxReveal(idx-1));
+}
+function isEditable(target){
+  return target instanceof Element && !!target.closest('input,textarea,select,[contenteditable="true"]');
 }
 addEventListener('keydown',e=>{
-  if(['ArrowRight','PageDown',' '].includes(e.key)) show(idx+1);
-  else if(['ArrowLeft','PageUp'].includes(e.key)) show(idx-1);
+  if(e.repeat||e.ctrlKey||e.metaKey||e.altKey||e.shiftKey||isEditable(e.target)) return;
+  let handled=true;
+  if(['ArrowRight','PageDown',' '].includes(e.key)) nextState();
+  else if(['ArrowLeft','PageUp'].includes(e.key)) previousState();
   else if(e.key==='Home') show(0);
-  else if(e.key==='End') show(slides.length-1);
-  else if(e.key.toLowerCase()==='f') document.documentElement.requestFullscreen?.();
+  else if(e.key==='End') show(slides.length-1,maxReveal(slides.length-1));
+  else if(e.key.toLowerCase()==='f'){
+    const request=document.documentElement.requestFullscreen?.();
+    request?.catch(()=>{});
+  } else handled=false;
+  if(handled) e.preventDefault();
 });
-addEventListener('click',e=>{ if(!e.target.closest('a')) show(e.clientX>innerWidth/2?idx+1:idx-1); });
-show(idx);
+addEventListener('click',e=>{
+  if(e.defaultPrevented||e.button!==0||e.detail>1) return;
+  const target=e.target;
+  if(!(target instanceof Element)||isEditable(target)||target.closest('a,button,[role="button"],input,textarea,select')) return;
+  const selection=getSelection();
+  if(selection?.type==='Range'&&selection.toString()) return;
+  const active=slides[idx];
+  if(!active.contains(target)) return;
+  const rect=active.getBoundingClientRect();
+  if(e.clientX<rect.left||e.clientX>rect.right||e.clientY<rect.top||e.clientY>rect.bottom) return;
+  if(e.clientX-rect.left>rect.width/2) nextState();
+  else previousState();
+});
+addEventListener('hashchange',()=>{ const next=parseHash(); show(next.idx,next.reveal); });
+addEventListener('popstate',()=>{ const next=parseHash(); show(next.idx,next.reveal); });
+show(idx,reveal);
 </script>
 </body>
 </html>
