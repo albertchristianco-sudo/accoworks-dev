@@ -219,6 +219,17 @@ const andList = (names) => (names.length > 1 ? `${names.slice(0, -1).join(', ')}
  * }} args
  */
 export function verdictView({ entries, scope, label, scoped, stale = false, now = Date.now(), place = undefined }) {
+  // The all-franchise summary is about what can still happen, not the published archive.
+  // Keep this distinct from `scope`: a scoped answer deliberately retains finished rows so
+  // it can explain why an otherwise covered area has nothing current to show.
+  const current = entries.filter((e) => {
+    const state = entryStatus(e, now).state;
+    return state === 'live' || state === 'upcoming';
+  });
+  const liveAll = current.filter((e) => entryStatus(e, now).state === 'live' && !e.possible).length;
+  const confirmed = current.filter((e) => !e.possible).length;
+  const possible = current.length - confirmed;
+  const summaryState = scoped ? '' : `|summary:${liveAll},${confirmed},${possible}`;
   // Confirmed interruptions answer the question; "possible" rotational slots only ever
   // warn, because VECO implements them solely when NGCP calls for load reduction.
   const live = scope
@@ -233,8 +244,8 @@ export function verdictView({ entries, scope, label, scoped, stale = false, now 
   let tone = 'idle';
   let head = [];
   let detail = [];
-  // A suffix for the live-region key. It stays empty for every answer this page already
-  // gave, so those keys are byte for byte what they were before `place` existed.
+  // A suffix for place-aware answers. `summaryState` separately identifies unscoped
+  // counts, while this stays empty for every legacy answer that did not pass `place`.
   let mark = '';
 
   if (place?.kind === 'outside') {
@@ -253,11 +264,16 @@ export function verdictView({ entries, scope, label, scoped, stale = false, now 
   } else if (!scoped) {
     tone = 'idle';
     head = ['Tell me where you are'];
-    const liveAll = entries.filter((e) => entryStatus(e, now).state === 'live' && !e.possible).length;
+    const summary = [
+      confirmed ? `${confirmed} confirmed interruption${confirmed === 1 ? '' : 's'}` : '',
+      possible ? `${possible} possible brownout slot${possible === 1 ? '' : 's'}` : '',
+    ].filter(Boolean).join(' and ');
     detail = [
       liveAll
         ? `${liveAll} ${liveAll === 1 ? 'interruption is' : 'interruptions are'} running across the franchise right now. Type your barangay for a straight answer.`
-        : `${entries.length} interruptions and possible brownout slots are published for the next 14 days. Type your barangay for a straight answer.`,
+        : current.length
+          ? `${summary} ${current.length === 1 ? 'is' : 'are'} currently listed across the franchise. Type your barangay to confirm your area.`
+          : 'No current or upcoming interruptions are listed. Type your barangay to confirm your area.',
     ];
   } else if (liveSure.length) {
     tone = 'out';
@@ -333,9 +349,10 @@ export function verdictView({ entries, scope, label, scoped, stale = false, now 
   // true whatever the poller is doing.
   if (stale && tone === 'clear') tone = 'wait';
 
-  // What the answer *is*, with no clock in it: the same answer one minute later produces
-  // the same key, so the live region stays quiet while the countdown keeps moving.
-  const key = `${tone}|${label}|${live.map((e) => e.start).join(',')}|${next?.start ?? ''}` + (mark ? `|${mark}` : '');
+  // What the answer *is*, with no countdown in it: a minute later it remains stable until
+  // a current entry crosses a boundary that changes the unscoped summary.
+  const key = `${tone}|${label}|${live.map((e) => e.start).join(',')}|${next?.start ?? ''}` +
+    (mark ? `|${mark}` : '') + summaryState;
 
   return { tone, key, head, detail };
 }

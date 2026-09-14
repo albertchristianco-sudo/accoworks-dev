@@ -153,6 +153,46 @@ test('with no area given the verdict asks for one instead of answering', () => {
   assert.deepEqual(empty.head, ['No advisories available']);
 });
 
+test('an unscoped verdict does not count finished schedule history as current', () => {
+  const done = entry({ start: '2026-09-02T09:00:00+08:00', end: '2026-09-02T15:00:00+08:00' });
+  const view = verdictView({ entries: [done], scope: [done], label: '', scoped: false, now });
+
+  assert.equal(view.tone, 'idle');
+  assert.deepEqual(view.head, ['Tell me where you are']);
+  assert.deepEqual(view.detail, ['No current or upcoming interruptions are listed. Type your barangay to confirm your area.']);
+});
+
+test('an unscoped verdict distinguishes current confirmed interruptions from possible slots', () => {
+  const done = entry({ start: '2026-09-02T09:00:00+08:00', end: '2026-09-02T15:00:00+08:00' });
+  const confirmed = entry({ start: '2026-09-03T12:00:00+08:00', end: '2026-09-03T14:00:00+08:00' });
+  const possible = entry({ possible: true, start: '2026-09-03T13:00:00+08:00', end: '2026-09-03T15:00:00+08:00' });
+  const detailFor = (current) =>
+    verdictView({ entries: [done, ...current], scope: [done, ...current], label: '', scoped: false, now }).detail;
+
+  assert.deepEqual(detailFor([confirmed]), [
+    '1 confirmed interruption is currently listed across the franchise. Type your barangay to confirm your area.',
+  ]);
+  assert.deepEqual(detailFor([possible]), [
+    '1 possible brownout slot is currently listed across the franchise. Type your barangay to confirm your area.',
+  ]);
+  assert.deepEqual(detailFor([confirmed, possible]), [
+    '1 confirmed interruption and 1 possible brownout slot are currently listed across the franchise. Type your barangay to confirm your area.',
+  ]);
+});
+
+test('an unscoped possible slot changes the verdict key when it finishes outside scope', () => {
+  const slot = entry({ possible: true, end: '2026-09-03T11:00:00+08:00' });
+  const args = { entries: [slot], scope: [], label: '', scoped: false };
+  const during = verdictView({ ...args, now });
+  const after = verdictView({ ...args, now: at('11:00') });
+
+  assert.deepEqual(during.detail, [
+    '1 possible brownout slot is currently listed across the franchise. Type your barangay to confirm your area.',
+  ]);
+  assert.deepEqual(after.detail, ['No current or upcoming interruptions are listed. Type your barangay to confirm your area.']);
+  assert.notEqual(after.key, during.key);
+});
+
 // Two real Visayan Electric area strings: the rotational list that puts the city last,
 // and the parenthesised form that puts it first.
 const ROTATIONAL = 'Agsungot, Apas, Babag, Binaliw, Bonbon, Buot, Busay, Camputhaw, Guba, Lahug, Malubog, Pulangbato, Pung-ol Sibugay, San Roque, Sirao, Tabunan, Tagba-o, Taptap, Cebu City';
@@ -387,9 +427,8 @@ test('a barangay name two LGUs share adds exactly one sentence, and only over ro
   assert.ok(empty.detail.every((seg) => !/check the city/.test(String(seg))));
 });
 
-// The whole `place` argument is additive: a caller that never passes it must get the same
-// four values it got before the argument existed, key included.
-test('omitting place answers exactly what the page answered before', () => {
+// `place` remains additive. Unscoped keys additionally carry the current summary state.
+test('omitting place preserves scoped answers and summarizes unscoped state', () => {
   const done = entry({ start: '2026-09-02T09:00:00+08:00', end: '2026-09-02T15:00:00+08:00' });
   const args = { entries: [done], label: 'Talamban', scoped: true, now };
 
@@ -410,5 +449,5 @@ test('omitting place answers exactly what the page answered before', () => {
 
   const asking = verdictView({ entries: [live], scope: [live], label: '', scoped: false, now });
   assert.deepEqual(asking.head, ['Tell me where you are']);
-  assert.equal(asking.key, 'idle||2026-09-03T09:00:00+08:00|');
+  assert.equal(asking.key, 'idle||2026-09-03T09:00:00+08:00||summary:1,1,0');
 });

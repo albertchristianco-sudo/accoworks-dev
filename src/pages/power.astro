@@ -1465,9 +1465,9 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     return byCity?.kind === 'outside' ? byCity : null;
   };
 
-  const filtered = (opts: { includeDone?: boolean } = {}) => {
+  const filtered = (opts: { includeDone?: boolean; now?: number } = {}) => {
     const needle = query();
-    const now = Date.now();
+    const now = opts.now ?? Date.now();
     const hideFinished = !opts.includeDone && hideDone.checked;
     return entries.filter((entry) =>
       isVisible(entry, { city, needle, hidePossible: hidePossible.checked, hideDone: hideFinished, now }));
@@ -1572,14 +1572,15 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     verdict.setAttribute('data-fresh', '');
   }
 
-  // The city strip: text on a rule, ordered north to south, but the same `.chip` hooks the
-  // delegation, aria-pressed and focus restore below have always used. Counts are the whole
-  // window, so nothing time-dependent enters this HTML and a background refresh that
-  // changes nothing never replaces the button under focus.
-  function renderChips() {
+  // The city strip uses the same global filters as the list, and its counts age as
+  // entries cross their start and end times. `chipSig` skips no-op minute ticks; a changed
+  // strip restores focus to the same chip where that control still exists.
+  function renderChips(now = Date.now()) {
+    const visible = entries.filter((entry) =>
+      isVisible(entry, { hidePossible: hidePossible.checked, hideDone: hideDone.checked, now }));
     const rows = [
-      { name: 'All areas', value: '', count: entries.length },
-      ...(cityRows(entries) as { name: string; count: number }[]).map((row) => ({
+      { name: 'All areas', value: '', count: visible.length },
+      ...(cityRows(visible) as { name: string; count: number }[]).map((row) => ({
         name: row.name,
         value: row.name,
         count: row.count,
@@ -1589,13 +1590,21 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     const html = rows
       .map(({ name, value, count }) =>
         `<button type="button" class="chip" data-city="${esc(value)}" aria-pressed="${value === city}"${count ? '' : ' data-quiet'}` +
-        ` aria-label="${esc(name)}, ${count ? `${count} ${count === 1 ? 'interruption' : 'interruptions'}` : 'nothing listed'}">` +
+        ` aria-label="${esc(name)}, ${count ? `${count} schedule ${count === 1 ? 'entry' : 'entries'}` : 'nothing listed'}">` +
         `<span class="chip-tick" aria-hidden="true"></span><span class="chip-name">${esc(name)}</span>` +
         `<span class="chip-n" aria-hidden="true">${count || ''}</span></button>`)
       .join('');
     if (html === chipSig) return;
+    const active = document.activeElement;
+    const focusedCity = active instanceof HTMLElement && chipBox.contains(active)
+      ? active.closest<HTMLButtonElement>('.chip')?.dataset.city
+      : undefined;
     chipSig = html;
     chipBox.innerHTML = html;
+    if (focusedCity === undefined) return;
+    const replacement = chipBox.querySelector<HTMLButtonElement>(`.chip[data-city="${CSS.escape(focusedCity)}"]`);
+    if (replacement) replacement.focus();
+    else search.focus();
   }
 
   // Which cities the current search actually reaches: an attribute write outside the
@@ -1813,14 +1822,32 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     const tail = off.length ? ` with ${off.join(' and ')} hidden.` : '.';
     const place = search.value.trim() || city;
     const outside = placeOf();
+    // The finished-history reveal applies only when that one filter hid every matching
+    // row. Possible and combined filters keep the broader reset, because revealing just
+    // history would still leave an empty result.
+    const now = Date.now();
+    const matching = entries.filter((entry) =>
+      isVisible(entry, { city, needle: query(), hidePossible: false, hideDone: false, now }));
+    const finished = matching.filter((entry) => entryStatus(entry, now).state === 'done');
+    const showFinished = outside?.kind !== 'outside' &&
+      hideDone.checked && !hidePossible.checked && matching.length === finished.length && finished.length > 0;
     // A Lapu-Lapu search has nothing to show and never will: saying "nothing to show" there
     // reads as "no interruption", which is the one answer this page cannot give.
     const sentence = outside?.kind === 'outside'
       ? `${outside.place} is served by ${outside.utility}, not Visayan Electric, so no advisory for it ever reaches this page.`
-      : place
-        ? `Nothing to show for ${place}${tail}`
-        : `Nothing to show${tail}`;
+      : showFinished
+        ? `No current or upcoming interruptions${place ? ` for ${place}` : ''}. ${finished.length} finished schedule ${finished.length === 1 ? 'entry' : 'entries'} hidden.`
+        : place
+          ? `Nothing to show for ${place}${tail}`
+          : `Nothing to show${tail}`;
     if (emptyLine.textContent !== sentence) emptyLine.textContent = sentence;
+    if (showFinished) {
+      clearBtn.textContent = `Show ${finished.length} finished schedule ${finished.length === 1 ? 'entry' : 'entries'}`;
+      clearBtn.dataset.revealFinished = 'true';
+    } else {
+      clearBtn.textContent = 'Show everything';
+      delete clearBtn.dataset.revealFinished;
+    }
   }
 
   /** Every day the API published, so a quiet day still gets its tick. */
@@ -1994,8 +2021,11 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   function refresh() {
     const now = Date.now();
     const today = manilaDate(now);
+    const needle = query();
+    const list = filtered({ now });
+    renderChips(now);
+    paintCityHits(list, needle);
     renderVerdict();
-
     // Past midnight every relative word, every "today" marker and the now line belong to
     // a different day, and no amount of in-place patching can fix that.
     if (renderedToday && renderedToday !== today) {
@@ -2166,8 +2196,14 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   });
 
   locateBtn.addEventListener('click', locate);
-  hideDone.addEventListener('change', render);
-  hidePossible.addEventListener('change', render);
+  hideDone.addEventListener('change', () => {
+    renderChips();
+    render();
+  });
+  hidePossible.addEventListener('change', () => {
+    renderChips();
+    render();
+  });
 
   chipBox.addEventListener('click', (event) => {
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>('.chip');
@@ -2227,7 +2263,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   });
 
   // Dropping the area scope: the field's clear, "Not my area" and "Show everything" all
-  // mean this much, and only the last one also reaches for the two filters.
+  // mean this much. The finished-history action below intentionally keeps the area scoped.
   function resetArea() {
     search.value = '';
     city = '';
@@ -2254,8 +2290,16 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     search.focus();
   });
 
-  // "Show everything" means everything: the search, the city and both filters.
+  // "Show everything" resets the search, city and both filters. A finished-history empty
+  // state is narrower: reveal those rows without discarding the reader's area.
   clearBtn.addEventListener('click', () => {
+    if (clearBtn.dataset.revealFinished === 'true') {
+      hideDone.checked = false;
+      renderChips();
+      render();
+      hideDone.focus();
+      return;
+    }
     hideDone.checked = false;
     hidePossible.checked = false;
     resetArea();
