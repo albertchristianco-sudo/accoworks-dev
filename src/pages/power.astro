@@ -95,75 +95,90 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
           <p class="field-hint" data-hint>Type an area, then check the published schedule.</p>
         </form>
 
-        <div class="verdict" data-verdict data-tone="idle" aria-live="polite">
+        <div class="verdict" data-verdict data-tone="idle">
           <span class="verdict-mark" data-verdict-mark aria-hidden="true" hidden></span>
           <div class="verdict-body">
-            <p class="verdict-head" data-verdict-head>Tell me where you are</p>
-            <p class="verdict-detail" data-verdict-detail>Type your barangay, street or city for a local answer.</p>
+            <div class="verdict-summary">
+              <p class="verdict-head" data-verdict-head tabindex="-1">Tell me where you are</p>
+              <p class="verdict-detail" data-verdict-detail>Type your barangay, street or city for a local answer.</p>
+              <span class="visually-hidden" data-answer-announcement aria-live="polite" aria-atomic="true"></span>
+            </div>
+            <div class="answer-sources" data-answer-sources hidden>
+              <a href="https://www.visayanelectric.com/serviceinterruptioncalendar" rel="noopener" target="_blank" aria-label="Open Visayan Electric’s official service interruption calendar">Official interruption calendar</a>
+              <p data-rotational-context>Rotational windows are used only if NGCP, the national grid operator, asks Visayan Electric to reduce load.</p>
+            </div>
             <p class="verdict-confidence" data-confidence>Checking the published schedule in Cebu time.</p>
             <p class="verdict-meta" data-verdict-meta hidden></p>
             <div class="verdict-actions" data-verdict-actions hidden>
               <button type="button" class="txtbtn" data-reset hidden>Not my area</button>
               <button type="button" class="txtbtn" data-retry hidden>Try again</button>
             </div>
-            <span class="visually-hidden" data-locator-announcement></span>
-            <div class="evidence" data-evidence hidden></div>
+            <div class="city-prompt" data-city-prompt hidden></div>
           </div>
         </div>
+        <div class="evidence" data-evidence hidden></div>
       </div>
     </header>
 
     <section class="browse" aria-labelledby="browse-title">
       <div class="browse-head">
-        <h2 id="browse-title">Browse the published schedule</h2>
-        <p>Filter the same published window by city, interruption type, day, or finished history.</p>
+        <h2 id="browse-title">Published schedule</h2>
+        <p>Today’s published window is ready below. Open the schedule to filter every record by city, type, day, or finished history.</p>
       </div>
 
-      <div class="toolbar" data-toolbar role="group" aria-label="Filter the schedule" hidden>
-        <fieldset class="types">
-          <legend>Interruption type</legend>
-          <label class="check">
-            <input type="checkbox" data-type="scheduled" checked />
-            <span>Scheduled</span>
-          </label>
-          <label class="check">
-            <input type="checkbox" data-type="emergency" checked />
-            <span>Emergency</span>
-          </label>
-          <label class="check">
-            <input type="checkbox" data-type="rotational" checked />
-            <span>Rotational</span>
-          </label>
-        </fieldset>
-        <label class="check history-toggle">
-          <input type="checkbox" data-show-finished />
-          <span>Include finished history</span>
-        </label>
-      </div>
+      <details class="browse-disclosure" data-browse>
+        <summary class="browse-toggle">
+          <span>Browse schedule</span>
+          <span class="browse-preview" data-browse-preview>Loading the published schedule…</span>
+        </summary>
+        <div class="browse-panel">
+          <div class="toolbar" data-toolbar role="group" aria-label="Filter the schedule" hidden>
+            <fieldset class="types">
+              <legend>Interruption type</legend>
+              <label class="check">
+                <input type="checkbox" data-type="scheduled" checked />
+                <span>Scheduled</span>
+              </label>
+              <label class="check">
+                <input type="checkbox" data-type="emergency" checked />
+                <span>Emergency</span>
+              </label>
+              <label class="check">
+                <input type="checkbox" data-type="rotational" checked />
+                <span>Rotational</span>
+              </label>
+            </fieldset>
+            <label class="check history-toggle">
+              <input type="checkbox" data-show-finished />
+              <span>Include finished history</span>
+            </label>
+          </div>
 
-      <p class="note" data-toolbar-note hidden>
-        Possible rotational brownouts are mapped windows, not confirmed outages. Visayan Electric
-        carries them out only if NGCP calls for load reduction that day.
-      </p>
+          <p class="note" data-toolbar-note hidden>
+            Possible rotational brownouts are mapped windows, not confirmed outages. Visayan Electric
+            carries them out only if NGCP calls for load reduction that day.
+          </p>
 
-      <nav class="cities" data-cities aria-label="City scope" hidden>
-        <p class="cities-lab">City scope</p>
-        <div class="chips" data-chips></div>
-      </nav>
+          <nav class="cities" data-cities aria-label="City scope" hidden>
+            <p class="cities-lab">City scope</p>
+            <div class="chips" data-chips></div>
+          </nav>
 
-      <h3 class="list-head" data-range>Published schedule</h3>
-      <nav class="fortnight" data-fortnight aria-label="Published days" hidden></nav>
+          <h3 class="list-head" data-range>Published schedule</h3>
+          <nav class="fortnight" data-fortnight aria-label="Published days" hidden></nav>
 
-      <div class="feed" data-feed></div>
+          <div class="feed" data-feed></div>
 
-      <div class="empty" data-empty hidden>
-        <p data-empty-line></p>
-        <button type="button" class="txtbtn" data-clear>Show everything</button>
-      </div>
+          <div class="empty" data-empty hidden>
+            <p data-empty-line></p>
+            <button type="button" class="txtbtn" data-clear>Show everything</button>
+          </div>
 
-      <div class="empty" data-empty-feed hidden>
-        <p data-empty-feed-line></p>
-      </div>
+          <div class="empty" data-empty-feed hidden>
+            <p data-empty-feed-line></p>
+          </div>
+        </div>
+      </details>
     </section>
 
     <footer class="outage-foot">
@@ -509,6 +524,60 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   .outage .verdict-actions [hidden] { display: none; }
 
 
+  .outage .answer-sources {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 16px;
+    max-width: 42em;
+    margin-top: 12px;
+    color: var(--ink-2);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .outage .answer-sources[hidden],
+  .outage .city-prompt[hidden] { display: none; }
+
+  .outage .answer-sources a { color: var(--accent); font-weight: 500; }
+  .outage .answer-sources p { margin: 0; }
+
+  .outage .city-prompt {
+    max-width: 42em;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+
+  .outage .city-prompt p {
+    margin: 0;
+    color: var(--ink-2);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .outage .city-choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .outage .city-choices button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 12px;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--line-control);
+    border-radius: var(--radius-sm);
+    font: 500 14px/1.2 var(--font-sans);
+    cursor: pointer;
+  }
+
+  .outage .city-choices button:hover { border-color: var(--accent); color: var(--accent); }
+  .outage .city-choices button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
   .outage .evidence {
     max-width: 42em;
     margin-top: 20px;
@@ -533,25 +602,43 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   }
 
   .outage .evidence li {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    column-gap: 12px;
     padding: 12px 0;
     border-top: 1px solid var(--line);
   }
 
   .outage .evidence li:first-child { border-top: 0; }
   .outage .evidence p { margin: 0; min-width: 0; overflow-wrap: anywhere; }
-  .outage .evidence-time { color: var(--ink); font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; line-height: 1.4; }
-  .outage .evidence-state { color: var(--ink-2); font-size: 13px; font-weight: 600; line-height: 1.4; text-align: right; }
-  .outage .evidence-area { grid-column: 1 / -1; margin-top: 4px !important; font-size: 15px; line-height: 1.4; }
-  .outage .evidence-area .row-more { margin-inline-start: 6px; }
-  .outage .evidence-type { grid-column: 1 / -1; margin-top: 2px !important; color: var(--ink-3); font-size: 12px; line-height: 1.4; }
+  .outage .evidence-match { color: var(--ink); font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; line-height: 1.55; }
+  .outage .evidence-scope { margin-top: 8px; }
+  .outage .evidence-scope summary,
+  .outage .more-dates summary,
+  .outage .archive-more summary {
+    display: inline-flex;
+    list-style: none;
+    align-items: center;
+    min-height: 44px;
+    padding: 0;
+    color: var(--accent);
+    background: transparent;
+    border: 0;
+    font: 500 13px/1.4 var(--font-sans);
+    letter-spacing: 0;
+    text-transform: none;
+    cursor: pointer;
+  }
+
+  .outage .evidence-scope summary::-webkit-details-marker,
+  .outage .more-dates summary::-webkit-details-marker,
+  .outage .archive-more summary::-webkit-details-marker { display: none; }
+  .outage .evidence-scope summary:focus-visible,
+  .outage .more-dates summary:focus-visible,
+  .outage .archive-more summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .outage .evidence-official { margin-top: 4px !important; color: var(--ink-2); font-size: 14px; line-height: 1.55; }
 
   /* ── Browse ──────────────────────────────────────────────────────────── */
 
   .outage .browse {
-    margin-top: clamp(56px, 8vw, 88px);
+    margin-top: clamp(48px, 7vw, 72px);
     padding-top: 24px;
     border-top: 1px solid var(--line-2);
   }
@@ -573,12 +660,49 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     line-height: 1.5;
   }
 
+  .outage .browse-disclosure {
+    margin-top: 18px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .outage .browse-toggle {
+    display: flex;
+    list-style: none;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 16px;
+    min-height: 56px;
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: 0;
+    text-transform: none;
+    cursor: pointer;
+  }
+  .outage .browse-toggle > span:first-child { font-size: 16px; font-weight: 600; }
+  .outage .browse-preview {
+    max-width: 32em;
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.4;
+    text-align: right;
+  }
+
+  .outage .browse-toggle:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+  .outage .browse-panel { padding: 20px 0 28px; }
+
   .outage .toolbar {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
     gap: 12px 24px;
-    margin: 24px 0 0;
+    margin: 0;
   }
 
   /* `display: flex` outranks the UA's [hidden] rule. */
@@ -608,7 +732,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    min-height: 32px;
+    min-height: 40px;
     font-size: 14px;
     font-weight: 500;
     line-height: 1.4;
@@ -626,7 +750,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     line-height: 1.5;
   }
 
-  .outage .cities { margin-top: 28px; }
+  .outage .cities { margin-top: 24px; }
 
   .outage .chips {
     display: flex;
@@ -638,8 +762,9 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   .outage .chip {
     position: relative;
     display: inline-flex;
-    align-items: baseline;
+    align-items: center;
     gap: 4px;
+    min-height: 44px;
     padding: 0;
     color: var(--ink);
     background: none;
@@ -656,100 +781,54 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   .outage .chip[aria-pressed='true'] .chip-name { text-decoration: underline; text-underline-offset: 3px; }
 
   .outage .list-head {
-    margin: 32px 0 0;
+    margin: 28px 0 0;
     font-size: 16px;
     font-weight: 600;
     line-height: 1.35;
   }
 
-  /* ── Fortnight rule ──────────────────────────────────────────────────── */
+  /* ── Published date controls ─────────────────────────────────────────── */
 
-  /* The whole window at once: which days are bad, and a way to reach one without
-     scrolling past three hundred rows. */
-  .outage .fortnight {
-    position: relative;
-    height: 44px;
-    margin-top: 12px;
-  }
-
-  .outage .fortnight::before {
-    content: '';
-    position: absolute;
-    top: 30px;
-    right: 0;
-    left: 0;
-    height: 1px;
-    background: var(--line-2);
+  .outage .fortnight { margin-top: 12px; }
+  .outage .date-set {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .outage .fn-day {
-    position: absolute;
-    top: 0;
-    width: 24px;
-    height: 44px;
-    margin-left: -12px;
-    padding: 0;
-    background: none;
-    border: 0;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 5px;
+    min-width: 44px;
+    min-height: 52px;
+    padding: 6px 8px;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--line-control);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    text-align: left;
     cursor: pointer;
   }
 
-
-  .outage .fn-count {
-    position: absolute;
-    /* The baseline sits at y=30 and today's tick rises to y=20, so the numeral clears the
-       taller tick instead of colliding with it. */
-    bottom: 26px;
-    left: 50%;
-    color: var(--ink);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 500;
-    font-variant-numeric: tabular-nums;
-    line-height: 1;
-    white-space: nowrap;
-    transform: translateX(-50%);
-  }
-
-  .outage .fn-day[data-past] .fn-count { color: var(--ink-2); }
-  /* Red on the numeral only where power is actually out. */
+  .outage .fn-weekday { color: var(--ink-2); font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; }
+  .outage .fn-date { min-width: 0; font-size: 13px; font-weight: 600; line-height: 1.2; white-space: nowrap; }
+  .outage .fn-count { color: var(--ink-2); font-family: var(--font-mono); font-size: 11px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .outage .fn-day[data-past] { color: var(--ink-2); }
   .outage .fn-day[data-live] .fn-count { color: var(--out); }
+  .outage .fn-day[data-today],
+  .outage .fn-day[aria-pressed='true'] { border-color: var(--accent); }
+  .outage .fn-day:hover { border-color: var(--accent); color: var(--accent); }
+  .outage .fn-day:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 
-  .outage .fn-tick {
-    position: absolute;
-    top: 24px;
-    left: 50%;
-    width: 1px;
-    height: 6px;
-    margin-left: -0.5px;
-    background: var(--line-2);
-  }
+  .outage .more-dates { margin-top: 12px; }
+  .outage .more-dates .date-set { margin-top: 4px; }
 
-  .outage .fn-day[data-today] .fn-tick {
-    top: 20px;
-    width: 2px;
-    height: 10px;
-    margin-left: -1px;
-    background: var(--ink);
-  }
-
-  .outage .fn-day:hover .fn-tick,
-  .outage .fn-day[aria-pressed='true'] .fn-tick { background: var(--accent); }
-  .outage .fn-day[aria-pressed='true'] .fn-tick { top: 20px; width: 2px; height: 10px; margin-left: -1px; }
-
-  .outage .fn-init {
-    position: absolute;
-    top: 33px;
-    left: 50%;
-    color: var(--ink-3);
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 500;
-    line-height: 1;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    transform: translateX(-50%);
-  }
+  .outage .archive-more { margin-top: 32px; }
+  .outage .archive-more .day { margin-top: 24px; }
+  .outage .day:focus-visible { outline: 3px solid var(--accent); outline-offset: 6px; }
 
   /* ── Day sections and the hour rail ──────────────────────────────────── */
 
@@ -1264,22 +1343,35 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
 
     .outage .task-zone {
       display: grid;
-      grid-template-columns: minmax(0, 32rem) minmax(0, 1fr);
-      gap: 48px;
+      grid-template-columns: minmax(20rem, 0.8fr) minmax(0, 1.2fr);
+      column-gap: clamp(24px, 3vw, 36px);
+      row-gap: 24px;
       align-items: start;
     }
 
     .outage .verdict { margin: 0; }
+    .outage .task-zone > .evidence {
+      grid-column: 1 / -1;
+      margin-top: 0;
+    }
+    .outage .task-zone > .evidence ol {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px 32px;
+    }
+    .outage .task-zone > .evidence li { padding: 0; border-top: 0; }
     .outage .browse { max-width: 60rem; }
   }
   .outage .task-zone,
   .outage .browse,
   .outage .locator,
-  .outage .verdict { min-width: 0; }
+  .outage .verdict,
+  .outage .evidence { min-width: 0; }
 
   @media (max-width: 559px) {
     .outage .types { gap: 4px 14px; }
-    .outage .evidence li { column-gap: 8px; }
+    .outage .date-set { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .outage .browse-toggle { align-items: flex-start; flex-direction: column; gap: 2px; padding: 8px 0; }
+    .outage .browse-preview { max-width: none; text-align: left; }
   }
 
 
@@ -1310,7 +1402,6 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     .outage .row-bar { margin-top: 0; }
     .outage .row-state { padding-top: 0; }
     .outage .row-area { font-size: 16px; }
-    .outage .fn-day { width: 22px; margin-left: -11px; }
     /* Keep only the anchors of the 24-hour scale when it is this narrow. */
     .outage .rail-hour[data-edge='mid'] { display: none; }
   }
@@ -1352,6 +1443,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   import { entryStatus, manilaDate } from '../scripts/outages.mjs';
   import {
     badgeFor,
+    conciseAnnouncement,
     citiesOf,
     cityRows,
     clock,
@@ -1361,8 +1453,10 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     dayShort,
     interruptionType,
     isVisible,
+    previewArea,
     splitArea,
     squeeze,
+    sourceStatusForDisplay,
     verdictView,
     windowDays,
   } from '../scripts/power-view.mjs';
@@ -1428,8 +1522,13 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   const verdictActions = el('[data-verdict-actions]');
   const resetBtn = el<HTMLButtonElement>('[data-reset]');
   const retryBtn = el<HTMLButtonElement>('[data-retry]');
+  const answerAnnouncement = el('[data-answer-announcement]');
+  const answerSources = el('[data-answer-sources]');
+  const rotationalContext = el('[data-rotational-context]');
+  const cityPrompt = el('[data-city-prompt]');
   const evidence = el('[data-evidence]');
-  const locatorAnnouncement = el('[data-locator-announcement]');
+  const browse = el<HTMLDetailsElement>('[data-browse]');
+  const browsePreview = el('[data-browse-preview]');
   const citiesBox = el('[data-cities]');
   const chipBox = el('[data-chips]');
   const typeInputs = [...document.querySelectorAll<HTMLInputElement>('[data-type]')];
@@ -1453,8 +1552,6 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   // open during an outage is the normal case, and ageing the badges it loaded with is
   // not the same as following the schedule.
   const REFETCH_MS = 5 * 60 * 1000;
-  // Long enough that an 8-character area name is one rebuild, short enough to feel live.
-  const TYPE_DEBOUNCE_MS = 120;
   // Streets longer than this get a toggle. A string length, never a measured height: the
   // layout probe is what made content-visibility unsafe on rows.
   const STREETS_CLAMP = 90;
@@ -1472,6 +1569,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   let feedWindow: FeedWindow | undefined;
   let city = '';
   let selectedDay = '';
+  let appliedArea = '';
   let detected = '';
   let ingest: Ingest | undefined;
   let calendar: Calendar | undefined;
@@ -1487,11 +1585,17 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   // Which Cebu day the list was built for: past midnight, in-place patching cannot fix it.
   let renderedToday = '';
   let loading = false;
+  let forceAnswerAnnouncement = false;
+  let lastAnnouncementIdentity = '';
+  let lastAnnouncementSource = 'loading';
+  let announcementFrame = 0;
+  let cityPromptSig = '';
+  let pendingDayJump = '';
+  let archiveOpen = false;
+  let moreDatesOpen = false;
   // Which chrome the page is showing. A failed feed must not also be blamed on Facebook's
   // supplementary poller.
   let chrome: 'loading' | 'ok' | 'failed' = 'loading';
-  let typing = 0;
-  let frame = 0;
 
   const esc = (value: string) =>
     value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
@@ -1501,8 +1605,9 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
 
   // A needle of pure punctuation folds away to nothing, so it must read as no query at all:
   // otherwise the label, `scoped` and the matcher disagree and the page answers "Yes, power
-  // is out now in ." over all 400 rows.
-  const query = () => (squeeze(search.value) ? search.value.trim().toLowerCase() : '');
+  // is out now in ." over all 400 rows. `appliedArea` changes only when the reader commits
+  // the field, so typing never churns the answer or the live announcement.
+  const query = () => (squeeze(appliedArea) ? appliedArea.trim().toLowerCase() : '');
 
   /** What the roster makes of the typed name, so the answer can say "not our franchise". */
   type Place = {
@@ -1515,7 +1620,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   // A typed place and a selected city compose. If their known franchise locations conflict,
   // preserve that uncertainty instead of answering an all-clear for a place excluded by city.
   const placeOf = () => {
-    const typed = query() ? (lookupPlace(search.value) as Place | null) : null;
+    const typed = query() ? (lookupPlace(appliedArea) as Place | null) : null;
     if (typed) {
       if (city && typed.kind !== 'outside' && typed.lgus.length && !typed.lgus.includes(city)) return null;
       return typed;
@@ -1525,7 +1630,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   };
 
   const verdictLabel = () => {
-    const typed = query() ? search.value.trim().replace(/\b\p{Ll}/gu, (c) => c.toUpperCase()) : '';
+    const typed = query() ? appliedArea.trim().replace(/\b\p{Ll}/gu, (c) => c.toUpperCase()) : '';
     return typed && city ? `${typed} in ${city}` : typed || city;
   };
 
@@ -1592,10 +1697,57 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     if (confidence.textContent !== text) confidence.textContent = text;
   }
 
+  function sourceConfidenceKey() {
+    if (chrome === 'loading') return 'loading';
+    if (chrome === 'failed' || sourceReadability === 'unreadable') return 'unreadable';
+    if (refreshFailed || (!calendarAvailable() && ingestStale())) return 'stale';
+    if (sourceReadability === 'partial' || calendarIncomplete() || warnings.length) return 'partial';
+    return calendarAvailable() ? 'calendar' : 'fallback';
+  }
+
+  function sourceConfidenceAnnouncement(previous: string, current: string) {
+    const wasDegraded = previous === 'unreadable' || previous === 'stale' || previous === 'partial';
+    const recovered = wasDegraded && (current === 'calendar' || current === 'fallback');
+    if (recovered) return current === 'calendar'
+      ? 'Published schedule recovered from the official calendar.'
+      : 'Published schedule recovered, but calendar updates may still be incomplete.';
+    if (current === 'unreadable') return 'Schedule unreadable. This is not an all-clear.';
+    if (current === 'stale') return 'Could not refresh. The last published schedule may be outdated.';
+    if (current === 'partial') return 'Published schedule may be incomplete.';
+    if (current === 'fallback') return 'Calendar unavailable; rotational updates may be incomplete.';
+    return 'Official calendar is available.';
+  }
+  const verdictStateOrder = (state: string) => state === 'live' ? 0 : state === 'upcoming' ? 1 : 2;
+
+  function substantiveVerdictKey(view: { key: string }, scope: Entry[], now: number) {
+    const windows = scope
+      .map((entry) => ({ entry, state: entryStatus(entry, now).state }))
+      .filter(({ state }) => state === 'live' || state === 'upcoming' || state === 'cancelled')
+      .sort((a, b) =>
+        verdictStateOrder(a.state) - verdictStateOrder(b.state) || Date.parse(a.entry.start) - Date.parse(b.entry.start))
+      .slice(0, 2)
+      .map(({ entry, state }) => `${entry.start}|${entry.end}|${entry.flag || ''}|${state}|${entry.possible ? 'possible' : 'confirmed'}`)
+      .join(',');
+    return `${view.key}|${windows}`;
+  }
+
+  function announcementWindowDetails(scope: Entry[], now: number) {
+    return scope
+      .map((entry) => ({ entry, state: entryStatus(entry, now).state }))
+      .filter(({ state }) => state === 'live' || state === 'upcoming' || state === 'cancelled')
+      .sort((a, b) =>
+        verdictStateOrder(a.state) - verdictStateOrder(b.state) || Date.parse(a.entry.start) - Date.parse(b.entry.start))
+      .slice(0, 2)
+      .map(({ entry, state }) => {
+        const status = state === 'cancelled'
+          ? 'cancelled'
+          : entry.flag || (entry.possible ? 'possible, not confirmed' : state === 'live' ? 'in progress' : 'scheduled');
+        return `Published ${status}: ${dayFull.format(new Date(entry.start))}, ${clock.format(new Date(entry.start))} to ${clock.format(new Date(entry.end))}.`;
+      });
+  }
+
   function renderVerdictControls(scoped: boolean) {
     // Recovery belongs to a failed or partially unreadable schedule, not to a healthy answer.
-    // A scoped reader can always clear their own answer; the official calendar remains linked
-    // with the source material in the footer.
     resetBtn.hidden = !scoped;
     retryBtn.hidden = chrome !== 'failed' && sourceReadability !== 'unreadable' && !refreshFailed && !calendarIncomplete();
     verdictActions.hidden = resetBtn.hidden && retryBtn.hidden;
@@ -1605,14 +1757,62 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     verdictMeta.hidden = !location;
   }
 
+  function renderAnswerSources(scope: Entry[], scoped: boolean, needsCity: boolean) {
+    const visible = scoped && chrome !== 'loading' && !needsCity;
+    answerSources.hidden = !visible;
+    rotationalContext.hidden = !visible || !scope.some((entry) => entry.possible);
+  }
+
+  function renderCityPrompt(view: { needsCity: boolean; cityChoices: string[] }) {
+    if (!view.needsCity) {
+      cityPrompt.hidden = true;
+      if (cityPromptSig || cityPrompt.textContent) cityPrompt.textContent = '';
+      cityPromptSig = '';
+      return;
+    }
+    const place = placeOf()?.place || verdictLabel();
+    const applied = appliedArea.trim();
+    const sig = `${applied}|${place}|${view.cityChoices.join('|')}`;
+    if (sig === cityPromptSig) {
+      cityPrompt.hidden = false;
+      return;
+    }
+    const active = document.activeElement;
+    const focusedCity = active instanceof HTMLElement && cityPrompt.contains(active)
+      ? active.closest<HTMLButtonElement>('[data-city-choice]')?.dataset.cityChoice
+      : '';
+    cityPrompt.innerHTML =
+      `<p>Select the city where you mean ${esc(place)}.</p><div class="city-choices">` +
+      view.cityChoices.map((name) =>
+        `<button type="button" data-city-choice="${esc(name)}" data-applied-area="${esc(applied)}" aria-label="Check ${esc(place)} in ${esc(name)}">${esc(name)}</button>`,
+      ).join('') +
+      '</div>';
+    cityPromptSig = sig;
+    cityPrompt.hidden = false;
+    if (focusedCity) cityPrompt.querySelector<HTMLButtonElement>(`[data-city-choice="${CSS.escape(focusedCity)}"]`)?.focus();
+  }
+
   function clearEvidence() {
     evidence.hidden = true;
     if (evidenceDataSig || evidence.textContent) evidence.textContent = '';
     evidenceDataSig = '';
   }
 
-  function renderEvidence(scope: Entry[], now: number, scoped: boolean) {
-    if (!scoped || chrome !== 'ok') {
+  function localProof(entry: Entry, place: Place | null) {
+    const matched = place?.kind === 'barangay' ? place.place : verdictLabel();
+    const lgu = city || (place?.lgus.length === 1 ? place.lgus[0] : citiesOf(entry).length === 1 ? citiesOf(entry)[0] : 'LGU not specified');
+    const { shown } = splitArea(entry.area, Number.MAX_SAFE_INTEGER) as { shown: string };
+    const all: string[] = shown
+      .split(',')
+      .map((part: string) => part.trim())
+      .filter(Boolean);
+    const match = squeeze(matched);
+    const includesMatch = match && all.some((part: string) => squeeze(part).includes(match));
+    return { matched, lgu, otherAreas: Math.max(0, all.length - (includesMatch ? 1 : 0)) };
+  }
+
+  function renderEvidence(scope: Entry[], now: number, scoped: boolean, needsCity: boolean) {
+    if (!scoped || needsCity || chrome !== 'ok') {
       clearEvidence();
       return;
     }
@@ -1633,28 +1833,22 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       return;
     }
     const today = manilaDate(now);
-    const dataSig = `${sourceReadability}|${feedSig}|${today}|${query()}|${rows.map((entry) => `${keyOf(entry)}:${entryStatus(entry, now).state}`).join(',')}`;
+    const place = placeOf();
+    const dataSig = `${sourceReadability}|${feedSig}|${today}|${query()}|${city}|${rows.map((entry) => `${keyOf(entry)}:${entryStatus(entry, now).state}`).join(',')}`;
     if (dataSig !== evidenceDataSig) {
-      const html = `<p class="evidence-title">Relevant published window${rows.length === 1 ? '' : 's'}</p><ol>${rows.map((entry) => {
+      const html = `<p class="evidence-title">Matched published window${rows.length === 1 ? '' : 's'}</p><ol>${rows.map((entry) => {
         const state = entryStatus(entry, now).state;
-        const type = entry.possible
-          ? 'Possible rotational'
-          : interruptionType(entry) === 'emergency'
-            ? 'Emergency'
-            : interruptionType(entry) === 'rotational'
-              ? 'Rotational'
-              : 'Scheduled';
         const from = timeOf(entry.start);
         const to = timeOf(entry.end);
         const start = Date.parse(entry.start);
         const end = Date.parse(entry.end);
-        const date = Number.isFinite(start) ? `${dateShort.format(start)}, ` : '';
-        const overnight = Number.isFinite(start) && Number.isFinite(end) && manilaDate(start) !== manilaDate(end);
-        const timing = from && to
-          ? `${date}${from} to ${to}${overnight ? ' next day' : ''}`
-          : `${date}Time not listed`;
-        const change = entry.flag && entry.flag !== 'cancelled' ? ` · ${entry.flag}` : '';
-        return `<li><p class="evidence-time">${esc(timing)}</p><p class="evidence-state">${esc(stateWord(entry, state, dayKey(entry.start) === today))}</p><p class="evidence-area">${areaCell(entry, query())}</p><p class="evidence-type">${esc(`${type}${change}`)}</p></li>`;
+        const date = Number.isFinite(start) ? dateShort.format(start) : 'Date not listed';
+        const timing = from && to ? `${from} to ${to}${Number.isFinite(start) && Number.isFinite(end) && manilaDate(start) !== manilaDate(end) ? ' next day' : ''}` : 'Time not listed';
+        const proof = localProof(entry, place);
+        const officialScope = proof.otherAreas
+          ? `<details class="evidence-scope"><summary>Show ${proof.otherAreas} other affected ${proof.otherAreas === 1 ? 'area' : 'areas'}</summary><p class="evidence-official">Official area: ${esc(entry.area)}</p></details>`
+          : '';
+        return `<li><p class="evidence-match">Matched: ${esc(proof.matched)} · ${esc(proof.lgu)} · ${esc(date)} · ${esc(timing)} · ${esc(stateWord(entry, state, dayKey(entry.start) === today))}</p>${officialScope}</li>`;
       }).join('')}</ol>`;
       evidence.innerHTML = html;
       evidenceDataSig = dataSig;
@@ -1662,9 +1856,18 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     evidence.hidden = false;
   }
 
-  // The verdict is an aria-live region, and reassigning identical text still announces.
-  // Stable prose is therefore rewritten only when the answer itself changed; the
-  // countdown lives in an aria-live="off" span, so it can move every minute in silence.
+  // The short atomic announcer is separate from the visible proof. Applied answers and
+  // concise location-recovery messages write here; countdown spans continue to age silently.
+  // The compact announcer is intentionally assembled from durable published timing.
+  // `conciseAnnouncement` removes each relative count so minute ticks cannot change it.
+
+  function announceAtomic(message: string) {
+    cancelAnimationFrame(announcementFrame);
+    answerAnnouncement.textContent = '';
+    announcementFrame = requestAnimationFrame(() => {
+      answerAnnouncement.textContent = message;
+    });
+  }
   function paint(node: HTMLElement, segments: Segment[], rebuild: boolean) {
     if (rebuild) {
       node.textContent = '';
@@ -1696,32 +1899,57 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     const view = verdictView({
       entries,
       scope,
-      // Echo the typed area back as a place name, not as raw keystrokes.
+      // Echo the applied area back as a place name, not as raw keystrokes.
       label: verdictLabel(),
       scoped,
+      city,
       stale: sourceReadability === 'partial' || refreshFailed,
       feed: chrome === 'failed' || sourceReadability === 'unreadable' ? 'failed' : chrome === 'ok' ? 'ready' : undefined,
       // Lets the answer tell "outside the franchise" apart from "nothing scheduled" and
       // from a name nobody recognises.
       place: placeOf(),
-    }) as { tone: string; key: string; head: Segment[]; detail: Segment[] };
+    }) as { tone: string; key: string; head: Segment[]; detail: Segment[]; needsCity: boolean; cityChoices: string[] };
 
-    // The identity of the answer, with no clock in it: a minute later it is the same key,
-    // so nothing is announced and nothing is re-animated.
-    const changed = verdict.dataset.key !== view.key;
+    // The visual key includes stateful windows (start, end and cancellation) but never a
+    // countdown. The announcement identity adds only coarse source confidence, never a
+    // checked-at timestamp, so a real outage/source transition speaks once without minute churn.
+    const substantiveKey = substantiveVerdictKey(view, scope, now);
+    const sourceKey = sourceConfidenceKey();
+    const announcementIdentity = `${substantiveKey}|source:${sourceKey}`;
+    const sourceChanged = Boolean(lastAnnouncementSource && lastAnnouncementSource !== sourceKey);
+    const identityChanged = Boolean(lastAnnouncementIdentity && lastAnnouncementIdentity !== announcementIdentity);
+    const globalSourceTransition = !scoped && sourceChanged &&
+      ['unreadable', 'stale', 'partial'].some((state) => state === lastAnnouncementSource || state === sourceKey);
+    const announce = forceAnswerAnnouncement || (scoped && identityChanged) || globalSourceTransition;
+    const previousSource = lastAnnouncementSource;
+    forceAnswerAnnouncement = false;
+    lastAnnouncementIdentity = announcementIdentity;
+    lastAnnouncementSource = sourceKey;
+
+    const changed = verdict.dataset.key !== substantiveKey;
     verdict.dataset.tone = view.tone;
-    verdict.dataset.key = view.key;
+    verdict.dataset.key = substantiveKey;
     // The tone is a 3px rule in the gutter; an idle answer has no tone to draw.
     verdictMark.hidden = view.tone === 'idle';
     paint(verdictHead, view.head, changed);
     paint(verdictDetail, view.detail, changed);
+    renderAnswerSources(scope, scoped, view.needsCity);
     renderConfidence();
     renderVerdictControls(scoped);
-    renderEvidence(scope, now, scoped);
+    renderCityPrompt(view);
+    renderEvidence(scope, now, scoped, view.needsCity);
 
+    if (announce) {
+      const detail = scoped && chrome !== 'failed' && sourceReadability !== 'unreadable'
+        ? announcementWindowDetails(scope, now)
+        : [];
+      const sourceNote = sourceChanged ? ` ${sourceConfidenceAnnouncement(previousSource, sourceKey)}` : '';
+      announceAtomic(`${conciseAnnouncement(view.head, detail)}${sourceNote}`);
+    }
     if (!changed) return;
 
-    // One authored moment: the answer settles in when it changes, never on every tick.
+    // One authored moment: the answer settles in when it changes, never on a countdown
+    // tick or while a reader types in the draft field.
     verdict.removeAttribute('data-fresh');
     void verdict.offsetWidth;
     verdict.setAttribute('data-fresh', '');
@@ -1731,6 +1959,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   // independent of the current city, so changing city always has a predictable visible set.
   // `chipSig` skips no-op minute ticks and preserves focused controls when the counts age.
   function renderChips(now = Date.now()) {
+    if (!browse.open) return;
     const types = selectedTypes();
     const visible = entries.filter((entry) =>
       isVisible(entry, { needle: query(), types, hideDone: !showFinished.checked, now }) &&
@@ -1797,7 +2026,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     if (!highlights) return;
     highlights.clear();
     if (!needle) return;
-    for (const holder of document.querySelectorAll<HTMLElement>('.outage .row-area, .outage .row-streets, .outage .evidence-area')) {
+    for (const holder of document.querySelectorAll<HTMLElement>('.outage .row-area, .outage .row-streets, .outage .evidence-match, .outage .evidence-official')) {
       for (let node = holder.firstChild; node; node = node.nextSibling) {
         if (node.nodeType !== 3) continue;
         const text = node.nodeValue || '';
@@ -1903,34 +2132,16 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     return today ? badgeFor(entry, now) : '';
   }
 
-  /** The area uses splitArea everywhere, with a matched hidden place kept in the preview. */
+  /** The shared preview keeps the LGU context and any hidden query match visible. */
   function areaPreview(entry: Entry, needle: string) {
-    const split = splitArea(entry.area) as { shown: string; hidden: number; tail: string };
-    if (split.hidden === 0) return { text: entry.area, label: '', tail: '', collapsed: false };
-
-    // A matched barangay can sit past splitArea's first five names. Keep that one compact
-    // context in view instead of opening a multi-city advisory just to prove the match.
-    const want = squeeze(needle);
-    const hay = squeeze(entry.area);
-    const seen = squeeze(`${split.shown} ${split.tail}`);
-    const matched = want && hay.includes(want) && !seen.includes(want)
-      ? (entry.area.match(/\(([^)]*)\)\s*$/)?.[1] ?? entry.area)
-        .split(',')
-        .map((part) => part.trim().replace(/^\(/, '').replace(/\)$/, ''))
-        .find((part) => squeeze(part).includes(want)) || ''
-      : '';
-    const text = [split.shown, matched].filter(Boolean).join(', ');
-    const label = split.tail
-      ? `show all ${split.hidden} more in ${split.tail}`
-      : `show all ${split.hidden} more`;
-    return { text, label, tail: split.tail, collapsed: true };
+    const preview = previewArea(entry.area, needle);
+    if (!preview.collapsed) return { ...preview, label: '' };
+    const label = `Show ${preview.hidden} other affected ${preview.hidden === 1 ? 'area' : 'areas'}`;
+    return { ...preview, label };
   }
 
   function areaControlLabel(preview: ReturnType<typeof areaPreview>, expanded: boolean) {
-    if (expanded) return 'Show fewer affected areas';
-    return preview.tail
-      ? `Show all affected areas in ${preview.tail}`
-      : 'Show all affected areas';
+    return expanded ? 'Show fewer affected areas' : preview.label;
   }
 
   /** A text-built clamp keeps the LGU and query context visible without hiding semantics. */
@@ -1955,7 +2166,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     const map = safeUrl(entry.map);
     const source = safeUrl(entry.source);
     const type = interruptionType(entry);
-    const publishedStatus = `${entry.sourceStatus || ''}`.trim();
+    const publishedStatus = sourceStatusForDisplay(entry.sourceStatus);
     const flag = `${entry.flag || ''}`.trim();
     const sourceChange = flag && flag !== 'cancelled' ? `Updated: ${flag}` : '';
     const sourceStatus = publishedStatus &&
@@ -2005,7 +2216,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   const nowAnchor = (group: Entry[], now: number) => group.findIndex((entry) => Date.parse(entry.start) > now);
 
   function paintEmpty() {
-    const place = search.value.trim() || city;
+    const place = appliedArea.trim() || city;
     const hasScope = Boolean(place);
     const outside = placeOf();
     const now = Date.now();
@@ -2077,10 +2288,8 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     return totals;
   }
 
-  // The rail is a date filter: every published day stays selectable, including a quiet
-  // day, so a reader can intentionally see that no rows survive the composed filters.
-  // Its counts obey every other list filter; the current date is omitted so every day
-  // remains a useful next choice.
+  // Every published day remains reachable, but the first pass is a readable set of four
+  // near-term controls rather than a wall of narrow ticks.
   function paintFortnight(now: number) {
     const types = selectedTypes();
     const visible = entries.filter((entry) =>
@@ -2094,7 +2303,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       const key = button.dataset.key!;
       const count = totals.get(key) || 0;
       const numeral = button.querySelector<HTMLElement>('.fn-count')!;
-      const text = count ? String(count) : '';
+      const text = count ? `${count}` : '—';
       if (numeral.textContent !== text) numeral.textContent = text;
       const selected = key === selectedDay;
       if (button.getAttribute('aria-pressed') !== String(selected)) button.setAttribute('aria-pressed', String(selected));
@@ -2109,28 +2318,38 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     }
   }
 
-  // The exact published window is fixed by the fetch; date selection only patches
-  // aria-pressed, so a control under focus is never replaced by a filter change.
+  function dateButton(key: string, today: string) {
+    const noon = new Date(`${key}T12:00:00+08:00`);
+    const flag = key === today ? ' data-today' : key < today ? ' data-past' : '';
+    return `<button type="button" class="fn-day" data-key="${esc(key)}"${flag}>` +
+      `<span class="fn-weekday" aria-hidden="true">${esc(dayShort.format(noon).slice(0, 3))}</span>` +
+      `<span class="fn-date" aria-hidden="true">${esc(dateShort.format(noon))}</span>` +
+      '<span class="fn-count" aria-hidden="true">—</span></button>';
+  }
+
   function renderFortnight(now: number, today: string) {
     const days = windowKeys();
-    const sig = `${today}|${days.join(',')}`;
+    const nearTerm = days.filter((key) => key >= today).slice(0, 4);
+    const primary = nearTerm.length ? nearTerm : days.slice(0, 4);
+    const later = days.filter((key) => !primary.includes(key));
+    const sig = `${today}|${primary.join(',')}|${later.join(',')}`;
     if (sig !== fortnightSig) {
       fortnightSig = sig;
-      fortnight.innerHTML = days
-        .map((key, index) => {
-          const noon = new Date(`${key}T12:00:00+08:00`);
-          const flag = key === today ? ' data-today' : key < today ? ' data-past' : '';
-          return `<button type="button" class="fn-day" data-key="${esc(key)}" style="left:${pct(((index + 0.5) / days.length) * 100)}"${flag}>` +
-            '<span class="fn-count" aria-hidden="true"></span><span class="fn-tick" aria-hidden="true"></span>' +
-            `<span class="fn-init" aria-hidden="true">${esc(dayShort.format(noon).charAt(0))}</span></button>`;
-        })
-        .join('');
+      fortnight.innerHTML =
+        `<div class="date-set">${primary.map((key) => dateButton(key, today)).join('')}</div>` +
+        (later.length
+          ? `<details class="more-dates" data-more-dates${moreDatesOpen || later.includes(selectedDay) ? ' open' : ''}>` +
+            `<summary>Show ${later.length} more published ${later.length === 1 ? 'date' : 'dates'}</summary>` +
+            `<div class="date-set">${later.map((key) => dateButton(key, today)).join('')}</div></details>`
+          : '');
     }
-
+    const more = fortnight.querySelector<HTMLDetailsElement>('[data-more-dates]');
+    if (more && selectedDay && later.includes(selectedDay)) more.open = true;
     paintFortnight(now);
   }
 
   function renderFeed() {
+    if (!browse.open) return;
     if (chrome !== 'ok') {
       feed.innerHTML = '';
       emptyNote.hidden = true;
@@ -2153,7 +2372,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     // Totals over everything published, so a filtered day can say "3 of 11" honestly.
     const totals = dayTotals();
 
-    const feedEmpty = chrome === 'ok' && entries.length === 0;
+    const feedEmpty = entries.length === 0;
     emptyFeed.hidden = !feedEmpty;
     if (feedEmpty) {
       const window = feedWindow?.from && feedWindow?.to
@@ -2164,48 +2383,89 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     emptyNote.hidden = groups.size > 0 || feedEmpty;
     if (!emptyNote.hidden) paintEmpty();
 
-    feed.innerHTML = [...groups.entries()]
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([key, group]) => {
-        const noon = new Date(`${key}T12:00:00+08:00`);
-        const offset = Math.round(
-          (Date.parse(`${key}T00:00:00+08:00`) - Date.parse(`${today}T00:00:00+08:00`)) / 86400000,
-        );
-        const rel = offset === 0 ? 'Today' : offset === 1 ? 'Tomorrow' : offset === -1 ? 'Yesterday' : dayShort.format(noon);
-        const total = totals.get(key) || group.length;
-        const count = group.length === total
-          ? `${group.length} ${group.length === 1 ? 'interruption' : 'interruptions'}`
-          : `${group.length} of ${total}`;
-        // Exactly one now line on the page: inside today, between the last window that has
-        // started and the first that has not, or closing the section when none is left.
-        const anchor = key === today ? nowAnchor(group, now) : -1;
-        const rows = group
-          .map((entry, index) => `${index === anchor ? nowLineHtml(now) : ''}${row(entry, key, now, today)}`)
-          .join('');
-        return `
-          <section class="day" id="day-${esc(key)}" data-day="${esc(key)}">
-            <div class="day-head">
-              <h2 class="day-name"><span class="day-rel"${offset === 0 ? ' data-today' : ''}>${esc(rel)}</span><span class="day-date">${esc(dateShort.format(noon))}</span></h2>
-              <span class="day-count">${count}</span>
-            </div>
-            ${rail(group, key, now)}
-            ${rows}${key === today && anchor === -1 ? nowLineHtml(now) : ''}
-          </section>`;
-      })
-      .join('');
+    const renderDay = ([key, group]: [string, Entry[]]) => {
+      const noon = new Date(`${key}T12:00:00+08:00`);
+      const offset = Math.round(
+        (Date.parse(`${key}T00:00:00+08:00`) - Date.parse(`${today}T00:00:00+08:00`)) / 86400000,
+      );
+      const rel = offset === 0 ? 'Today' : offset === 1 ? 'Tomorrow' : offset === -1 ? 'Yesterday' : dayShort.format(noon);
+      const total = totals.get(key) || group.length;
+      const count = group.length === total
+        ? `${group.length} ${group.length === 1 ? 'interruption' : 'interruptions'}`
+        : `${group.length} of ${total}`;
+      // Exactly one now line on the page: inside today, between the last window that has
+      // started and the first that has not, or closing the section when none is left.
+      const anchor = key === today ? nowAnchor(group, now) : -1;
+      const rows = group
+        .map((entry, index) => `${index === anchor ? nowLineHtml(now) : ''}${row(entry, key, now, today)}`)
+        .join('');
+      return `
+        <section class="day" id="day-${esc(key)}" data-day="${esc(key)}" tabindex="-1" aria-labelledby="day-label-${esc(key)}">
+          <div class="day-head">
+            <h2 class="day-name" id="day-label-${esc(key)}"><span class="day-rel"${offset === 0 ? ' data-today' : ''}>${esc(rel)}</span><span class="day-date">${esc(dateShort.format(noon))}</span></h2>
+            <span class="day-count">${count}</span>
+          </div>
+          ${rail(group, key, now)}
+          ${rows}${key === today && anchor === -1 ? nowLineHtml(now) : ''}
+        </section>`;
+    };
+
+    const ordered = [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+    const primary = selectedDay
+      ? ordered
+      : (ordered.filter(([key]) => key >= today).length ? ordered.filter(([key]) => key >= today) : ordered).slice(0, 2);
+    const later = selectedDay ? [] : ordered.filter(([key]) => !primary.some(([primaryKey]) => primaryKey === key));
+    feed.innerHTML =
+      primary.map(renderDay).join('') +
+      (later.length
+        ? `<details class="archive-more" data-archive-more${archiveOpen ? ' open' : ''}>` +
+          `<summary>Show ${later.length} later published ${later.length === 1 ? 'day' : 'days'}</summary>` +
+          later.map(renderDay).join('') +
+          '</details>'
+        : '');
 
     renderFortnight(now, today);
     paintCityHits(list, needle);
     paintHits(needle);
+
+    if (pendingDayJump) {
+      const targetKey = pendingDayJump;
+      pendingDayJump = '';
+      requestAnimationFrame(() => {
+        const target = feed.querySelector<HTMLElement>(`#day-${CSS.escape(targetKey)}`);
+        if (!target) return;
+        target.scrollIntoView({ block: 'start' });
+        target.focus({ preventScroll: true });
+      });
+    }
+  }
+
+  function renderSchedulePreview(now = Date.now()) {
+    const today = manilaDate(now);
+    const todayRows = entries.filter((entry) => dayKey(entry.start) === today).length;
+    const current = entries.filter((entry) => {
+      const state = entryStatus(entry, now).state;
+      return state === 'live' || state === 'upcoming';
+    }).length;
+    const text = chrome === 'loading'
+      ? 'Loading the published schedule…'
+      : chrome === 'failed' || sourceReadability === 'unreadable'
+        ? 'Published schedule unavailable — check the official calendar.'
+        : `Today: ${todayRows ? `${todayRows} ${todayRows === 1 ? 'published interruption' : 'published interruptions'}` : 'no published interruptions'} · ${current ? `${current} current or upcoming` : 'none current or upcoming'}`;
+    if (browsePreview.textContent !== text) browsePreview.textContent = text;
+  }
+
+  function renderBrowse() {
+    if (!browse.open) return;
+    toolbarNote.hidden = chrome !== 'ok' || !selectedTypes().includes('rotational');
+    renderChips();
+    renderFeed();
   }
 
   function render() {
-    // Whatever was queued by typing is stale the moment anything else renders.
-    clearTimeout(typing);
-    cancelAnimationFrame(frame);
-    toolbarNote.hidden = chrome !== 'ok' || !selectedTypes().includes('rotational');
     renderVerdict();
-    renderFeed();
+    renderSchedulePreview();
+    renderBrowse();
   }
 
   // The now line is the page-scale cursor, so the minute tick has to move it rather than
@@ -2244,11 +2504,13 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   function refresh() {
     const now = Date.now();
     const today = manilaDate(now);
+    renderVerdict();
+    renderSchedulePreview(now);
+    if (!browse.open) return;
     const needle = query();
     const list = filtered({ now });
     renderChips(now);
     paintCityHits(list, needle);
-    renderVerdict();
     // Past midnight every relative word, every "today" marker and the now line belong to
     // a different day, and no amount of in-place patching can fix that.
     if (renderedToday && renderedToday !== today) {
@@ -2309,22 +2571,16 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     ageNowLine(now, today);
   }
 
-  function announceLocator(message: string) {
-    // This remains inside the sole verdict live region; locator feedback must not create a
-    // competing announcer or steal focus.
-    locatorAnnouncement.textContent = '';
-    locatorAnnouncement.textContent = message;
-  }
-
-  function setHint(message: string, tone: 'neutral' | 'error' = 'neutral', announce = false) {
+  function setHint(message: string, tone: 'neutral' | 'error' = 'neutral') {
     hint.textContent = message;
     hint.dataset.tone = tone;
-    if (announce) announceLocator(message);
   }
 
   async function locate() {
     if (!navigator.geolocation) {
-      setHint('This browser cannot share a location. Type your barangay instead.', 'error', true);
+      const message = 'This browser cannot share a location. Type your barangay instead.';
+      setHint(message, 'error');
+      announceAtomic(message);
       return;
     }
     locateBtn.setAttribute('aria-busy', 'true');
@@ -2344,68 +2600,69 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       if (!area) throw new Error('location did not name an area');
       detected = place.label || area;
       search.value = area;
+      appliedArea = area;
       city = '';
+      forceAnswerAnnouncement = true;
       setHint(`Located ${detected}. Reviewing published interruptions for ${area}.`);
-      renderChips();
       render();
     } catch (error) {
       const denied = (error as GeolocationPositionError)?.code === 1;
-      setHint(
-        denied
-          ? 'Location permission was declined. Type your barangay instead.'
-          : 'Could not work out your location. Type your barangay instead.',
-        'error',
-        true,
-      );
+      const message = denied
+        ? 'Location permission was declined. Type your barangay instead.'
+        : 'Could not work out your location. Type your barangay instead.';
+      setHint(message, 'error');
+      announceAtomic(message);
     } finally {
       locateBtn.removeAttribute('aria-busy');
       locateBtn.disabled = false;
     }
   }
 
+  function applyCity(
+    nextCity: string,
+    { applied = search.value.trim(), focusAnswer = false }: { applied?: string; focusAnswer?: boolean } = {},
+  ) {
+    // Browse chips intentionally apply the field's current draft. Prompt choices instead
+    // pass their stored applied place, so a later draft cannot change what is confirmed.
+    appliedArea = applied;
+    if (applied !== search.value.trim()) search.value = applied;
+    detected = '';
+    city = nextCity === city ? '' : nextCity;
+    forceAnswerAnnouncement = true;
+    render();
+    if (focusAnswer) requestAnimationFrame(() => verdictHead.focus({ preventScroll: true }));
+  }
+
   form.addEventListener('submit', (event) => {
     event.preventDefault();
+    appliedArea = search.value.trim();
     detected = '';
-    renderChips();
+    forceAnswerAnnouncement = true;
     render();
-    setHint(search.value.trim() ? 'Showing published interruptions for this scope.' : 'Type an area, then check the published schedule.');
-  });
-
-  // Text and city scopes compose: a reader can narrow a city to an exact place without
-  // silently dropping either scope. The list defers one expensive rebuild after typing.
-  search.addEventListener('input', () => {
-    detected = '';
-    renderVerdict();
-    clearTimeout(typing);
-    typing = window.setTimeout(() => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        renderChips();
-        renderFeed();
-      });
-    }, TYPE_DEBOUNCE_MS);
+    setHint(appliedArea ? 'Showing published interruptions for this scope.' : 'Type an area, then check the published schedule.');
   });
 
   locateBtn.addEventListener('click', locate);
   for (const input of typeInputs) {
-    input.addEventListener('change', () => {
-      renderChips();
-      render();
-    });
+    input.addEventListener('change', () => renderBrowse());
   }
-  showFinished.addEventListener('change', () => {
-    renderChips();
-    render();
-  });
+  showFinished.addEventListener('change', () => renderBrowse());
 
   chipBox.addEventListener('click', (event) => {
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>('.chip');
     if (!button) return;
-    city = button.dataset.city === city ? '' : button.dataset.city || '';
-    renderChips();
-    render();
+    applyCity(button.dataset.city || '');
     // renderChips() replaced the button that was just pressed; put focus back on it.
     chipBox.querySelector<HTMLButtonElement>(`[data-city="${CSS.escape(city)}"]`)?.focus();
+  });
+
+  cityPrompt.addEventListener('click', (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-city-choice]');
+    if (!button) return;
+    applyCity(button.dataset.cityChoice || '', {
+      applied: button.dataset.appliedArea || appliedArea,
+      focusAnswer: true,
+    });
   });
 
   // The long-area and long-street expanders. The area's full string is rebuilt from the
@@ -2437,26 +2694,32 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     paintHits(query());
   });
 
-  evidence.addEventListener('click', (event) => {
-    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('.area-more');
-    if (button) toggleArea(button);
-  });
+  fortnight.addEventListener('toggle', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLDetailsElement && target.matches('[data-more-dates]')) moreDatesOpen = target.open;
+  }, true);
+
+  feed.addEventListener('toggle', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLDetailsElement && target.matches('[data-archive-more]')) archiveOpen = target.open;
+  }, true);
 
   fortnight.addEventListener('click', (event) => {
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>('.fn-day');
     if (!button) return;
     selectedDay = button.dataset.key === selectedDay ? '' : button.dataset.key || '';
-    renderChips();
-    render();
+    pendingDayJump = selectedDay;
+    renderBrowse();
   });
 
   // Dropping the area scope: the field's clear, "Not my area" and "Show everything" all
   // mean this much. The finished-history action below intentionally keeps the area scoped.
   function resetArea() {
     search.value = '';
+    appliedArea = '';
     city = '';
     detected = '';
-    renderChips();
+    forceAnswerAnnouncement = true;
     render();
     search.focus();
   }
@@ -2466,8 +2729,9 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   // The x inside the field clears typed text but leaves a deliberately chosen city scope.
   clearInput.addEventListener('click', () => {
     search.value = '';
+    appliedArea = '';
     detected = '';
-    renderChips();
+    forceAnswerAnnouncement = true;
     render();
     search.focus();
   });
@@ -2477,22 +2741,19 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   clearBtn.addEventListener('click', () => {
     if (clearBtn.dataset.revealFinished === 'true') {
       showFinished.checked = true;
-      renderChips();
-      render();
+      renderBrowse();
       showFinished.focus();
       return;
     }
     if (clearBtn.dataset.resetTypes === 'true') {
       for (const input of typeInputs) input.checked = true;
-      renderChips();
-      render();
+      renderBrowse();
       typeInputs[0]?.focus();
       return;
     }
     if (clearBtn.dataset.clearDay === 'true') {
       selectedDay = '';
-      renderChips();
-      render();
+      renderBrowse();
       return;
     }
     if (clearBtn.dataset.resetScope === 'true') resetArea();
@@ -2593,7 +2854,6 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       // disclosures when the published entries did not change.
       setChrome(sourceReadability === 'unreadable' ? 'failed' : 'ok');
       if (moved || needsRender) {
-        renderChips();
         render();
       } else {
         refresh();
@@ -2617,11 +2877,11 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
 
   async function boot() {
     setChrome('loading');
-    feed.innerHTML = `<section class="day">${SKELETON_ROW.repeat(3)}</section>`;
+    if (browse.open) feed.innerHTML = `<section class="day">${SKELETON_ROW.repeat(3)}</section>`;
+    else feed.innerHTML = '';
     try {
       await load();
       setChrome(sourceReadability === 'unreadable' ? 'failed' : 'ok');
-      renderChips();
       render();
     } catch (error) {
       feed.innerHTML = '';
@@ -2629,7 +2889,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       byKey = new Map();
       warnings = [];
       setChrome('failed');
-      renderVerdict();
+      render();
       updated.textContent = 'Feed unreachable.';
       console.error(error);
     }
@@ -2644,6 +2904,10 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       retryBtn.disabled = false;
     });
   });
+  browse.addEventListener('toggle', (event) => {
+    if (event.target === browse && browse.open) renderBrowse();
+  });
+
 
   await boot();
 

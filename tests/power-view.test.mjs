@@ -4,6 +4,7 @@ import test from 'node:test';
 import { lookupPlace } from '../src/scripts/franchise.mjs';
 import {
   badgeFor,
+  conciseAnnouncement,
   CITIES,
   citiesOf,
   CITY_ORDER,
@@ -13,7 +14,9 @@ import {
   interruptionType,
   isVisible,
   matches,
+  previewArea,
   splitArea,
+  sourceStatusForDisplay,
   verdictView,
   windowDays,
 } from '../src/scripts/power-view.mjs';
@@ -103,6 +106,16 @@ test('filters normalized official calendar emergencies as emergency', () => {
   assert.equal(isVisible(officialEmergency, { types: ['scheduled'], now }), false);
 });
 
+test('suppresses duplicated lifecycle source statuses while retaining meaningful changes', () => {
+  assert.equal(sourceStatusForDisplay('UPCOMING UPCOMING UPCOMING'), '');
+  assert.equal(sourceStatusForDisplay('upcoming | UPCOMING'), '');
+  assert.equal(sourceStatusForDisplay('UPCOMINGUPCOMING'), '');
+  assert.equal(sourceStatusForDisplay('UPCOMING UPCOMING UPCOMING RESTORED UPCOMING UPCOMING'), '');
+  assert.equal(sourceStatusForDisplay('REVISED REVISED'), 'REVISED');
+  assert.equal(sourceStatusForDisplay('CANCELLED'), 'CANCELLED');
+  assert.equal(sourceStatusForDisplay('POSSIBLE — REVISED'), 'POSSIBLE — REVISED');
+});
+
 test('clamps rail offsets to the day being drawn', () => {
   assert.equal(dayOffset('2026-09-03T09:30:00+08:00', '2026-09-03'), 570);
   assert.equal(dayOffset('2026-09-02T22:00:00+08:00', '2026-09-03'), 0);
@@ -154,6 +167,29 @@ test('the countdown is a segment, never baked into the announced string', () => 
   const volatile = view.detail.filter((seg) => typeof seg !== 'string');
   assert.deepEqual(volatile, [{ count: 'about 5h from now' }]);
   assert.ok(view.detail.every((seg) => typeof seg === 'string' ? !/from now/.test(seg) : true));
+});
+
+test('concise announcements retain published timing but exclude a rolling countdown', () => {
+  const detail = ['Published scheduled: Thursday, September 3, 12:00 PM to 2:00 PM.'];
+  const first = conciseAnnouncement(['Power goes out in ', { count: '2h' }], detail);
+  const later = conciseAnnouncement(['Power goes out in ', { count: '1h 59m' }], detail);
+
+  assert.equal(first, 'Power goes out. Published scheduled: Thursday, September 3, 12:00 PM to 2:00 PM.');
+  assert.equal(later, first);
+  assert.equal(
+    conciseAnnouncement(
+      ['Yes, power is out now in Talamban'],
+      ['Published in progress: Thursday, September 3, 9:00 AM to 3:00 PM, ', { count: 'about 5h' }, '.'],
+    ),
+    'Yes, power is out now in Talamban. Published in progress: Thursday, September 3, 9:00 AM to 3:00 PM.',
+  );
+  assert.equal(
+    conciseAnnouncement(['No outage right now in Talamban'], [
+      'Published scheduled: Thursday, September 3, 7:00 PM to 9:00 PM.',
+      'Published scheduled: Friday, September 4, 8:00 AM to 10:00 AM.',
+    ]),
+    'No outage right now in Talamban. Published scheduled: Thursday, September 3, 7:00 PM to 9:00 PM. Published scheduled: Friday, September 4, 8:00 AM to 10:00 AM.',
+  );
 });
 
 test('scoped verdicts keep long multi-city areas out of timing details', () => {
@@ -288,6 +324,16 @@ test('a parenthesised area collapses inside the parens', () => {
   assert.equal(short.shown, 'Alpaco, Cogon');
   assert.equal(short.hidden, 0);
   assert.equal(short.tail, 'City of Naga & Minglanilla');
+});
+
+test('collapsed previews keep an LGU beside the shown areas and retain tail queries', () => {
+  const tailMatch = previewArea(ROTATIONAL, 'Cebu City');
+  assert.equal(tailMatch.text, 'Agsungot, Apas, Babag, Binaliw, Bonbon, Cebu City');
+  assert.equal(tailMatch.hidden, 13);
+
+  const leadingLgu = previewArea(PARENTHESISED, 'Minglanilla');
+  assert.match(leadingLgu.text, /^City of Naga & Minglanilla, Alpaco, Balirong/);
+  assert.equal(leadingLgu.hidden, 8);
 });
 
 test('a short area hides nothing, so the page prints it whole', () => {
@@ -477,22 +523,20 @@ test('a franchise barangay with nothing published reads as covered, not unknown'
 
 // Twelve barangay names occur in two franchise LGUs, and Casili is the sharpest: a Mandaue
 // reader searching it gets nine Consolacion rows and none of their own.
-test('a barangay name two LGUs share adds exactly one sentence, and only over rows', () => {
+test('a shared barangay requires an applied city before the verdict can be trusted', () => {
   const row = entry({ area: 'Casili, Consolacion', areasRaw: 'Casili, Consolacion' });
   const args = { entries: [row], scope: [row], label: 'Casili', scoped: true, now };
   const place = { kind: 'barangay', place: 'Casili', lgus: ['Mandaue', 'Consolacion'] };
 
-  const base = verdictView(args);
   const shared = verdictView({ ...args, place });
-  assert.equal(shared.tone, base.tone);
-  assert.deepEqual(shared.head, base.head);
-  assert.deepEqual(shared.detail.slice(0, base.detail.length), base.detail);
-  assert.equal(shared.detail.length, base.detail.length + 1);
-  const added = shared.detail.at(-1);
-  assert.equal(added, ' Casili names a barangay in Mandaue and Consolacion, so check the city on each row.');
-  // Exactly one sentence, so the answer gains a caveat and not a paragraph.
-  assert.equal(added.match(/\./g).length, 1);
-  assert.notEqual(shared.key, base.key);
+  assert.equal(shared.tone, 'wait');
+  assert.deepEqual(shared.head, ['Choose the city for Casili']);
+  assert.deepEqual(
+    shared.detail,
+    ['Casili is a barangay in Mandaue and Consolacion. Select the matching city before this page can confirm a published interruption.'],
+  );
+  assert.equal(shared.needsCity, true);
+  assert.deepEqual(shared.cityChoices, ['Mandaue', 'Consolacion']);
 
   // Three-way names read as a list, not as a run of "and".
   const three = verdictView({
@@ -500,11 +544,15 @@ test('a barangay name two LGUs share adds exactly one sentence, and only over ro
     label: 'San Roque',
     place: { kind: 'barangay', place: 'San Roque', lgus: ['Cebu City', 'Talisay', 'Liloan'] },
   });
-  assert.match(three.detail.at(-1), / in Cebu City, Talisay and Liloan, /);
+  assert.match(three.detail[0], /in Cebu City, Talisay and Liloan\./);
 
-  // With no rows below, there is no city to check on anything.
+  const resolved = verdictView({ ...args, label: 'Casili in Consolacion', place, city: 'Consolacion' });
+  assert.equal(resolved.needsCity, false);
+  assert.equal(resolved.tone, 'out');
+
+  // Even a quiet published window needs city context before it can earn an all-clear.
   const empty = verdictView({ ...args, scope: [], place });
-  assert.ok(empty.detail.every((seg) => !/check the city/.test(String(seg))));
+  assert.equal(empty.needsCity, true);
 });
 
 // `place` remains additive. Unscoped keys additionally carry the current summary state.

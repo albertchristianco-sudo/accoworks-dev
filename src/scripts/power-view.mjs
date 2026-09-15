@@ -143,6 +143,54 @@ const hays = new WeakMap();
 // Exported because the page's area clamp must decide "is the hit visible" on exactly the
 // string this matched on; two normalisers would show a row with its reason clipped off.
 export const squeeze = (text) => fold(text).replace(/ /g, '');
+/**
+ * Screen-reader announcements use durable published timing rather than a countdown changing
+ * every minute. Omit each dynamic count segment and repair the punctuation it leaves behind.
+ */
+export function conciseAnnouncement(head, detail = []) {
+  const stableText = (segments, trimCountdownLead = false) => {
+    const text = segments
+      .filter((segment) => typeof segment === 'string')
+      .join(' ')
+      .replace(/\s+/g, ' ')
+      .replace(/\s+([,.;!?])/g, '$1')
+      .replace(/,\s*([.!?])/g, '$1')
+      .trim();
+    return trimCountdownLead ? text.replace(/\s+in$/i, '') : text;
+  };
+  const headText = stableText(head, head.some((segment) => typeof segment !== 'string'));
+  const detailText = stableText(detail);
+  const headSentence = headText && !/[.!?]$/.test(headText) ? `${headText}.` : headText;
+  const sentence = [headSentence, detailText].filter(Boolean).join(' ').trim();
+  return /[.!?]$/.test(sentence) ? sentence : `${sentence}.`;
+}
+
+
+/**
+ * The compact record preview keeps the official LGU context in view. A city at the tail
+ * remains beside a comma list; a leading parenthesised LGU stays first. A query match
+ * outside the first `keep` areas joins that same visible context instead of being hidden.
+ */
+export function previewArea(area, needle = '', keep = 5) {
+  const text = `${area ?? ''}`.trim();
+  const split = splitArea(text, keep);
+  if (split.hidden === 0) return { text, hidden: 0, collapsed: false };
+
+  const want = squeeze(needle);
+  const matched = want &&
+    squeeze(text).includes(want) &&
+    !squeeze(`${split.shown} ${split.tail}`).includes(want)
+    ? (text.match(/\(([^)]*)\)\s*$/)?.[1] ?? text)
+      .split(',')
+      .map((part) => part.trim().replace(/^\(/, '').replace(/\)$/, ''))
+      .find((part) => squeeze(part).includes(want)) || ''
+    : '';
+  const leadingLgu = /^\s*[^()]+\(/.test(text);
+  const parts = leadingLgu
+    ? [split.tail, split.shown, matched]
+    : [split.shown, matched, split.tail];
+  return { text: parts.filter(Boolean).join(', '), hidden: split.hidden, collapsed: true };
+}
 
 // One keystroke calls matches() once per entry, ~400 times with the identical needle, so
 // the needle is folded once and remembered until it changes.
@@ -176,6 +224,42 @@ export function interruptionType(entry) {
   if (entry.kind === 'rotational') return 'rotational';
   const published = `${entry.category ?? ''} ${entry.type ?? ''} ${entry.sourceStatus ?? ''}`;
   return /\bemergency\b/i.test(published) ? 'emergency' : 'scheduled';
+}
+
+const REDUNDANT_LIFECYCLE_STATUSES = new Set([
+  'upcoming',
+  'ongoing',
+  'restored',
+  'completed',
+  'done',
+  'live',
+  'scheduled',
+  'finished',
+  'in-progress',
+]);
+
+/**
+ * Calendar cells occasionally repeat their own lifecycle label while being normalized.
+ * A row already names timing and live/upcoming state, so those labels add no information;
+ * revisions and cancellations remain meaningful and are deliberately retained.
+ */
+export function sourceStatusForDisplay(value) {
+  const text = `${value ?? ''}`.trim().replace(/\s+/g, ' ');
+  if (!text) return '';
+  const tokens = text.split(/(?:\s*[·|,;/]\s*|\s+)/).filter(Boolean);
+  const repeatedToken = tokens.length > 1 && tokens.every((token) => token.toLowerCase() === tokens[0].toLowerCase())
+    ? tokens[0]
+    : '';
+  const repeatedRun = text.match(/^(.+?)(?:\1)+$/i)?.[1] || '';
+  const status = repeatedToken || repeatedRun || text;
+  const lifecycleTokens = status
+    .toLowerCase()
+    .replace(/\bin\s+progress\b/g, 'in-progress')
+    .split(/(?:\s*[·|,;/]\s*|\s+)/)
+    .filter(Boolean);
+  return lifecycleTokens.length && lifecycleTokens.every((token) => REDUNDANT_LIFECYCLE_STATUSES.has(token))
+    ? ''
+    : status;
 }
 
 /** One row's visibility under the current filters. */
@@ -230,17 +314,18 @@ const andList = (names) => (names.length > 1 ? `${names.slice(0, -1).join(', ')}
  *   scope: any[],
  *   label: string,
  *   scoped: boolean,
+ *   city?: string,
  *   stale?: boolean,
  *   now?: number,
  *   place?: { kind: string, place: string, lgus: readonly string[], utility?: string } | null,
  *   feed?: 'ready' | 'failed',
- * }} args
  */
 export function verdictView({
   entries,
   scope,
   label,
   scoped,
+  city = '',
   stale = false,
   now = Date.now(),
   place = undefined,
@@ -289,6 +374,15 @@ export function verdictView({
     mark = 'failed';
     head = ['Schedule unavailable'];
     detail = ['Visayan Electric’s schedule could not be read just now. Try again in a few minutes.'];
+  } else if (place?.kind === 'barangay' && place.lgus?.length > 1 && !city) {
+    // A shared barangay cannot inherit an advisory from another LGU. Hold the verdict at
+    // the city choice rather than making a confident claim and qualifying it afterwards.
+    tone = 'wait';
+    mark = 'shared';
+    head = [`Choose the city for ${place.place}`];
+    detail = [
+      `${place.place} is a barangay in ${andList(place.lgus)}. Select the matching city before this page can confirm a published interruption.`,
+    ];
   } else if (!scoped) {
     tone = 'idle';
     head = ['Tell me where you are'];
@@ -366,13 +460,8 @@ export function verdictView({
     }
   }
 
-  // A barangay name two LGUs share answers confidently wrong on its own: a Mandaue reader
-  // searching Casili is shown Consolacion's rows. Say so once, and only while there are
-  // rows to check the city on.
-  if (scoped && scope.length && place?.lgus?.length > 1) {
-    mark = 'shared';
-    detail = [...detail, ` ${place.place} names a barangay in ${andList(place.lgus)}, so check the city on each row.`];
-  }
+  // A city choice resolves the shared-barangay branch above. It deliberately carries no
+  // residual caveat: the applied LGU is now part of every matching row and answer.
 
   // A green "nothing scheduled" is not honest while the Facebook feed is unread: the
   // rotational advisories live only there. A confirmed live outage stays 'out' — that is
@@ -384,5 +473,12 @@ export function verdictView({
   const key = `${tone}|${label}|${live.map((e) => e.start).join(',')}|${next?.start ?? ''}` +
     (mark ? `|${mark}` : '') + summaryState;
 
-  return { tone, key, head, detail };
+  return {
+    tone,
+    key,
+    head,
+    detail,
+    needsCity: mark === 'shared',
+    cityChoices: mark === 'shared' ? [...place.lgus] : [],
+  };
 }
