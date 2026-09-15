@@ -164,10 +164,28 @@ export function matches(entry, needle) {
   return hay.includes(lastSqueezed);
 }
 
+/**
+ * The feed has durable normalized kinds for rotational and emergency outages. Older advisory
+ * rows did not preserve their category, so compatibility checks use only published metadata,
+ * never prose, and otherwise leave them scheduled.
+ */
+export const INTERRUPTION_TYPES = Object.freeze(['scheduled', 'emergency', 'rotational']);
+
+export function interruptionType(entry) {
+  if (entry.kind === 'emergency') return 'emergency';
+  if (entry.kind === 'rotational') return 'rotational';
+  const published = `${entry.category ?? ''} ${entry.type ?? ''} ${entry.sourceStatus ?? ''}`;
+  return /\bemergency\b/i.test(published) ? 'emergency' : 'scheduled';
+}
+
 /** One row's visibility under the current filters. */
-export function isVisible(entry, { city = '', needle = '', hidePossible = false, hideDone = false, now = Date.now() } = {}) {
+export function isVisible(
+  entry,
+  { city = '', needle = '', types = INTERRUPTION_TYPES, hidePossible = false, hideDone = false, now = Date.now() } = {},
+) {
   if (city && !citiesOf(entry).includes(city)) return false;
   if (!matches(entry, needle)) return false;
+  if (!types.includes(interruptionType(entry))) return false;
   if (hidePossible && entry.possible) return false;
   if (hideDone && entryStatus(entry, now).state === 'done') return false;
   return true;
@@ -204,9 +222,8 @@ const andList = (names) => (names.length > 1 ? `${names.slice(0, -1).join(', ')}
  * only when `key` changes.
  *
  * `place` is the caller's `lookupPlace()` result: an object, or `null` for text that was
- * looked up and not recognised. Omitting it entirely is the third state, and it answers
- * exactly what this function answered before `place` existed. The three states are the
- * whole point of the annotation below: absent, `null`, or a result.
+ * looked up and not recognised. `feed` lets the page distinguish a readable, quiet window
+ * from an unreadable feed while preserving the legacy omitted state for existing callers.
  *
  * @param {{
  *   entries: any[],
@@ -216,9 +233,19 @@ const andList = (names) => (names.length > 1 ? `${names.slice(0, -1).join(', ')}
  *   stale?: boolean,
  *   now?: number,
  *   place?: { kind: string, place: string, lgus: readonly string[], utility?: string } | null,
+ *   feed?: 'ready' | 'failed',
  * }} args
  */
-export function verdictView({ entries, scope, label, scoped, stale = false, now = Date.now(), place = undefined }) {
+export function verdictView({
+  entries,
+  scope,
+  label,
+  scoped,
+  stale = false,
+  now = Date.now(),
+  place = undefined,
+  feed = undefined,
+}) {
   // The all-franchise summary is about what can still happen, not the published archive.
   // Keep this distinct from `scope`: a scoped answer deliberately retains finished rows so
   // it can explain why an otherwise covered area has nothing current to show.
@@ -257,9 +284,10 @@ export function verdictView({ entries, scope, label, scoped, stale = false, now 
     detail = [
       `${place.utility} distributes power there, not Visayan Electric, so no schedule for ${place.place} will ever appear on this page. Check with ${place.utility} for that area.`,
     ];
-  } else if (!entries.length) {
+  } else if (feed === 'failed' || (!entries.length && feed === undefined)) {
     tone = 'wait';
-    head = ['No advisories available'];
+    mark = 'failed';
+    head = ['Schedule unavailable'];
     detail = ['Visayan Electric’s schedule could not be read just now. Try again in a few minutes.'];
   } else if (!scoped) {
     tone = 'idle';
@@ -281,7 +309,7 @@ export function verdictView({ entries, scope, label, scoped, stale = false, now 
     const left = entryStatus(soonest, now).minutes ?? 0;
     head = [`Yes, power is out now in ${label}`];
     detail = [
-      `${soonest.area}: back around ${clock.format(new Date(soonest.end))}, `,
+      `Power should return around ${clock.format(new Date(soonest.end))}, `,
       { count: `about ${gap(left)} from now` },
       `.${liveSure.length > 1 ? ` ${liveSure.length - 1} more area${liveSure.length > 2 ? 's' : ''} also out.` : ''}`,
     ];
@@ -304,7 +332,7 @@ export function verdictView({ entries, scope, label, scoped, stale = false, now 
     detail = [
       next.possible
         ? `Next rotational window: ${when} to ${clock.format(new Date(next.end))} (${next.hours}h), possible, not confirmed.`
-        : `Next: ${next.area}, ${when} to ${clock.format(new Date(next.end))} (${next.hours}h).`,
+        : `Next outage: ${when} to ${clock.format(new Date(next.end))} (${next.hours}h).`,
     ];
   } else {
     tone = 'clear';
@@ -320,18 +348,20 @@ export function verdictView({ entries, scope, label, scoped, stale = false, now 
       head = [`No, nothing scheduled for ${label}`];
       detail = [`${label} is inside Visayan Electric’s franchise${where}, and no interruption is published for it in the next 14 days.`];
       // A city chip with nothing listed hands us `null` too, since nothing was typed to
-      // look up. A franchise LGU is not an unknown name, so it keeps the plain copy.
-    } else if (!scope.length && place === null && !CITIES.some(([, re]) => re.test(label.toLowerCase()))) {
+      // look up. Only an exact franchise-LGU label is known; a barangay plus a conflicting
+      // city must stay unconfirmed rather than inheriting the city's all-clear.
+    } else if (!scope.length && place === null && !CITIES.some(([name]) => name.toLowerCase() === label.toLowerCase())) {
       mark = 'unknown';
+      tone = 'wait';
       // `lookupPlace` knows barangays and cities, never streets, so an unrecognised name
       // is not evidence of anything. State the limit as a condition, not as a verdict on
       // the name: a Gorordo Avenue reader is inside the franchise and must not be sent
       // to another utility.
+      head = [`Could not confirm ${label}`];
       detail = [
-        `${detail[0]} This page covers only the 8 cities and towns Visayan Electric ` +
+        `This page cannot confirm an interruption for that exact name. It covers only the 8 cities and towns Visayan Electric ` +
           'distributes to: Cebu City, Mandaue, Talisay, Naga, Liloan, Consolacion, ' +
-          'Minglanilla and San Fernando. If you are outside those, or the spelling differs ' +
-          'from the advisory, that is why nothing is showing.',
+          'Minglanilla and San Fernando. Try the barangay or city name used in the advisory.',
       ];
     }
   }

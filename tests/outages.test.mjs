@@ -191,7 +191,7 @@ test('normalizes calendar seconds and range separators before parsing Cebu time'
 test('parses official calendar categories, zero-based dates, and row status', () => {
   const rows = [
     ['Tuesday', 'Date(2026,8,3)', 'Scheduled', 'Line maintenance', '8:00:30 AM - 10:15:59 AM', 'Portion of Talamban, Cebu City, along Highway 77.', '', 'https://maps.example/scheduled', '', null],
-    ['Wednesday', 'Date(2026,8,4)', 'Emergency', 'Urgent repair', '1:00 PM until 2:30 PM', 'Portion of Apas, Cebu City', 'POSSIBLE — REVISED', '', '', null],
+    ['Wednesday', 'Date(2026,8,4)', 'eMeRgEnCy', 'Urgent repair', '1:00 PM until 2:30 PM', 'Portion of Apas, Cebu City', 'POSSIBLE — REVISED', '', '', null],
     ['Thursday', 'Date(2026,8,5)', 'Rotational Brownout', 'Grid supply shortfall', '9:00 AM - 11:00 AM', 'Portion of Banilad, Cebu City', 'POSSIBLE — CANCELLED', 'See https://maps.example/rotational then https://maps.example/other', 'load reduction', null],
   ];
   const jsonp = `/*O_o*/ google.visualization.Query.setResponse(${calendarPayload(rows)});`;
@@ -206,7 +206,7 @@ test('parses official calendar categories, zero-based dates, and row status', ()
       hours: 2.25,
     },
     {
-      kind: 'scheduled',
+      kind: 'emergency',
       start: '2026-09-04T13:00:00+08:00',
       end: '2026-09-04T14:30:00+08:00',
       hours: 1.5,

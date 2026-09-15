@@ -423,7 +423,11 @@ export function parseCalendarGviz(input, meta = {}) {
     const searchKeywords = plainText(calendarCell(row, indexes.searchkeywords)).trim();
     const sourceText = [category, title, time, locations, status, searchKeywords].filter(Boolean).join(' ');
     const areas = parseAreas(locations);
-    const kind = /\brotational\b/i.test(category) ? 'rotational' : 'scheduled';
+    const kind = /\brotational\b/i.test(category)
+      ? 'rotational'
+      : /\bemergency\b/i.test(category)
+        ? 'emergency'
+        : 'scheduled';
     entries.push({
       kind,
       start: range.start,

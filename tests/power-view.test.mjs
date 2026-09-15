@@ -10,6 +10,7 @@ import {
   cityRows,
   dayOffset,
   gap,
+  interruptionType,
   isVisible,
   matches,
   splitArea,
@@ -62,17 +63,44 @@ test('gap reads as minutes, hours then days', () => {
   assert.equal(gap(4320), '3 days');
 });
 
-test('filters compose: city, needle, possible and finished', () => {
+test('filters compose: city, needle, type, possible and finished', () => {
   const it = entry();
+  const rotational = entry({ kind: 'rotational' });
   assert.equal(isVisible(it, { now }), true);
   assert.equal(isVisible(it, { city: 'Cebu City', now }), true);
   assert.equal(isVisible(it, { city: 'Mandaue', now }), false);
   assert.equal(isVisible(it, { needle: 'highway 77', now }), true);
   assert.equal(isVisible(it, { needle: 'talisay', now }), false);
+  assert.equal(interruptionType(it), 'scheduled');
+  assert.equal(interruptionType(rotational), 'rotational');
+  assert.equal(isVisible(rotational, { types: ['scheduled'], now }), false);
   assert.equal(isVisible(entry({ possible: true }), { hidePossible: true, now }), false);
   assert.equal(isVisible(it, { hideDone: true, now: at('16:00') }), false);
   // Hiding finished rows must not hide a running one.
   assert.equal(isVisible(it, { hideDone: true, now }), true);
+});
+
+test('filters normalized official calendar emergencies as emergency', () => {
+  const officialEmergency = {
+    kind: 'emergency',
+    start: '2026-09-04T13:00:00+08:00',
+    end: '2026-09-04T14:30:00+08:00',
+    hours: 1.5,
+    flag: 'revised',
+    area: 'Apas, Cebu City',
+    streets: '',
+    areasRaw: 'Portion of Apas, Cebu City',
+    purpose: 'Urgent repair',
+    source: 'https://example.test/calendar',
+    sourceTitle: 'VECO outage calendar',
+    map: null,
+    possible: false,
+    sourceStatus: 'POSSIBLE — REVISED',
+  };
+
+  assert.equal(interruptionType(officialEmergency), 'emergency');
+  assert.equal(isVisible(officialEmergency, { types: ['emergency'], now }), true);
+  assert.equal(isVisible(officialEmergency, { types: ['scheduled'], now }), false);
 });
 
 test('clamps rail offsets to the day being drawn', () => {
@@ -128,6 +156,36 @@ test('the countdown is a segment, never baked into the announced string', () => 
   assert.ok(view.detail.every((seg) => typeof seg === 'string' ? !/from now/.test(seg) : true));
 });
 
+test('scoped verdicts keep long multi-city areas out of timing details', () => {
+  const publishedArea = Array.from(
+    { length: 60 },
+    (_, index) => `${index % 2 ? 'Mandaue City' : 'Cebu City'} feeder ${index}`,
+  ).join(', ');
+  const scoped = (row) => verdictView({ entries: [row], scope: [row], label: 'Talamban', scoped: true, now });
+  const detail = (view) => view.detail.join('');
+  const assertNoRawArea = (view) => assert.ok(!detail(view).includes(publishedArea));
+
+  const live = scoped(entry({ area: publishedArea }));
+  assert.deepEqual(live.head, ['Yes, power is out now in Talamban']);
+  assert.match(detail(live), /^Power should return around 3:00 PM, /);
+  assertNoRawArea(live);
+
+  const possible = scoped(entry({ area: publishedArea, possible: true }));
+  assert.deepEqual(possible.head, ['Maybe, Talamban is in a rotational brownout window now']);
+  assert.match(detail(possible), /^Window 9:00 AM to 3:00 PM\./);
+  assertNoRawArea(possible);
+
+  const upcoming = scoped(entry({
+    area: publishedArea,
+    start: '2026-09-03T12:00:00+08:00',
+    end: '2026-09-03T14:00:00+08:00',
+    hours: 2,
+  }));
+  assert.deepEqual(upcoming.head, ['Power goes out in ', { count: '2h' }]);
+  assert.match(detail(upcoming), /^Next outage: today 12:00 PM to 2:00 PM \(2h\)\.$/);
+  assertNoRawArea(upcoming);
+});
+
 test('an unread Facebook feed downgrades an all-clear to a warning', () => {
   const done = entry({ start: '2026-09-02T09:00:00+08:00', end: '2026-09-02T15:00:00+08:00' });
   const args = { entries: [done], scope: [done], label: 'Talamban', scoped: true, now };
@@ -148,9 +206,13 @@ test('with no area given the verdict asks for one instead of answering', () => {
   assert.deepEqual(view.head, ['Tell me where you are']);
   assert.match(view.detail[0], /^1 interruption is running/);
 
-  const empty = verdictView({ entries: [], scope: [], label: '', scoped: false, now });
-  assert.equal(empty.tone, 'wait');
-  assert.deepEqual(empty.head, ['No advisories available']);
+  const unread = verdictView({ entries: [], scope: [], label: '', scoped: false, now });
+  assert.equal(unread.tone, 'wait');
+  assert.deepEqual(unread.head, ['Schedule unavailable']);
+
+  const quiet = verdictView({ entries: [], scope: [], label: '', scoped: false, feed: 'ready', now });
+  assert.equal(quiet.tone, 'idle');
+  assert.deepEqual(quiet.head, ['Tell me where you are']);
 });
 
 test('an unscoped verdict does not count finished schedule history as current', () => {
@@ -372,17 +434,35 @@ test('a franchise barangay with nothing published reads as covered, not unknown'
     'Kalunasan is inside Visayan Electric’s franchise in Cebu City, and no interruption is published for it in the next 14 days.',
   ]);
 
-  // The same empty scope, a name nobody recognises: a different answer and a different key.
+  // A readable window can be quiet. Absence of rows then means covered, not unreadable.
+  const zeroFeedCovered = verdictView({
+    entries: [],
+    scope: [],
+    label: 'Kalunasan',
+    scoped: true,
+    feed: 'ready',
+    now,
+    place: { kind: 'barangay', place: 'Kalunasan', lgus: ['Cebu City'] },
+  });
+  assert.equal(zeroFeedCovered.tone, 'clear');
+
+  // The same empty scope, a name nobody recognises: it is never rendered as an all-clear.
   const unknown = verdictView({ ...args, place: null });
-  assert.equal(unknown.tone, 'clear');
-  assert.deepEqual(unknown.head, ['No, nothing scheduled for Kalunasan']);
-  assert.match(unknown.detail[0], /^No interruption is published for that area in the next 14 days\. /);
+  assert.equal(unknown.tone, 'wait');
+  assert.deepEqual(unknown.head, ['Could not confirm Kalunasan']);
   // The limit is stated as a condition, never as a claim that the name is not covered:
   // `lookupPlace` knows barangays and cities, so every street arrives here as `null` too.
+  assert.match(unknown.detail[0], /^This page cannot confirm an interruption for that exact name\. /);
   assert.match(unknown.detail[0], /covers only the 8 cities and towns/);
-  assert.match(unknown.detail[0], /If you are outside those/);
+  assert.match(unknown.detail[0], /Try the barangay or city name used in the advisory/);
   assert.doesNotMatch(unknown.detail[0], /not one Visayan Electric lists/);
   assert.notEqual(covered.key, unknown.key);
+
+  // A selected city composes with the typed barangay. A conflicting pair is not an
+  // all-clear merely because the city portion is known.
+  const conflicting = verdictView({ ...args, label: 'Kalunasan in Mandaue', place: null });
+  assert.equal(conflicting.tone, 'wait');
+  assert.deepEqual(conflicting.head, ['Could not confirm Kalunasan in Mandaue']);
 
   // An LGU the strip always shows arrives as `null` as well, because nothing was typed to
   // look up, and it is not an unknown name.
