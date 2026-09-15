@@ -42,9 +42,9 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
         Cebu. We make custom software and AI automations.
       </p>
       <p class="ask-lede">
-        Read straight from Visayan Electric’s published advisories for the 8 cities and towns
-        it distributes to, Cebu time, next 14 days. Lapu-Lapu and Cordova run on Mactan
-        Electric, so this page cannot answer for them.
+        Read straight from Visayan Electric’s official Service Interruption Calendar for the 8
+        cities and towns it distributes to, Cebu time, next 14 days. Lapu-Lapu and Cordova run
+        on Mactan Electric, so this page cannot answer for them.
       </p>
 
       <form class="locator" data-form novalidate>
@@ -101,7 +101,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       <div class="verdict" data-verdict data-tone="idle" aria-live="polite">
         <span class="verdict-mark" data-verdict-mark aria-hidden="true" hidden></span>
         <div class="verdict-body">
-          <p class="verdict-head" data-verdict-head>Reading Visayan Electric’s advisories</p>
+          <p class="verdict-head" data-verdict-head>Reading Visayan Electric’s calendar</p>
           <p class="verdict-detail" data-verdict-detail>Every time on this page is Cebu time.</p>
           <p class="verdict-stale" data-verdict-stale hidden></p>
           <p class="verdict-meta" data-verdict-meta hidden></p>
@@ -148,12 +148,12 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     <footer class="outage-foot">
       <p class="stamp" data-updated></p>
       <p class="sources">
-        <a href="https://www.visayanelectric.com/newsroom-blog" rel="noopener" target="_blank">Visayan Electric advisories</a>
+        <a href="https://www.visayanelectric.com/serviceinterruptioncalendar" rel="noopener" target="_blank">Visayan Electric service interruption calendar</a>
         <a href="https://www.facebook.com/visayanelectriccompany" rel="noopener" target="_blank">Visayan Electric on Facebook</a>
       </p>
       <p class="fine">
-        An unofficial mirror of Visayan Electric service interruption advisories and of their
-        Facebook posts. Rotational brownout posts are picked up automatically every 15 minutes.
+        An unofficial mirror of Visayan Electric’s Service Interruption Calendar, checked
+        automatically. Facebook is supplementary for updates that have not reached the calendar.
       </p>
       <p class="fine">
         Visayan Electric distributes to 8 local governments, and this page can only answer for
@@ -1351,6 +1351,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   };
 
   type Ingest = { checkedAt: string | null; latestPostAt: string | null };
+  type Calendar = { available: boolean; checkedAt: string | null; count: number; skipped: number };
   /** The API's own span, which the fortnight rule draws even where no advisory landed. */
   type FeedWindow = { from: string; to: string; today?: string };
 
@@ -1360,6 +1361,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     entries?: Entry[];
     posts?: { title: string }[];
     ingest?: Ingest;
+    calendar?: Calendar;
     warnings?: string[];
   };
 
@@ -1423,6 +1425,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   let city = '';
   let detected = '';
   let ingest: Ingest | undefined;
+  let calendar: Calendar | undefined;
   let fetchedAt = Date.now();
   let lastFetch = 0;
   let feedSig = '';
@@ -1431,8 +1434,8 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   // Which Cebu day the list was built for: past midnight, in-place patching cannot fix it.
   let renderedToday = '';
   let loading = false;
-  // Which chrome the page is showing. The staleness line reads it: a failed feed must not
-  // also be blamed on the Facebook poller.
+  // Which chrome the page is showing. A failed feed must not also be blamed on Facebook's
+  // supplementary poller.
   let chrome: 'loading' | 'ok' | 'failed' = 'loading';
   let typing = 0;
   let frame = 0;
@@ -1473,11 +1476,13 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       isVisible(entry, { city, needle, hidePossible: hidePossible.checked, hideDone: hideFinished, now }));
   };
 
-  // Facebook is the only source of rotational brownouts, so an unread feed is a hole in
-  // the answer, not a detail. A missing `ingest` (old payload, or the feed itself failed)
-  // counts as stale: the honest default.
+  // Facebook remains a useful supplement while the official calendar is unavailable. A
+  // missing `ingest` then counts as stale: the honest fallback default.
   const ingestStale = () =>
     !ingest?.checkedAt || fetchedAt - Date.parse(ingest.checkedAt) > INGEST_STALE_MS;
+  const calendarAvailable = () => Boolean(calendar?.available);
+  const calendarIncomplete = () => calendarAvailable() && (calendar?.skipped || 0) > 0;
+  const sourceStale = () => calendarIncomplete() || (!calendarAvailable() && ingestStale());
 
   // Both callers branch on `ingest?.checkedAt` first, so this only ever formats a real
   // timestamp: "7:16 PM today" inside the Cebu day, the full date before it.
@@ -1493,12 +1498,18 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     // failed feed already says the whole schedule is unreadable, so blaming the Facebook
     // poller would be a second, wronger explanation of the same outage.
     const mute = chrome === 'failed' || verdict.dataset.key?.endsWith('|outside');
-    // "since never" is not a sentence: an unread feed says so plainly.
-    const text = mute || !ingestStale()
+    // The official calendar is primary. Facebook-staleness language is only relevant when
+    // the API fell back from it; skipped calendar rows instead name that uncertainty directly.
+    const skipped = calendar?.skipped || 0;
+    const text = mute
       ? ''
-      : ingest?.checkedAt
-        ? `Facebook has not been checked since ${whenChecked()}, so rotational brownouts may be missing.`
-        : 'Facebook has not been checked yet, so rotational brownouts may be missing.';
+      : calendarIncomplete()
+        ? `${skipped} calendar ${skipped === 1 ? 'entry could' : 'entries could'} not be read, so this answer may be incomplete.`
+        : !calendarAvailable() && ingestStale()
+          ? ingest?.checkedAt
+            ? `Facebook has not been checked since ${whenChecked()}, so rotational brownouts may be missing.`
+            : 'Facebook has not been checked yet, so rotational brownouts may be missing.'
+          : '';
     // Inside the aria-live region: only write when it actually says something new.
     if (verdictStale.textContent === text) return;
     verdictStale.textContent = text;
@@ -1539,7 +1550,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       // Echo the typed area back as a place name, not as raw keystrokes.
       label: query() ? search.value.trim().replace(/\b\p{Ll}/gu, (c) => c.toUpperCase()) : city,
       scoped: Boolean(query() || city),
-      stale: ingestStale(),
+      stale: sourceStale(),
       now: Date.now(),
       // Lets the answer tell "outside the franchise" apart from "nothing scheduled" and
       // from a name nobody recognises.
@@ -2306,21 +2317,25 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   });
 
   function stampFooter(data: Feed) {
-    const facebook = !ingestStale()
-      ? `Facebook checked ${clock.format(new Date(ingest!.checkedAt!))}`
-      : ingest?.checkedAt
-        ? `Facebook not checked since ${whenChecked()}`
-        : 'Facebook never checked';
+    const source = calendarAvailable()
+      ? calendar?.checkedAt
+        ? `Visayan Electric calendar checked ${clock.format(new Date(calendar.checkedAt))}`
+        : 'Visayan Electric calendar checked'
+      : !ingestStale()
+        ? `Facebook checked ${clock.format(new Date(ingest!.checkedAt!))}`
+        : ingest?.checkedAt
+          ? `Facebook not checked since ${whenChecked()}`
+          : 'Facebook never checked';
     const parts = [
       `Checked ${stampFmt.format(new Date(data.updated))}`,
-      facebook,
+      source,
       `${entries.length} ${entries.length === 1 ? 'interruption' : 'interruptions'}`,
       'Cebu time',
     ];
-    const latest = ingest?.latestPostAt
+    const latest = !calendarAvailable() && ingest?.latestPostAt
       ? ` Latest Visayan Electric post ${clock.format(new Date(ingest.latestPostAt))}.`
       : '';
-    // A half-read advisory is news, not something to swallow: the API says which post it
+    // A half-read source is news, not something to swallow: the API says which row or post
     // could not parse, so the stamp says it too.
     const warnings = data.warnings?.length ? ` ${data.warnings.map((line) => `${line.replace(/\.$/, '')}.`).join(' ')}` : '';
     updated.textContent = `${parts.join(', ')}.${latest}${warnings}`;
@@ -2363,6 +2378,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     byKey = new Map(entries.map((entry) => [keyOf(entry), entry]));
     feedWindow = data.window;
     ingest = data.ingest;
+    calendar = data.calendar;
     fetchedAt = Date.parse(data.updated) || Date.now();
     stampFooter(data);
     return moved;

@@ -248,6 +248,227 @@ export function parsePost(html, meta = {}) {
   return entries;
 }
 
+export const VECO_CALENDAR_SOURCE = 'https://www.visayanelectric.com/serviceinterruptioncalendar';
+export const VECO_CALENDAR_TITLE = 'Visayan Electric Service Interruption Calendar';
+
+const CALENDAR_COLUMNS = new Map([
+  ['day', 'day'],
+  ['exactdate', 'exactdate'],
+  ['category', 'category'],
+  ['title', 'title'],
+  ['timeinfo', 'timeinfo'],
+  ['locations', 'locations'],
+  ['status', 'status'],
+  ['maplinks', 'maplinks'],
+  ['searchkeywords', 'searchkeywords'],
+]);
+
+const calendarLabel = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+
+function jsonObjectAt(text, start) {
+  let depth = 0;
+  let quote = false;
+  let escaped = false;
+  for (let index = start; index < text.length; index += 1) {
+    const char = text[index];
+    if (quote) {
+      if (escaped) escaped = false;
+      else if (char === '\\') escaped = true;
+      else if (char === '"') quote = false;
+      continue;
+    }
+    if (char === '"') {
+      quote = true;
+      continue;
+    }
+    if (char === '{') depth += 1;
+    if (char === '}') {
+      depth -= 1;
+      if (depth === 0) return { json: text.slice(start, index + 1), end: index + 1 };
+    }
+  }
+  return null;
+}
+
+/**
+ * Accept Google Visualization's JSON response, whether it is returned directly or inside
+ * the documented `google.visualization.Query.setResponse(...)` wrapper.
+ */
+export function parseGvizPayload(input) {
+  const text = String(input || '').trim();
+  if (!text) throw new Error('Calendar returned an empty response');
+
+  let payload;
+  if (text.startsWith('{')) {
+    payload = JSON.parse(text);
+  } else {
+    const wrapper = /^(?:\s|\/\*[\s\S]*?\*\/)*google\.visualization\.Query\.setResponse\s*\(/.exec(text);
+    if (!wrapper) throw new Error('Calendar returned malformed JSONP');
+    let start = wrapper[0].length;
+    while (/\s/.test(text[start] || '')) start += 1;
+    if (text[start] !== '{') throw new Error('Calendar JSONP did not contain an object');
+    const object = jsonObjectAt(text, start);
+    if (!object || !/^\)\s*;?\s*$/.test(text.slice(object.end))) {
+      throw new Error('Calendar returned malformed JSONP');
+    }
+    payload = JSON.parse(object.json);
+  }
+
+  if (!payload || typeof payload !== 'object' || String(payload.status || '').toLowerCase() !== 'ok') {
+    throw new Error('Calendar response was not ok');
+  }
+  if (!payload.table || !Array.isArray(payload.table.cols) || !Array.isArray(payload.table.rows)) {
+    throw new Error('Calendar response did not contain a table');
+  }
+  return payload;
+}
+
+function calendarDate(value) {
+  const match = /^Date\((\d{4}),\s*(\d{1,2}),\s*(\d{1,2})\)$/.exec(String(value || '').trim());
+  if (!match) return null;
+  const year = Number(match[1]);
+  const monthIndex = Number(match[2]);
+  const day = Number(match[3]);
+  if (!year || monthIndex < 0 || monthIndex > 11 || day < 1) return null;
+  const monthLengths = [31, year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  if (day > monthLengths[monthIndex]) return null;
+  return { year, month: monthIndex + 1, day };
+}
+
+const CALENDAR_CLOCK_RE = /^\s*(\d{1,2})(?::(\d{2}))?(?:\s*(a\.?m\.?|p\.?m\.?|nn|mn|noon|midnight))?(?=$|\s|\(|,|;)/i;
+
+function validCalendarClock(value) {
+  const match = CALENDAR_CLOCK_RE.exec(value);
+  if (!match) return false;
+  const hour = Number(match[1]);
+  const minute = Number(match[2] || 0);
+  const marker = (match[3] || '').toLowerCase().replace(/\./g, '');
+  if (hour > 23 || minute > 59) return false;
+  return !marker || (hour >= 1 && hour <= 12);
+}
+
+/**
+ * Converts the calendar's time notation into the advisory parser's `to` separator without
+ * changing that parser's more permissive handling of historical post text.
+ */
+export function normalizeCalendarTime(value) {
+  const text = plainText(value).replace(/\u00a0/g, ' ').trim();
+  if (!text) return null;
+
+  let invalidSeconds = false;
+  const withoutSeconds = text.replace(/\b(\d{1,2}:\d{2})(?::(\d{2}))?/g, (match, clock, seconds) => {
+    if (seconds === undefined) return match;
+    if (Number(seconds) > 59) invalidSeconds = true;
+    return clock;
+  });
+  if (invalidSeconds || /\b\d{1,2}:\d{2}:[^\s–—-]/.test(withoutSeconds)) return null;
+
+  const normalized = withoutSeconds
+    .replace(/\s*(?:–|—|-)\s*/g, ' to ')
+    .replace(/\s+until\s+/gi, ' to ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const sides = normalized.split(/\s+to\s+/i);
+  if (sides.length < 2 || !validCalendarClock(sides[0]) || !validCalendarClock(sides[1])) return null;
+  return normalized;
+}
+
+function calendarCell(row, index) {
+  const cell = row?.c?.[index];
+  if (!cell || typeof cell !== 'object') return cell || '';
+  return cell.v ?? cell.f ?? '';
+}
+
+function calendarFlag(text, fallback) {
+  if (/\b(?:cancelled|canceled|cancellation|cancelation)\b/i.test(text)) return 'cancelled';
+  const match = /\b(rescheduled|revised|delayed|extended|moved|additional)\b/i.exec(text);
+  return match ? match[1].toLowerCase() : fallback;
+}
+
+function firstHttpLink(value) {
+  const match = /\bhttps?:\/\/[^\s<>"']+/i.exec(String(value || ''));
+  return match ? match[0].replace(/[),.;]+$/, '') : '';
+}
+
+/**
+ * Parses the public Service Interruption Calendar table. A malformed row is counted and
+ * skipped, while a malformed response is rejected for the caller to fall back from.
+ */
+export function parseCalendarGviz(input, meta = {}) {
+  const payload = parseGvizPayload(input);
+  const indexes = {};
+  payload.table.cols.forEach((column, index) => {
+    const field = CALENDAR_COLUMNS.get(calendarLabel(column?.label || column?.id));
+    if (field && indexes[field] === undefined) indexes[field] = index;
+  });
+  for (const field of ['exactdate', 'timeinfo', 'locations']) {
+    if (indexes[field] === undefined) throw new Error(`Calendar table is missing ${field}`);
+  }
+
+  const entries = [];
+  let skipped = 0;
+  for (const row of payload.table.rows) {
+    const date = calendarDate(calendarCell(row, indexes.exactdate));
+    const time = normalizeCalendarTime(calendarCell(row, indexes.timeinfo));
+    const range = time && parseTimeRange(time, date);
+    const locations = plainText(calendarCell(row, indexes.locations)).trim();
+    if (!date || !range || !locations) {
+      skipped += 1;
+      continue;
+    }
+
+    const category = plainText(calendarCell(row, indexes.category)).trim();
+    const title = plainText(calendarCell(row, indexes.title)).trim();
+    const status = plainText(calendarCell(row, indexes.status)).trim();
+    const searchKeywords = plainText(calendarCell(row, indexes.searchkeywords)).trim();
+    const sourceText = [category, title, time, locations, status, searchKeywords].filter(Boolean).join(' ');
+    const areas = parseAreas(locations);
+    const kind = /\brotational\b/i.test(category) ? 'rotational' : 'scheduled';
+    entries.push({
+      kind,
+      start: range.start,
+      end: range.end,
+      hours: range.hours,
+      flag: calendarFlag(sourceText, range.flag),
+      area: areas.area,
+      streets: areas.streets,
+      areasRaw: locations,
+      purpose: title,
+      source: meta.source || VECO_CALENDAR_SOURCE,
+      sourceTitle: meta.sourceTitle || VECO_CALENDAR_TITLE,
+      map: firstHttpLink(calendarCell(row, indexes.maplinks)),
+      possible: kind === 'rotational' && /\bpossible\b/i.test(sourceText),
+      ...(status ? { sourceStatus: status } : {}),
+    });
+  }
+  return { entries, skipped };
+}
+
+export function outageEntryKey(entry) {
+  const rawArea = entry?.areasRaw || entry?.area || '';
+  const foldedArea = String(rawArea)
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .replace(/[\p{P}\p{S}\s]+/gu, '')
+    .toLowerCase();
+  return `${entry?.start || ''}|${entry?.end || ''}|${foldedArea}`;
+}
+
+/** Combines priority-ordered entry groups without modifying their entries or source arrays. */
+export function mergeOutageEntries(...groups) {
+  const merged = [];
+  const seen = new Set();
+  for (const group of groups) {
+    for (const entry of group || []) {
+      const key = outageEntryKey(entry);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      merged.push(entry);
+    }
+  }
+  return merged;
+}
+
 const SLUG_RE = /^service-interruption-(.+)$/;
 
 /**
