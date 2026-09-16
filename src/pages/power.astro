@@ -106,6 +106,10 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
             <div class="answer-sources" data-answer-sources hidden>
               <a href="https://www.visayanelectric.com/serviceinterruptioncalendar" rel="noopener" target="_blank" aria-label="Open Visayan Electric’s official service interruption calendar">Official interruption calendar</a>
               <p data-rotational-context>Rotational windows are used only if NGCP, the national grid operator, asks Visayan Electric to reduce load.</p>
+              <p class="fyi-status" data-fyi-status hidden>
+                <a href="https://fyi.aboitizpower.com/" rel="noopener" target="_blank">AboitizPower FYI</a>
+                <span data-fyi-status-copy></span>
+              </p>
             </div>
             <p class="verdict-confidence" data-confidence>Checking the published schedule in Cebu time.</p>
             <p class="verdict-meta" data-verdict-meta hidden></p>
@@ -186,6 +190,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       <p class="sources">
         <a href="https://www.visayanelectric.com/serviceinterruptioncalendar" rel="noopener" target="_blank">Visayan Electric service interruption calendar</a>
         <a href="https://www.facebook.com/visayanelectriccompany" rel="noopener" target="_blank">Visayan Electric on Facebook</a>
+        <a href="https://fyi.aboitizpower.com/" rel="noopener" target="_blank">AboitizPower FYI</a>
       </p>
       <p class="fine">
         An unofficial mirror of Visayan Electric’s Service Interruption Calendar, checked
@@ -537,10 +542,20 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   }
 
   .outage .answer-sources[hidden],
+  .outage .answer-sources .fyi-status[hidden],
   .outage .city-prompt[hidden] { display: none; }
 
   .outage .answer-sources a { color: var(--accent); font-weight: 500; }
   .outage .answer-sources p { margin: 0; }
+  .outage .answer-sources .fyi-status {
+    flex-basis: 100%;
+    min-width: 0;
+    margin-top: 2px;
+    padding-top: 8px;
+    border-top: 1px solid var(--line);
+  }
+  .outage .answer-sources .fyi-status span { overflow-wrap: anywhere; }
+  .outage .answer-sources .fyi-status span::before { content: ' '; }
 
   .outage .city-prompt {
     max-width: 42em;
@@ -1490,6 +1505,36 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   type Calendar = { available: boolean; checkedAt: string | null; count: number; skipped: number };
   /** The API's own span, which the fortnight rule draws even where no advisory landed. */
   type FeedWindow = { from: string; to: string; today?: string };
+  type FyiActual = {
+    coverage: 'per-feeder' | 'aggregate';
+    state: 'partial' | 'all-off' | 'restored' | 'open-stale' | 'aggregate' | 'unknown';
+    startedAt: string | null;
+    endedAt: string | null;
+    ongoing: boolean;
+    stale: boolean;
+    recorded: number | null;
+    total: number | null;
+    mw: number | null;
+  };
+  type FyiWindow = {
+    start: string;
+    end: string;
+    hours: number;
+    feederCount: number;
+    actual: FyiActual | null;
+  };
+  type FyiPlan = { id: string; date: string; windows: FyiWindow[] };
+  type FyiAdvisory = { id: string; type: string; start: string; end: string; status: 'published' | 'cancelled' };
+  type Fyi = {
+    available: boolean;
+    checkedAt: string | null;
+    sourceStamp: string | null;
+    freshness: 'fresh' | 'stale' | 'unknown';
+    sourceUrl: 'https://fyi.aboitizpower.com/';
+    plans: FyiPlan[];
+    advisories: FyiAdvisory[];
+    warnings: string[];
+  };
 
   type Feed = {
     updated: string;
@@ -1499,6 +1544,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     ingest?: Ingest;
     calendar?: Calendar;
     warnings?: string[];
+    fyi?: Fyi;
   };
 
   type SourceReadability = 'readable' | 'partial' | 'unreadable';
@@ -1524,6 +1570,8 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   const retryBtn = el<HTMLButtonElement>('[data-retry]');
   const answerAnnouncement = el('[data-answer-announcement]');
   const answerSources = el('[data-answer-sources]');
+  const fyiStatus = el('[data-fyi-status]');
+  const fyiStatusCopy = el('[data-fyi-status-copy]');
   const rotationalContext = el('[data-rotational-context]');
   const cityPrompt = el('[data-city-prompt]');
   const evidence = el('[data-evidence]');
@@ -1544,6 +1592,8 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   const rangeHead = el('[data-range]');
   const fortnight = el('[data-fortnight]');
   const updated = el('[data-updated]');
+
+  const FYI_SOURCE_URL = 'https://fyi.aboitizpower.com/' as const;
 
   // Three missed 15-minute poller cycles. Judged against the feed's own timestamp, not
   // Date.now(), so a tab left open overnight does not invent a staleness warning.
@@ -1574,6 +1624,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   let ingest: Ingest | undefined;
   let calendar: Calendar | undefined;
   let warnings: string[] = [];
+  let fyi: Fyi = fyiUnavailable();
   let sourceReadability: SourceReadability = 'unreadable';
   let refreshFailed = false;
   let fetchedAt = Date.now();
@@ -1680,6 +1731,208 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     return Number.isFinite(at) ? clock.format(new Date(at)) : 'time unavailable';
   };
 
+  const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+    Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+  const nullableString = (value: unknown) => typeof value === 'string' ? value : null;
+  const nullableNumber = (value: unknown) => typeof value === 'number' && Number.isFinite(value) ? value : null;
+  const fyiWarningsOf = (value: unknown) =>
+    Array.isArray(value) ? value.filter((warning): warning is string => typeof warning === 'string') : [];
+
+  function fyiActualOf(value: unknown): FyiActual | null {
+    if (!isPlainObject(value)) return null;
+    const coverage = value.coverage;
+    const state = value.state;
+    if (
+      (coverage !== 'per-feeder' && coverage !== 'aggregate') ||
+      !['partial', 'all-off', 'restored', 'open-stale', 'aggregate', 'unknown'].includes(`${state}`) ||
+      typeof value.ongoing !== 'boolean' ||
+      typeof value.stale !== 'boolean'
+    ) return null;
+    return {
+      coverage,
+      state: state as FyiActual['state'],
+      startedAt: nullableString(value.startedAt),
+      endedAt: nullableString(value.endedAt),
+      ongoing: value.ongoing,
+      stale: value.stale,
+      recorded: nullableNumber(value.recorded),
+      total: nullableNumber(value.total),
+      mw: nullableNumber(value.mw),
+    };
+  }
+
+  function fyiWindowOf(value: unknown): FyiWindow | null {
+    if (!isPlainObject(value) || typeof value.start !== 'string' || typeof value.end !== 'string') return null;
+    const actual = value.actual === null ? null : fyiActualOf(value.actual);
+    if (value.actual !== null && !actual) return null;
+    const hours = nullableNumber(value.hours);
+    const feederCount = nullableNumber(value.feederCount);
+    if (hours === null || feederCount === null) return null;
+    return { start: value.start, end: value.end, hours, feederCount, actual };
+  }
+
+  function fyiPlanOf(value: unknown): FyiPlan | null {
+    if (!isPlainObject(value) || typeof value.id !== 'string' || typeof value.date !== 'string' || !Array.isArray(value.windows)) return null;
+    const windows = value.windows.map(fyiWindowOf);
+    return windows.every((window): window is FyiWindow => window !== null)
+      ? { id: value.id, date: value.date, windows }
+      : null;
+  }
+
+  function fyiAdvisoryOf(value: unknown): FyiAdvisory | null {
+    if (
+      !isPlainObject(value) ||
+      typeof value.id !== 'string' ||
+      typeof value.type !== 'string' ||
+      typeof value.start !== 'string' ||
+      typeof value.end !== 'string' ||
+      (value.status !== 'published' && value.status !== 'cancelled')
+    ) return null;
+    return { id: value.id, type: value.type, start: value.start, end: value.end, status: value.status };
+  }
+
+  function fyiUnavailable(warnings: string[] = []): Fyi {
+    return {
+      available: false,
+      checkedAt: null,
+      sourceStamp: null,
+      freshness: 'unknown',
+      sourceUrl: FYI_SOURCE_URL,
+      plans: [],
+      advisories: [],
+      warnings,
+    };
+  }
+
+  function fyiOf(data: Feed): Fyi {
+    const raw = data.fyi;
+    const warnings = fyiWarningsOf(raw?.warnings);
+    if (
+      !raw ||
+      raw.available !== true ||
+      !Array.isArray(raw.plans) ||
+      !Array.isArray(raw.advisories) ||
+      !['fresh', 'stale', 'unknown'].includes(raw.freshness)
+    ) return fyiUnavailable(warnings);
+    const plans = raw.plans.map(fyiPlanOf);
+    const advisories = raw.advisories.map(fyiAdvisoryOf);
+    if (plans.some((plan) => !plan) || advisories.some((advisory) => !advisory)) return fyiUnavailable(warnings);
+    return {
+      available: true,
+      checkedAt: nullableString(raw.checkedAt),
+      sourceStamp: nullableString(raw.sourceStamp),
+      freshness: raw.freshness,
+      sourceUrl: FYI_SOURCE_URL,
+      plans: plans as FyiPlan[],
+      advisories: advisories as FyiAdvisory[],
+      warnings,
+    };
+  }
+
+  function fyiRelevantWindow(now: number) {
+    const candidates = fyi.plans
+      .filter((plan) => plan.date === manilaDate(now))
+      .flatMap((plan) => plan.windows.map((window) => ({ plan, window })))
+      .filter(({ window }) => Number.isFinite(Date.parse(window.start)) && Number.isFinite(Date.parse(window.end)));
+    return candidates.sort(({ window: a }, { window: b }) => {
+      const aStart = Date.parse(a.start);
+      const aEnd = Date.parse(a.end);
+      const bStart = Date.parse(b.start);
+      const bEnd = Date.parse(b.end);
+      const aRank = a.actual?.ongoing || (aStart <= now && aEnd >= now) ? 0 : aStart > now ? 1 : 2;
+      const bRank = b.actual?.ongoing || (bStart <= now && bEnd >= now) ? 0 : bStart > now ? 1 : 2;
+      return aRank - bRank || (aRank === 2 ? bEnd - aEnd : aStart - bStart);
+    })[0];
+  }
+
+  const fyiActualTime = (value: string | null) => {
+    if (!hasTimestamp(value)) return null;
+    const at = new Date(value!);
+    return `${dayFull.format(at)}, ${clock.format(at)}`;
+  };
+
+  function fyiOperatorSummary(actual: FyiActual) {
+    const startedAt = fyiActualTime(actual.startedAt);
+    const endedAt = fyiActualTime(actual.endedAt);
+    const timing = [
+      startedAt ? `Earliest recorded-off time: ${startedAt}.` : '',
+      endedAt ? `Recorded restoration time: ${endedAt}.` : '',
+    ].filter(Boolean).join(' ');
+    const count = actual.coverage === 'per-feeder' && actual.recorded !== null && actual.total !== null
+      ? ` ${actual.recorded} of ${actual.total} feeder records recorded.`
+      : '';
+
+    let state: string;
+    if (actual.coverage === 'aggregate') {
+      state = actual.ongoing
+        ? actual.stale
+          ? 'aggregate records show ongoing activity, but at least one open record is stale; the complete current state is not confirmed'
+          : 'aggregate records show ongoing activity'
+        : actual.stale
+          ? 'aggregate records have an open stale record; the current state is not confirmed'
+          : actual.state === 'unknown'
+            ? 'aggregate records have an unknown current state'
+            : endedAt
+              ? 'aggregate records show restoration'
+              : 'aggregate records have no confirmed current state';
+    } else {
+      state = actual.ongoing
+        ? actual.state === 'all-off'
+          ? 'per-feeder records show all recorded feeders are off and ongoing'
+          : actual.stale
+            ? 'per-feeder records show some feeders are off and ongoing, but at least one open record is stale; the complete current state is not confirmed'
+            : 'per-feeder records show some feeders are off and ongoing'
+        : actual.stale
+          ? 'per-feeder records have an open stale record; the current state is not confirmed'
+          : actual.state === 'restored'
+            ? 'per-feeder records show restoration'
+            : actual.state === 'unknown'
+              ? 'per-feeder records have an unknown current state'
+              : 'per-feeder records have no confirmed current state';
+    }
+    return `FYI operator record: ${state}.${count}${timing ? ` ${timing}` : ''}`;
+  }
+
+  const fyiPartialReadText = () =>
+    fyi.warnings.length ? ' FYI is only partly readable; current supplemental records may be missing.' : '';
+
+  function fyiFreshnessText() {
+    const checkedAt = fyiActualTime(fyi.checkedAt);
+    const checked = checkedAt ? ` Accoworks checked FYI at ${checkedAt}, Cebu time.` : '';
+    if (fyi.freshness === 'fresh') return ` FYI source update time is recent.${checked}`;
+    if (fyi.freshness === 'stale') return ` FYI source data is stale.${checked}`;
+    return checked
+      ? ` FYI does not publish an update time.${checked}`
+      : ' FYI does not publish an update time; the Accoworks check time is unavailable.';
+  }
+
+  function fyiStatusText(now: number) {
+    const context = 'FYI publishes supplemental load-shedding plans and operator records; it is separate from the published calendar.';
+    const partial = fyiPartialReadText();
+    if (!fyi.available) return `${context}${partial} FYI is unavailable; the published Visayan Electric schedule is unchanged.`;
+    const current = fyiRelevantWindow(now);
+    const freshness = fyiFreshnessText();
+    if (!current) {
+      const date = monthDay.format(new Date(`${manilaDate(now)}T12:00:00+08:00`));
+      return partial
+        ? `${context}${partial} No readable FYI plan is available for ${date}.${freshness}`
+        : `${context} No supplemental FYI plan is published for ${date}.${freshness}`;
+    }
+    const { plan, window } = current;
+    const planned = `FYI plan: ${dayFull.format(new Date(`${plan.date}T12:00:00+08:00`))}, ${clock.format(new Date(window.start))} to ${clock.format(new Date(window.end))}, Cebu time — planned, not confirmed.`;
+    const actual = window.actual
+      ? ` ${fyiOperatorSummary(window.actual)} This is a supplemental operational record, not confirmation for this address.`
+      : '';
+    return `${context} ${planned}${actual}${freshness}${partial}`;
+  }
+
+  function renderFyiStatus(visible: boolean, now: number) {
+    fyiStatus.hidden = !visible;
+    if (!visible) return;
+    const text = fyiStatusText(now);
+    if (fyiStatusCopy.textContent !== text) fyiStatusCopy.textContent = text;
+  }
+
   function renderConfidence() {
     const skipped = calendar?.skipped || 0;
     const warning = warnings[0] ? ` Source warning: ${warnings[0].replace(/\.$/, '')}.` : '';
@@ -1757,10 +2010,11 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     verdictMeta.hidden = !location;
   }
 
-  function renderAnswerSources(scope: Entry[], scoped: boolean, needsCity: boolean) {
+  function renderAnswerSources(scope: Entry[], scoped: boolean, needsCity: boolean, now: number) {
     const visible = scoped && chrome !== 'loading' && !needsCity;
     answerSources.hidden = !visible;
     rotationalContext.hidden = !visible || !scope.some((entry) => entry.possible);
+    renderFyiStatus(visible, now);
   }
 
   function renderCityPrompt(view: { needsCity: boolean; cityChoices: string[] }) {
@@ -1933,7 +2187,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     verdictMark.hidden = view.tone === 'idle';
     paint(verdictHead, view.head, changed);
     paint(verdictDetail, view.detail, changed);
-    renderAnswerSources(scope, scoped, view.needsCity);
+    renderAnswerSources(scope, scoped, view.needsCity, now);
     renderConfidence();
     renderVerdictControls(scoped);
     renderCityPrompt(view);
@@ -2836,6 +3090,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     if (dayOutsideWindow) selectedDay = '';
     calendar = data.calendar;
     warnings = data.warnings || [];
+    fyi = fyiOf(data);
     sourceReadability = nextReadability;
     if (sourceReadability !== 'unreadable') lastFetch = Date.now();
     refreshFailed = false;
@@ -2860,8 +3115,10 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       }
     } catch (error) {
       // The last successful schedule beats a blank page, but the confidence line says this
-      // refresh failed rather than silently treating retained rows as fresh.
+      // refresh failed rather than silently treating retained rows as fresh. A failed
+      // whole-feed refresh cannot leave a supplemental operator record looking current.
       refreshFailed = lastFetch > 0;
+      fyi = fyiUnavailable();
       console.error(error);
       refresh();
     } finally {
@@ -2888,6 +3145,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       entries = [];
       byKey = new Map();
       warnings = [];
+      fyi = fyiUnavailable();
       setChrome('failed');
       render();
       updated.textContent = 'Feed unreachable.';
