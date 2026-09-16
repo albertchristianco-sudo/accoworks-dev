@@ -1,6 +1,6 @@
 // Pages Function: Cebu power outage feed for /power.
 //
-//   GET /api/outages -> { updated, window, entries[], posts[], sources[] }
+//   GET /api/outages -> { updated, window, entries[], posts[], sources[], fyi }
 //
 // Reads Visayan Electric's official Service Interruption Calendar first. Their weekly
 // advisory posts remain a fallback when that calendar is unavailable, while hand-logged
@@ -22,11 +22,15 @@ import {
   VECO_CALENDAR_TITLE,
 } from '../../src/scripts/outages.mjs';
 import { readLog } from './rotational.js';
+import { FYI_MAX_INPUT_BYTES, emptyFyi, parseFyiResponse, summarizeFyiBoot } from '../../src/scripts/fyi.mjs';
 import { readHealth } from './rotational-health.js';
 
 const SITEMAP = 'https://www.visayanelectric.com/blog-posts-sitemap.xml';
 const POST_PREFIX = 'https://www.visayanelectric.com/post/';
 const CALENDAR_FEED = 'https://docs.google.com/spreadsheets/d/1rRq3A_2gFf0n68THzBVf6IYkHiSrhl1ZA6yOe50bp8o/gviz/tq?tqx=out:json';
+const FYI_BOOTSTRAP = 'https://script.google.com/macros/s/AKfycbwryIwtUJgnOrCWYlXhEeDnxOm2lg-C_Ji9CREsjKjUvLsrQCroX-QvgBeLR_qtgQbggw/exec';
+const FYI_EDGE_TTL = 60;
+const FYI_TIMEOUT_MS = 8_000;
 const UA = 'Mozilla/5.0 (compatible; accoworks.dev outage tracker; +https://accoworks.dev/power)';
 const EDGE_TTL = 900; // 15 minutes: advisories change a few times a day at most.
 const MAX_POSTS = 3;
@@ -46,6 +50,82 @@ async function fetchText(url, accept = 'text/html,application/xml') {
   });
   if (!response.ok) throw new Error(`${url} responded ${response.status}`);
   return response.text();
+}
+
+async function responseTextWithin(response, maxBytes) {
+  const declared = Number(response.headers.get('content-length'));
+  if (Number.isFinite(declared) && declared > maxBytes) throw new Error('FYI response exceeded the size limit');
+  if (!response.body) return '';
+
+  const reader = response.body.getReader();
+  const chunks = [];
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      size += value.byteLength;
+      if (size > maxBytes) {
+        await reader.cancel();
+        throw new Error('FYI response exceeded the size limit');
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
+}
+
+async function fetchFyiText() {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FYI_TIMEOUT_MS);
+  try {
+    const response = await fetch(FYI_BOOTSTRAP, {
+      headers: { 'user-agent': UA, accept: 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.1' },
+      signal: controller.signal,
+      cf: { cacheTtl: FYI_EDGE_TTL, cacheEverything: true },
+    });
+    if (!response.ok) throw new Error(`FYI responded ${response.status}`);
+    return await responseTextWithin(response, FYI_MAX_INPUT_BYTES);
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error('FYI request timed out');
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function loadFyi(window) {
+  let checkedAt = null;
+  try {
+    const text = await fetchFyiText();
+    const nowMs = Date.now();
+    checkedAt = new Date(nowMs).toISOString();
+    const summary = summarizeFyiBoot(parseFyiResponse(text), {
+      from: window.from,
+      to: window.to,
+      nowMs,
+    });
+    return {
+      ...emptyFyi(checkedAt),
+      available: true,
+      ...summary,
+    };
+  } catch {
+    return {
+      ...emptyFyi(checkedAt || new Date().toISOString()),
+      warnings: ['AboitizPower FYI is unavailable'],
+    };
+  }
 }
 
 function advisorySlugs(sitemapXml) {
@@ -85,9 +165,10 @@ export async function onRequestGet({ env }) {
     entries: [],
     warnings: [],
     calendar: { available: false, checkedAt: null, count: 0, skipped: 0 },
+    fyi: emptyFyi(),
   };
+  const fyiRequest = loadFyi(payload.window);
   let primaryEntries = [];
-
   try {
     const parsed = parseCalendarGviz(await fetchText(CALENDAR_FEED, 'application/json,text/javascript;q=0.9,*/*;q=0.1'));
     const checkedAt = new Date().toISOString();
@@ -127,7 +208,6 @@ export async function onRequestGet({ env }) {
       payload.warnings.push(`Advisory source unavailable: ${fallbackError.message}`);
     }
   }
-
   // Rotational brownouts can be received before either published source updates, so KV
   // remains a supplement. Calendar entries are passed first to make them win duplicates.
   const log = await readLog(env || {});
@@ -147,7 +227,7 @@ export async function onRequestGet({ env }) {
       (entry) => entry.end >= lower && entry.start < upper,
     ),
   );
-
+  payload.fyi = await fyiRequest;
   // max-age=60 is browser-only and load-bearing: /power refetches this feed on tab focus
   // and on repeat navigations, so a minute of freshness keeps those off the wire. No
   // s-maxage — Pages Functions are not edge-cached without an explicit cache rule (every
