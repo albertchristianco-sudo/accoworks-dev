@@ -125,7 +125,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     </header>
 
     <section class="fyi-map-panel" data-fyi-panel hidden aria-labelledby="fyi-map-title">
-      <details class="fyi-disclosure" data-fyi-disclosure>
+      <details class="fyi-disclosure" data-fyi-disclosure open>
         <summary class="fyi-toggle">
           <span id="fyi-map-title">Supplemental FYI plan map</span>
           <span class="fyi-preview" data-fyi-preview></span>
@@ -145,7 +145,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
               </div>
               <ul class="fyi-window-list" data-fyi-window-list aria-label="Supplemental FYI plan windows"></ul>
               <p class="fyi-map-status" data-fyi-map-status role="status" aria-live="polite">
-                The window list is available without loading a map.
+                The plan-window list is available. The supplemental map loads as this panel approaches the viewport.
               </p>
               <p class="fyi-map-source">
                 <a href="https://fyi.aboitizpower.com/" rel="noopener" target="_blank">Open AboitizPower FYI</a>
@@ -1626,6 +1626,18 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   .outage .verdict,
   .outage .evidence { min-width: 0; }
 
+  @media (max-width: 759px) {
+    .outage .fyi-map-layout:has(.fyi-map-activated:not([hidden])) {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .outage .fyi-map-activated {
+      order: -1;
+      margin: 0 0 20px;
+    }
+  }
+
   @media (min-width: 760px) {
     .outage .fyi-map-layout:has(.fyi-map-activated:not([hidden])) {
       display: grid;
@@ -1947,6 +1959,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   let fyiMapWindowKey = '';
   let fyiMapPanelSig = '';
   let fyiMapLoading = false;
+  let fyiMapAutoLoadClaimed = false;
   let fyiMapMarker: [number, number] | null = null;
   let sourceReadability: SourceReadability = 'unreadable';
   let refreshFailed = false;
@@ -2620,15 +2633,21 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
 
   function fyiMapRequestChanged(summary: ReturnType<typeof fyiSummarySnapshot>) {
     const current = fyiSummarySnapshot();
-    return !fyiDisclosure.open ||
+    return fyiPanel.hidden ||
+      !fyiPanel.isConnected ||
+      chrome !== 'ok' ||
+      !fyiDisclosure.open ||
+      !fyiLoaded ||
+      !fyi.available ||
+      !current.windows.length ||
       current.revision !== summary.revision ||
       current.sourceStamp !== summary.sourceStamp ||
       current.planStamp !== summary.planStamp;
   }
 
-  async function loadFyiMap() {
+  async function loadFyiMap(explicit: boolean) {
     if (fyiMapLoading) return;
-    if (!fyiDisclosure.open || !fyiLoaded || !fyi.available) {
+    if (fyiPanel.hidden || !fyiPanel.isConnected || chrome !== 'ok' || !fyiDisclosure.open || !fyiLoaded || !fyi.available) {
       unmountFyiMap();
       setFyiMapStatus('The FYI map is unavailable right now. The plan-window list remains available.');
       return;
@@ -2697,7 +2716,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       const warning = envelope.warnings[0] ? ` ${envelope.warnings[0]}` : '';
       setFyiMapStatus(`Supplemental map loaded for the selected plan window.${warning}`);
       fyiMapLoad.textContent = 'Reload map';
-      if (matchMedia('(max-width: 680px)').matches) {
+      if (explicit && matchMedia('(max-width: 680px)').matches) {
         requestAnimationFrame(() => fyiMapActivated.scrollIntoView({ block: 'start' }));
       }
     } catch (error) {
@@ -2710,6 +2729,28 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       fyiMapLoad.removeAttribute('aria-busy');
     }
   }
+
+  const fyiMapAutoLoadObserver = new IntersectionObserver((entries) => {
+    const entry = entries.find((candidate) => candidate.target === fyiPanel);
+    if (!entry?.isIntersecting || fyiMapAutoLoadClaimed) return;
+    if (fyiMapLoading || fyiMapController || !fyiMapActivated.hidden) {
+      fyiMapAutoLoadObserver.disconnect();
+      return;
+    }
+    if (
+      fyiPanel.hidden ||
+      !fyiPanel.isConnected ||
+      !fyiDisclosure.open ||
+      chrome !== 'ok' ||
+      !fyiLoaded ||
+      !fyi.available ||
+      !fyiMapPlanWindows(Date.now()).length
+    ) return;
+    fyiMapAutoLoadClaimed = true;
+    fyiMapAutoLoadObserver.disconnect();
+    void loadFyiMap(false);
+  }, { rootMargin: '320px 0px' });
+  fyiMapAutoLoadObserver.observe(fyiPanel);
 
   function renderConfidence() {
     const skipped = calendar?.skipped || 0;
@@ -3688,7 +3729,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   });
 
   locateBtn.addEventListener('click', locate);
-  fyiMapLoad.addEventListener('click', () => void loadFyiMap());
+  fyiMapLoad.addEventListener('click', () => void loadFyiMap(true));
   fyiMapReset.addEventListener('click', () => {
     fyiMapController?.resetView();
     if (fyiMapController) setFyiMapStatus('Map view reset for the selected plan window.');

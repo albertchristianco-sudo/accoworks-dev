@@ -1,11 +1,12 @@
 import L from 'leaflet';
 import leafletCss from 'leaflet/dist/leaflet.css?raw';
 
-const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+const TILE_URL = '/api/osm-tiles/{z}/{x}/{y}.png';
 const ATTRIBUTION =
   '&copy; <a href="https://www.openstreetmap.org/copyright" rel="noopener" target="_blank">OpenStreetMap contributors</a>';
 
 const CEBU_BOUNDS = Object.freeze({ south: 9, west: 122, north: 12, east: 125 });
+const CEBU_MAP_BOUNDS = Object.freeze({ south: 9.2, west: 122.8, north: 11.5, east: 124.3 });
 const MAX_CLOUDS = 64;
 const MAX_WINDOWS = 256;
 const MAX_PAIRS = 24_000;
@@ -351,6 +352,10 @@ export function mountFyiMap(container, envelope, { selectedWindow = 0, marker = 
       inertia: false,
       keyboard: true,
       markerZoomAnimation: false,
+      maxBounds: [[CEBU_MAP_BOUNDS.south, CEBU_MAP_BOUNDS.west], [CEBU_MAP_BOUNDS.north, CEBU_MAP_BOUNDS.east]],
+      maxBoundsViscosity: 1,
+      maxZoom: 12,
+      minZoom: 8,
       preferCanvas: true,
       scrollWheelZoom: true,
       zoomAnimation: false,
@@ -359,9 +364,9 @@ export function mountFyiMap(container, envelope, { selectedWindow = 0, marker = 
     map.attributionControl.setPrefix(false);
     L.tileLayer(TILE_URL, {
       attribution: ATTRIBUTION,
-      crossOrigin: true,
-      maxNativeZoom: 19,
-      maxZoom: 19,
+      maxNativeZoom: 12,
+      maxZoom: 12,
+      minZoom: 8,
       noWrap: true,
       updateWhenIdle: true,
     }).addTo(map);
