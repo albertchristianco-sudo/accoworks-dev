@@ -124,6 +124,62 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       </div>
     </header>
 
+    <section class="fyi-map-panel" data-fyi-panel hidden aria-labelledby="fyi-map-title">
+      <details class="fyi-disclosure" data-fyi-disclosure>
+        <summary class="fyi-toggle">
+          <span id="fyi-map-title">Supplemental FYI plan map</span>
+          <span class="fyi-preview" data-fyi-preview></span>
+        </summary>
+        <div class="fyi-panel-body">
+          <p class="fyi-trust">
+            FYI is a separate supplemental service. Its plans and operator records are not
+            confirmation for this address; use the published Visayan Electric schedule above for
+            the local answer.
+          </p>
+          <div class="fyi-map-layout">
+            <div class="fyi-map-copy">
+              <p class="fyi-window-label">Readable Cebu plan windows for today and tomorrow</p>
+              <div class="fyi-map-controls">
+                <button type="button" class="btn fyi-map-load" data-fyi-map-load>Load map</button>
+                <button type="button" class="txtbtn fyi-map-reset" data-fyi-map-reset hidden>Reset map view</button>
+              </div>
+              <ul class="fyi-window-list" data-fyi-window-list aria-label="Supplemental FYI plan windows"></ul>
+              <p class="fyi-map-status" data-fyi-map-status role="status" aria-live="polite">
+                The window list is available without loading a map.
+              </p>
+              <p class="fyi-map-source">
+                <a href="https://fyi.aboitizpower.com/" rel="noopener" target="_blank">Open AboitizPower FYI</a>
+                for the separate source.
+              </p>
+            </div>
+            <div class="fyi-map-activated" data-fyi-map-activated hidden>
+              <div
+                class="fyi-map-canvas"
+                data-fyi-map-canvas
+                role="img"
+                aria-label="Supplemental FYI feeder-area point map. Use the plan-window list to select the map window."
+              ></div>
+              <ul class="fyi-map-legend" aria-label="Map legend">
+                <li><span class="fyi-legend-swatch fyi-legend-neutral" aria-hidden="true"></span>Outside the selected plan window, subdued dots</li>
+                <li><span class="fyi-legend-swatch fyi-legend-confirmed" aria-hidden="true"></span>Confirmed individual feeder records</li>
+                <li><span class="fyi-legend-swatch fyi-legend-scheduled" aria-hidden="true"></span>Selected current plan window</li>
+                <li><span class="fyi-legend-swatch fyi-legend-planned" aria-hidden="true"></span>Selected future plan window</li>
+                <li><span class="fyi-legend-swatch fyi-legend-finished" aria-hidden="true"></span>Selected finished plan window, subdued dots</li>
+                <li class="fyi-legend-note">Aggregate operator activity is not assigned to individual dots.</li>
+                <li><span class="fyi-legend-swatch fyi-legend-marker" aria-hidden="true"></span>Your browser location, when shared</li>
+              </ul>
+              <p class="fyi-attribution" data-fyi-map-attribution hidden></p>
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
+    <noscript>
+      <p class="fyi-nojs">
+        For the separate supplemental service, <a href="https://fyi.aboitizpower.com/" rel="noopener" target="_blank">open AboitizPower FYI</a>.
+      </p>
+    </noscript>
+
     <section class="browse" aria-labelledby="browse-title">
       <div class="browse-head">
         <h2 id="browse-title">Published schedule</h2>
@@ -232,6 +288,21 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
        amber wash under the stripes is what lets stacked hatches darken at all. */
     --hatch: repeating-linear-gradient(135deg, var(--wait) 0 1.5px, transparent 1.5px 4px);
     --hit: var(--accent-soft);
+    /* The lazily loaded map reads its state palette from the page rather than bringing a
+       second visual system with it. */
+    --fyi-map-neutral: var(--ink-3);
+    --fyi-map-confirmed: var(--out);
+    --fyi-map-aggregate: var(--wait);
+    --fyi-map-restored: var(--clear);
+    --fyi-map-marker: var(--ink);
+    --fyi-map-stale: var(--wait);
+    --fyi-map-scheduled: var(--wait);
+    --fyi-map-planned: var(--accent);
+    --fyi-map-finished: var(--ink-3);
+    --fyi-map-marker-ring: var(--surface);
+
+
+
 
     max-width: 60rem;
     padding: clamp(24px, 5vw, 48px) 0 72px;
@@ -649,6 +720,179 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   .outage .more-dates summary:focus-visible,
   .outage .archive-more summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
   .outage .evidence-official { margin-top: 4px !important; color: var(--ink-2); font-size: 14px; line-height: 1.55; }
+
+  /* ── Supplemental FYI map ─────────────────────────────────────────────── */
+
+  .outage .fyi-map-panel {
+    margin-top: clamp(40px, 6vw, 64px);
+    padding-top: 24px;
+    border-top: 1px solid var(--line-2);
+  }
+
+  .outage .fyi-map-panel[hidden],
+  .outage .fyi-map-activated[hidden],
+  .outage .fyi-map-reset[hidden],
+  .outage .fyi-attribution[hidden] { display: none; }
+
+  .outage .fyi-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 56px;
+    gap: 16px;
+    color: var(--ink);
+    cursor: pointer;
+    font: 600 16px/1.3 var(--font-sans);
+    list-style: none;
+  }
+
+  .outage .fyi-toggle::-webkit-details-marker { display: none; }
+  .outage .fyi-toggle:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+
+  .outage .fyi-preview {
+    max-width: 32em;
+    color: var(--ink-2);
+    font: 11px/1.4 var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  .outage .fyi-panel-body {
+    padding: 8px 0 28px;
+    border-top: 1px solid var(--line);
+  }
+
+  .outage .fyi-trust,
+  .outage .fyi-map-source,
+  .outage .fyi-nojs {
+    max-width: 52em;
+    margin: 16px 0 0;
+    color: var(--ink-2);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .outage .fyi-map-source { font-size: 13px; }
+  .outage .fyi-map-source a,
+  .outage .fyi-nojs a { color: var(--accent); font-weight: 500; }
+
+  .outage .fyi-map-layout { margin-top: 20px; }
+  .outage .fyi-window-label {
+    margin: 0;
+    color: var(--ink-2);
+    font: 600 12px/1.35 var(--font-sans);
+  }
+
+  .outage .fyi-window-list {
+    max-height: 320px;
+    margin: 12px 0 0;
+    padding: 0 8px 0 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-top: 1px solid var(--line);
+    scrollbar-gutter: stable;
+    list-style: none;
+  }
+
+  .outage .fyi-window-list li { border-bottom: 1px solid var(--line); }
+
+  .outage .fyi-window-button {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    width: 100%;
+    min-height: 52px;
+    gap: 12px;
+    padding: 8px 0;
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    font: 500 14px/1.35 var(--font-sans);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .outage .fyi-window-button:hover { color: var(--accent); }
+  .outage .fyi-window-button[aria-pressed='true'] { color: var(--accent); }
+  .outage .fyi-window-button:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+  .outage .fyi-window-time { min-width: 0; }
+  .outage .fyi-window-meta {
+    color: var(--ink-2);
+    font: 11px/1.35 var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  .outage .fyi-map-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 20px;
+    margin-top: 16px;
+  }
+
+  .outage .fyi-map-load { min-width: 118px; }
+  .outage .fyi-map-controls .txtbtn { min-height: 44px; }
+  .outage .fyi-map-status {
+    margin: 12px 0 0;
+    color: var(--ink-2);
+    font: 12px/1.55 var(--font-mono);
+  }
+
+  .outage .fyi-map-activated {
+    min-width: 0;
+    margin-top: 20px;
+  }
+
+  .outage [data-fyi-map-canvas] {
+    min-height: 300px;
+    height: 300px;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--line-control);
+  }
+
+  .outage .fyi-map-legend {
+    display: grid;
+    gap: 6px 16px;
+    margin: 12px 0 0;
+    padding: 0;
+    color: var(--ink-2);
+    font-size: 12px;
+    line-height: 1.45;
+    list-style: none;
+  }
+
+  .outage .fyi-map-legend li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .outage .fyi-legend-swatch {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    margin-top: 3px;
+    border: 1px solid color-mix(in srgb, var(--ink) 35%, transparent);
+    border-radius: 50%;
+  }
+
+  .outage .fyi-legend-neutral { background: var(--fyi-map-neutral); }
+  .outage .fyi-legend-confirmed { background: var(--fyi-map-confirmed); }
+  .outage .fyi-legend-marker { background: var(--fyi-map-marker); }
+  .outage .fyi-legend-scheduled { background: var(--fyi-map-scheduled); }
+  .outage .fyi-legend-planned { background: var(--fyi-map-planned); }
+  .outage .fyi-legend-finished { background: var(--fyi-map-finished); }
+  .outage .fyi-legend-note { padding-left: 20px; }
+
+  .outage .fyi-attribution {
+    margin: 12px 0 0;
+    color: var(--ink-3);
+    font: 11px/1.45 var(--font-mono);
+  }
+
+  .outage .fyi-attribution a { color: inherit; }
 
   /* ── Browse ──────────────────────────────────────────────────────────── */
 
@@ -1382,11 +1626,27 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   .outage .verdict,
   .outage .evidence { min-width: 0; }
 
+  @media (min-width: 760px) {
+    .outage .fyi-map-layout:has(.fyi-map-activated:not([hidden])) {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(360px, 440px);
+      align-items: start;
+      gap: 32px;
+    }
+
+    .outage .fyi-map-activated { margin-top: 0; }
+    .outage [data-fyi-map-canvas] { height: 390px; }
+    .outage .fyi-window-list { max-height: 390px; }
+  }
+
+
   @media (max-width: 559px) {
     .outage .types { gap: 4px 14px; }
     .outage .date-set { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .outage .browse-toggle { align-items: flex-start; flex-direction: column; gap: 2px; padding: 8px 0; }
     .outage .browse-preview { max-width: none; text-align: left; }
+    .outage .fyi-toggle { align-items: flex-start; flex-direction: column; gap: 2px; padding: 8px 0; }
+    .outage .fyi-preview { max-width: none; text-align: left; }
   }
 
 
@@ -1536,6 +1796,45 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     warnings: string[];
   };
 
+  type FyiMapBounds = { south: number; west: number; north: number; east: number };
+  type FyiMapCloud = { c: [number, number]; p: number[] };
+  type FyiMapWindow = {
+    start: string;
+    end: string;
+    feederCount: number;
+    cloudIndexes: number[];
+    confirmedCloudIndexes: number[];
+    confirmedUntil: string | null;
+    operatorState: 'none' | 'per-feeder' | 'aggregate' | 'stale' | 'restored';
+  };
+  type FyiMapAttribution = { label: string; url: string };
+  type FyiMapEnvelope = {
+    version: 1;
+    available: boolean;
+    checkedAt: string | null;
+    sourceStamp: string | null;
+    freshness: 'fresh' | 'stale' | 'unknown';
+    sourceUrl: 'https://fyi.aboitizpower.com/';
+    attribution: FyiMapAttribution;
+    bounds: FyiMapBounds | null;
+    clouds: FyiMapCloud[];
+    windows: FyiMapWindow[];
+    warnings: string[];
+  };
+  type FyiMapController = {
+    setWindow(index: number): void;
+    setMarker(marker: [number, number] | null): void;
+    resetView(): void;
+    destroy(): void;
+  };
+  type FyiMapModule = {
+    mountFyiMap(
+      container: HTMLElement,
+      envelope: FyiMapEnvelope,
+      options: { selectedWindow: number; marker: [number, number] | null },
+    ): FyiMapController;
+  };
+
   type Feed = {
     updated: string;
     window?: FeedWindow;
@@ -1544,7 +1843,6 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     ingest?: Ingest;
     calendar?: Calendar;
     warnings?: string[];
-    fyi?: Fyi;
   };
 
   type SourceReadability = 'readable' | 'partial' | 'unreadable';
@@ -1575,6 +1873,17 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   const rotationalContext = el('[data-rotational-context]');
   const cityPrompt = el('[data-city-prompt]');
   const evidence = el('[data-evidence]');
+  const fyiPanel = el<HTMLElement>('[data-fyi-panel]');
+  const fyiDisclosure = el<HTMLDetailsElement>('[data-fyi-disclosure]');
+  const fyiPreview = el('[data-fyi-preview]');
+  const fyiWindowList = el<HTMLUListElement>('[data-fyi-window-list]');
+  const fyiMapLoad = el<HTMLButtonElement>('[data-fyi-map-load]');
+  const fyiMapReset = el<HTMLButtonElement>('[data-fyi-map-reset]');
+  const fyiMapStatus = el('[data-fyi-map-status]');
+  const fyiMapActivated = el('[data-fyi-map-activated]');
+  const fyiMapCanvas = el('[data-fyi-map-canvas]');
+  const fyiMapAttribution = el('[data-fyi-map-attribution]');
+
   const browse = el<HTMLDetailsElement>('[data-browse]');
   const browsePreview = el('[data-browse-preview]');
   const citiesBox = el('[data-cities]');
@@ -1625,6 +1934,20 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   let calendar: Calendar | undefined;
   let warnings: string[] = [];
   let fyi: Fyi = fyiUnavailable();
+  let fyiLoaded = false;
+  let fyiLoading = false;
+  let fyiRevision = 0;
+  let fyiSupplementalVisible = false;
+  let fyiMapEnvelope: FyiMapEnvelope | null = null;
+  let fyiMapController: FyiMapController | null = null;
+  let fyiMapMountedStamp: string | null = null;
+  let fyiMapMountedSignature = '';
+  let fyiMapSummaryStamp: string | null = null;
+  let fyiMapSummaryPlanStamp = '';
+  let fyiMapWindowKey = '';
+  let fyiMapPanelSig = '';
+  let fyiMapLoading = false;
+  let fyiMapMarker: [number, number] | null = null;
   let sourceReadability: SourceReadability = 'unreadable';
   let refreshFailed = false;
   let fetchedAt = Date.now();
@@ -1804,15 +2127,20 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     };
   }
 
-  function fyiOf(data: Feed): Fyi {
-    const raw = data.fyi;
+  const isFyiFreshness = (value: unknown): value is Fyi['freshness'] =>
+    value === 'fresh' || value === 'stale' || value === 'unknown';
+
+  function fyiOf(value: unknown): Fyi {
+    const raw = isPlainObject(value) ? value : null;
     const warnings = fyiWarningsOf(raw?.warnings);
+    const freshness = raw?.freshness;
     if (
       !raw ||
       raw.available !== true ||
+      raw.sourceUrl !== FYI_SOURCE_URL ||
       !Array.isArray(raw.plans) ||
       !Array.isArray(raw.advisories) ||
-      !['fresh', 'stale', 'unknown'].includes(raw.freshness)
+      !isFyiFreshness(freshness)
     ) return fyiUnavailable(warnings);
     const plans = raw.plans.map(fyiPlanOf);
     const advisories = raw.advisories.map(fyiAdvisoryOf);
@@ -1821,13 +2149,151 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       available: true,
       checkedAt: nullableString(raw.checkedAt),
       sourceStamp: nullableString(raw.sourceStamp),
-      freshness: raw.freshness,
+      freshness,
       sourceUrl: FYI_SOURCE_URL,
       plans: plans as FyiPlan[],
       advisories: advisories as FyiAdvisory[],
       warnings,
     };
   }
+
+  const fyiMapNumber = (value: unknown): value is number =>
+    typeof value === 'number' && Number.isFinite(value);
+  const fyiMapWarningList = (value: unknown) =>
+    Array.isArray(value) && value.length <= 64 && value.every((warning) => typeof warning === 'string' && warning.length <= 240)
+      ? value as string[]
+      : null;
+
+  function fyiMapBoundsOf(value: unknown): FyiMapBounds | null {
+    if (value === null) return null;
+    if (!isPlainObject(value)) return null;
+    const { south, west, north, east } = value;
+    if (
+      !fyiMapNumber(south) ||
+      !fyiMapNumber(west) ||
+      !fyiMapNumber(north) ||
+      !fyiMapNumber(east) ||
+      south < 9 ||
+      north > 12 ||
+      west < 122 ||
+      east > 125 ||
+      south > north ||
+      west > east
+    ) return null;
+    return { south, west, north, east };
+  }
+
+  function fyiMapCloudOf(value: unknown): FyiMapCloud | null {
+    if (!isPlainObject(value) || !Array.isArray(value.c) || value.c.length !== 2 || !Array.isArray(value.p)) return null;
+    const [lat, lng] = value.c;
+    if (
+      !fyiMapNumber(lat) ||
+      !fyiMapNumber(lng) ||
+      lat < 9 ||
+      lat > 12 ||
+      lng < 122 ||
+      lng > 125 ||
+      value.p.length > 8_192 ||
+      value.p.length % 2 !== 0 ||
+      !value.p.every(Number.isSafeInteger)
+    ) return null;
+    for (let index = 0; index < value.p.length; index += 2) {
+      const pointLat = lat + value.p[index] / 1e5;
+      const pointLng = lng + value.p[index + 1] / 1e5;
+      if (pointLat < 9 || pointLat > 12 || pointLng < 122 || pointLng > 125) return null;
+    }
+    return { c: [lat, lng], p: value.p as number[] };
+  }
+
+  function fyiMapIndexesOf(value: unknown, cloudCount: number): number[] | null {
+    if (!Array.isArray(value) || value.length > cloudCount || !value.every(Number.isSafeInteger)) return null;
+    const indexes = value as number[];
+    return indexes.every((index) => index >= 0 && index < cloudCount) && new Set(indexes).size === indexes.length
+      ? indexes
+      : null;
+  }
+
+  function fyiMapWindowOf(value: unknown, cloudCount: number): FyiMapWindow | null {
+    if (!isPlainObject(value) || typeof value.start !== 'string' || typeof value.end !== 'string') return null;
+    const start = Date.parse(value.start);
+    const end = Date.parse(value.end);
+    const feederCount = value.feederCount;
+    const cloudIndexes = fyiMapIndexesOf(value.cloudIndexes, cloudCount);
+    const confirmedCloudIndexes = fyiMapIndexesOf(value.confirmedCloudIndexes, cloudCount);
+    const confirmedUntil = value.confirmedUntil === null ? null : nullableString(value.confirmedUntil);
+    const operatorState = value.operatorState;
+    if (
+      !Number.isFinite(start) ||
+      !Number.isFinite(end) ||
+      start >= end ||
+      typeof feederCount !== 'number' ||
+      !Number.isSafeInteger(feederCount) ||
+      feederCount < 0 ||
+      feederCount > 8_192 ||
+      !cloudIndexes ||
+      !confirmedCloudIndexes ||
+      !confirmedCloudIndexes.every((index) => cloudIndexes.includes(index)) ||
+      (value.confirmedUntil !== null && (!confirmedUntil || confirmedUntil.length > 40 || !hasTimestamp(confirmedUntil))) ||
+      !['none', 'per-feeder', 'aggregate', 'stale', 'restored'].includes(`${operatorState}`)
+    ) return null;
+
+    return {
+      start: value.start,
+      end: value.end,
+      feederCount,
+      cloudIndexes,
+      confirmedCloudIndexes,
+      confirmedUntil,
+      operatorState: operatorState as FyiMapWindow['operatorState'],
+    };
+  }
+
+  function fyiMapEnvelopeOf(value: unknown): FyiMapEnvelope | null {
+    if (
+      !isPlainObject(value) ||
+      value.version !== 1 ||
+      typeof value.available !== 'boolean' ||
+      (value.checkedAt !== null && !hasTimestamp(nullableString(value.checkedAt))) ||
+      (value.sourceStamp !== null && (typeof value.sourceStamp !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,95}$/.test(value.sourceStamp))) ||
+      !['fresh', 'stale', 'unknown'].includes(`${value.freshness}`) ||
+      value.sourceUrl !== FYI_SOURCE_URL ||
+      !isPlainObject(value.attribution) ||
+      value.attribution.label !== '© OpenStreetMap contributors' ||
+      value.attribution.url !== 'https://www.openstreetmap.org/copyright'
+    ) return null;
+    const warnings = fyiMapWarningList(value.warnings);
+    const bounds = fyiMapBoundsOf(value.bounds);
+    if (!warnings || (value.bounds !== null && !bounds) || !Array.isArray(value.clouds) || !Array.isArray(value.windows)) return null;
+    if (!value.available && (value.bounds !== null || value.clouds.length || value.windows.length)) return null;
+    if (value.clouds.length > 64 || value.windows.length > 256) return null;
+    const clouds = value.clouds.map(fyiMapCloudOf);
+    if (clouds.some((cloud) => !cloud) || clouds.reduce((total, cloud) => total + cloud!.p.length / 2, 0) > 24_000) return null;
+    const windows = value.windows.map((window) => fyiMapWindowOf(window, clouds.length));
+    if (windows.some((window) => !window)) return null;
+    const today = manilaDate(Date.now());
+    const tomorrow = manilaDate(Date.now() + 24 * 60 * 60 * 1000);
+    if ((windows as FyiMapWindow[]).some((window) => {
+      const day = manilaDate(Date.parse(window.start));
+      return day !== today && day !== tomorrow;
+    })) return null;
+    const renderable = (windows as FyiMapWindow[]).some((window) =>
+      window.cloudIndexes.some((index) => (clouds[index]?.p.length || 0) > 0));
+    if (value.available && (!bounds || !clouds.length || !renderable)) return null;
+    return {
+      version: 1,
+      available: value.available,
+      checkedAt: nullableString(value.checkedAt),
+      sourceStamp: nullableString(value.sourceStamp),
+      freshness: value.freshness as FyiMapEnvelope['freshness'],
+      sourceUrl: FYI_SOURCE_URL,
+      attribution: { label: value.attribution.label, url: value.attribution.url },
+      bounds,
+      clouds: clouds as FyiMapCloud[],
+      windows: windows as FyiMapWindow[],
+      warnings,
+    };
+  }
+
 
   function fyiRelevantWindow(now: number) {
     const candidates = fyi.plans
@@ -1933,6 +2399,318 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     if (fyiStatusCopy.textContent !== text) fyiStatusCopy.textContent = text;
   }
 
+  type FyiMapListWindow = Pick<FyiWindow, 'start' | 'end' | 'hours' | 'feederCount'> & { combined: boolean };
+
+  const fyiMapWindowKeyOf = ({ start, end }: Pick<FyiMapListWindow, 'start' | 'end'>) => `${start}|${end}`;
+
+  function fyiActualSignatureOf(actual: FyiActual | null) {
+    return actual
+      ? JSON.stringify([
+        actual.coverage,
+        actual.state,
+        actual.startedAt,
+        actual.endedAt,
+        actual.ongoing,
+        actual.stale,
+        actual.recorded,
+        actual.total,
+        actual.mw,
+      ])
+      : 'none';
+  }
+
+  function fyiActualPlanSignatureOf() {
+    return fyi.plans
+      .map((plan) => JSON.stringify([
+        plan.id,
+        plan.date,
+        ...plan.windows.map((window) => [
+          window.start,
+          window.end,
+          window.hours,
+          window.feederCount,
+          fyiActualSignatureOf(window.actual),
+        ]),
+      ]))
+      .sort()
+      .join(',');
+  }
+
+  function fyiMapPlanWindows(now: number): FyiMapListWindow[] {
+    if (!fyi.available) return [];
+    const today = manilaDate(now);
+    const tomorrow = manilaDate(now + 24 * 60 * 60 * 1000);
+    const byWindow = new Map<string, FyiMapListWindow>();
+    for (const window of fyi.plans
+      .filter((plan) => plan.date === today || plan.date === tomorrow)
+      .flatMap((plan) => plan.windows)
+      .filter((window) => Number.isFinite(Date.parse(window.start)) && Number.isFinite(Date.parse(window.end)))) {
+      const key = fyiMapWindowKeyOf(window);
+      const existing = byWindow.get(key);
+      if (!existing) {
+        byWindow.set(key, {
+          start: window.start,
+          end: window.end,
+          hours: window.hours,
+          feederCount: window.feederCount,
+          combined: false,
+        });
+        continue;
+      }
+      existing.hours = Math.max(existing.hours, window.hours);
+      existing.feederCount = Math.max(existing.feederCount, window.feederCount);
+      existing.combined = true;
+    }
+    return [...byWindow.values()].sort((a, b) => Date.parse(a.start) - Date.parse(b.start) || Date.parse(a.end) - Date.parse(b.end));
+  }
+
+  const fyiMapPlanStampOf = (windows: FyiMapListWindow[]) =>
+    `${fyi.sourceStamp === null ? 'none' : fyi.sourceStamp}|${fyiActualPlanSignatureOf()}|${windows.map((window) =>
+      `${fyiMapWindowKeyOf(window)}:${window.feederCount}:${window.hours}`).join(',')}`;
+
+  const fyiMapEnvelopeSignatureOf = (envelope: FyiMapEnvelope) =>
+    `${envelope.sourceStamp === null ? 'none' : envelope.sourceStamp}|${envelope.checkedAt === null ? 'none' : envelope.checkedAt}|${envelope.windows.map((window) =>
+      `${fyiMapWindowKeyOf(window)}:${window.feederCount}:${window.cloudIndexes.join('.')}:${window.confirmedCloudIndexes.join('.')}:${window.confirmedUntil || 'none'}:${window.operatorState}`).join(',')}`;
+
+  const fyiMapStampsConflict = (left: string | null, right: string | null) =>
+    left !== null && right !== null && left !== right;
+
+  function fyiSummarySnapshot(now = Date.now()) {
+    const windows = fyiMapPlanWindows(now);
+    return {
+      revision: fyiRevision,
+      sourceStamp: fyi.sourceStamp,
+      planStamp: fyiMapPlanStampOf(windows),
+      windows,
+    };
+  }
+
+  function fyiMapWindowIndex() {
+    if (!fyiMapEnvelope) return -1;
+    return fyiMapEnvelope.windows.findIndex((window) => fyiMapWindowKeyOf(window) === fyiMapWindowKey);
+  }
+
+  function setFyiMapStatus(message: string) {
+    if (fyiMapStatus.textContent !== message) fyiMapStatus.textContent = message;
+  }
+
+  function clearFyiMapMarker() {
+    fyiMapMarker = null;
+    fyiMapController?.setMarker(null);
+  }
+
+  function setFyiMapMarker(marker: [number, number]) {
+    fyiMapMarker = marker;
+    fyiMapController?.setMarker(marker);
+  }
+
+  function unmountFyiMap() {
+    try {
+      fyiMapController?.destroy();
+    } catch (error) {
+      console.error(error);
+    }
+    fyiMapController = null;
+    fyiMapEnvelope = null;
+    fyiMapMountedStamp = null;
+    fyiMapMountedSignature = '';
+    fyiMapSummaryStamp = null;
+    fyiMapSummaryPlanStamp = '';
+    fyiMapCanvas.textContent = '';
+    fyiMapActivated.hidden = true;
+    fyiMapReset.hidden = true;
+    fyiMapAttribution.hidden = true;
+    fyiMapAttribution.textContent = '';
+    fyiMapLoad.textContent = 'Load map';
+  }
+
+  function renderFyiMapAttribution(attribution: FyiMapAttribution) {
+    fyiMapAttribution.textContent = '';
+    const link = document.createElement('a');
+    link.href = attribution.url;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.textContent = attribution.label;
+    fyiMapAttribution.append('Map data ', link, '.');
+    fyiMapAttribution.hidden = false;
+  }
+
+  function fyiMapWindowText(window: FyiMapListWindow) {
+    const start = new Date(window.start);
+    const end = new Date(window.end);
+    const date = dayFull.format(start);
+    const times = `${clock.format(start)} to ${clock.format(end)}`;
+    const feeders = window.combined
+      ? `At least ${window.feederCount} feeder ${window.feederCount === 1 ? 'area' : 'areas'}`
+      : `${window.feederCount} ${window.feederCount === 1 ? 'feeder area' : 'feeder areas'}`;
+    return { date, times, feeders };
+  }
+
+  function renderFyiMapPanel(now = Date.now()) {
+    const summary = fyiSummarySnapshot(now);
+    const { windows } = summary;
+    if (!windows.length || chrome !== 'ok') {
+      fyiPanel.hidden = true;
+      fyiMapPanelSig = '';
+      if (fyiMapController) unmountFyiMap();
+      return;
+    }
+
+    fyiPanel.hidden = false;
+    if (!windows.some((window) => fyiMapWindowKeyOf(window) === fyiMapWindowKey)) {
+      fyiMapWindowKey = fyiMapWindowKeyOf(windows[0]);
+    }
+
+    const mountedForCurrentSummary = Boolean(fyiMapController) &&
+      Boolean(fyiMapMountedSignature) &&
+      fyiMapSummaryStamp === fyi.sourceStamp &&
+      fyiMapSummaryPlanStamp === summary.planStamp &&
+      !fyiMapStampsConflict(fyiMapMountedStamp, fyi.sourceStamp);
+    if (fyiMapController && !mountedForCurrentSummary) {
+      unmountFyiMap();
+      setFyiMapStatus('FYI plan data changed. Load the map again to refresh the feeder-area dots.');
+    }
+
+    const sourceAge = fyi.freshness === 'fresh'
+      ? ' · FYI source update recent'
+      : fyi.freshness === 'stale'
+        ? ' · FYI source data stale'
+        : ' · FYI update time unknown';
+    const preview = `${windows.length} readable ${windows.length === 1 ? 'window' : 'windows'} for today and tomorrow${sourceAge}`;
+    if (fyiPreview.textContent !== preview) fyiPreview.textContent = preview;
+    const signature = `${fyiMapWindowKey}|${fyi.freshness}|${summary.planStamp}`;
+    if (signature === fyiMapPanelSig) return;
+
+    fyiWindowList.textContent = '';
+    for (const window of windows) {
+      const key = fyiMapWindowKeyOf(window);
+      const { date, times, feeders } = fyiMapWindowText(window);
+      const item = document.createElement('li');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'fyi-window-button';
+      button.dataset.fyiWindowKey = key;
+      button.setAttribute('aria-pressed', String(key === fyiMapWindowKey));
+      button.setAttribute('aria-label', `${date}, ${times}, Cebu time. ${feeders}.`);
+      const time = document.createElement('span');
+      time.className = 'fyi-window-time';
+      time.textContent = `${date} · ${times}`;
+      const meta = document.createElement('span');
+      meta.className = 'fyi-window-meta';
+      meta.textContent = feeders;
+      button.append(time, meta);
+      item.append(button);
+      fyiWindowList.append(item);
+    }
+    fyiMapPanelSig = signature;
+  }
+
+  function renderFyiSupplemental(now = Date.now()) {
+    renderFyiStatus(fyiSupplementalVisible && fyiLoaded, now);
+    renderFyiMapPanel(now);
+  }
+
+  function setFyi(next: Fyi) {
+    const previousPlanStamp = fyiMapPlanStampOf(fyiMapPlanWindows(Date.now()));
+    fyi = next;
+    fyiLoaded = true;
+    if (previousPlanStamp !== fyiMapPlanStampOf(fyiMapPlanWindows(Date.now()))) fyiRevision += 1;
+    renderFyiSupplemental();
+  }
+
+  function fyiMapRequestChanged(summary: ReturnType<typeof fyiSummarySnapshot>) {
+    const current = fyiSummarySnapshot();
+    return !fyiDisclosure.open ||
+      current.revision !== summary.revision ||
+      current.sourceStamp !== summary.sourceStamp ||
+      current.planStamp !== summary.planStamp;
+  }
+
+  async function loadFyiMap() {
+    if (fyiMapLoading) return;
+    if (!fyiDisclosure.open || !fyiLoaded || !fyi.available) {
+      unmountFyiMap();
+      setFyiMapStatus('The FYI map is unavailable right now. The plan-window list remains available.');
+      return;
+    }
+    const summary = fyiSummarySnapshot();
+    if (!summary.windows.length) {
+      unmountFyiMap();
+      setFyiMapStatus('No readable FYI plan window is available for the supplemental map.');
+      return;
+    }
+    fyiMapLoading = true;
+    fyiMapLoad.disabled = true;
+    fyiMapLoad.setAttribute('aria-busy', 'true');
+    setFyiMapStatus('Loading supplemental FYI map…');
+    try {
+      const response = await fetch('/api/fyi-map');
+      const payload: unknown = await response.json();
+      if (!response.ok) throw new Error(`FYI map responded ${response.status}`);
+      const envelope = fyiMapEnvelopeOf(payload);
+      if (!envelope) throw new Error('FYI map response is unreadable');
+      if (!envelope.available) {
+        unmountFyiMap();
+        setFyiMapStatus('FYI map is unavailable right now. The plan-window list remains available.');
+        return;
+      }
+      if (fyiMapRequestChanged(summary)) {
+        unmountFyiMap();
+        setFyiMapStatus(fyiDisclosure.open
+          ? 'FYI plan data changed. Load the map again to refresh the feeder-area dots.'
+          : 'Open the supplemental FYI plan map to load feeder-area dots.');
+        return;
+      }
+      if (fyiMapStampsConflict(envelope.sourceStamp, summary.sourceStamp)) {
+        unmountFyiMap();
+        setFyiMapStatus('FYI map data no longer matches the readable plan windows. Load the map again.');
+        return;
+      }
+      const { mountFyiMap } = await import('../scripts/fyi-map.mjs') as FyiMapModule;
+      if (fyiMapRequestChanged(summary)) {
+        unmountFyiMap();
+        setFyiMapStatus(fyiDisclosure.open
+          ? 'FYI plan data changed. Load the map again to refresh the feeder-area dots.'
+          : 'Open the supplemental FYI plan map to load feeder-area dots.');
+        return;
+      }
+      const selectedWindow = envelope.windows.findIndex((window) => fyiMapWindowKeyOf(window) === fyiMapWindowKey);
+      const selected = selectedWindow >= 0 ? envelope.windows[selectedWindow] : null;
+      const selectedHasGeometry = Boolean(selected?.cloudIndexes.some((index) => (envelope.clouds[index]?.p.length || 0) > 0));
+      if (!selectedHasGeometry) {
+        unmountFyiMap();
+        setFyiMapStatus('The FYI map has no matching feeder-area data for the selected plan window. The list remains available.');
+        return;
+      }
+      unmountFyiMap();
+      fyiMapEnvelope = envelope;
+      fyiMapMountedStamp = envelope.sourceStamp;
+      fyiMapMountedSignature = fyiMapEnvelopeSignatureOf(envelope);
+      fyiMapSummaryStamp = summary.sourceStamp;
+      fyiMapSummaryPlanStamp = summary.planStamp;
+      fyiMapActivated.hidden = false;
+      const controller = mountFyiMap(fyiMapCanvas, envelope, { selectedWindow, marker: fyiMapMarker });
+      if (!controller) throw new Error('FYI map could not mount');
+      fyiMapController = controller;
+      fyiMapReset.hidden = false;
+      renderFyiMapAttribution(envelope.attribution);
+      const warning = envelope.warnings[0] ? ` ${envelope.warnings[0]}` : '';
+      setFyiMapStatus(`Supplemental map loaded for the selected plan window.${warning}`);
+      fyiMapLoad.textContent = 'Reload map';
+      if (matchMedia('(max-width: 680px)').matches) {
+        requestAnimationFrame(() => fyiMapActivated.scrollIntoView({ block: 'start' }));
+      }
+    } catch (error) {
+      unmountFyiMap();
+      console.error(error);
+      setFyiMapStatus('Could not load the supplemental map. The plan-window list and published answer remain available.');
+    } finally {
+      fyiMapLoading = false;
+      fyiMapLoad.disabled = false;
+      fyiMapLoad.removeAttribute('aria-busy');
+    }
+  }
+
   function renderConfidence() {
     const skipped = calendar?.skipped || 0;
     const warning = warnings[0] ? ` Source warning: ${warnings[0].replace(/\.$/, '')}.` : '';
@@ -2014,7 +2792,8 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     const visible = scoped && chrome !== 'loading' && !needsCity;
     answerSources.hidden = !visible;
     rotationalContext.hidden = !visible || !scope.some((entry) => entry.possible);
-    renderFyiStatus(visible, now);
+    fyiSupplementalVisible = visible;
+    renderFyiStatus(visible && fyiLoaded, now);
   }
 
   function renderCityPrompt(view: { needsCity: boolean; cityChoices: string[] }) {
@@ -2188,6 +2967,8 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     paint(verdictHead, view.head, changed);
     paint(verdictDetail, view.detail, changed);
     renderAnswerSources(scope, scoped, view.needsCity, now);
+    renderFyiMapPanel(now);
+
     renderConfidence();
     renderVerdictControls(scoped);
     renderCityPrompt(view);
@@ -2832,6 +3613,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
 
   async function locate() {
     if (!navigator.geolocation) {
+      clearFyiMapMarker();
       const message = 'This browser cannot share a location. Type your barangay instead.';
       setHint(message, 'error');
       announceAtomic(message);
@@ -2846,6 +3628,9 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
         navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 12000, maximumAge: 300000 });
       });
       const { latitude, longitude } = position.coords;
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) throw new Error('location coordinates were unavailable');
+      setFyiMapMarker([latitude, longitude]);
+
       const response = await fetch(`/api/where?lat=${latitude.toFixed(5)}&lon=${longitude.toFixed(5)}`);
       const place = await response.json();
       if (!response.ok) throw new Error(place.error || 'lookup failed');
@@ -2860,6 +3645,8 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       setHint(`Located ${detected}. Reviewing published interruptions for ${area}.`);
       render();
     } catch (error) {
+      clearFyiMapMarker();
+
       const denied = (error as GeolocationPositionError)?.code === 1;
       const message = denied
         ? 'Location permission was declined. Type your barangay instead.'
@@ -2881,6 +3668,8 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     appliedArea = applied;
     if (applied !== search.value.trim()) search.value = applied;
     detected = '';
+    clearFyiMapMarker();
+
     city = nextCity === city ? '' : nextCity;
     forceAnswerAnnouncement = true;
     render();
@@ -2889,6 +3678,8 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
+    clearFyiMapMarker();
+
     appliedArea = search.value.trim();
     detected = '';
     forceAnswerAnnouncement = true;
@@ -2897,6 +3688,30 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
   });
 
   locateBtn.addEventListener('click', locate);
+  fyiMapLoad.addEventListener('click', () => void loadFyiMap());
+  fyiMapReset.addEventListener('click', () => {
+    fyiMapController?.resetView();
+    if (fyiMapController) setFyiMapStatus('Map view reset for the selected plan window.');
+  });
+  fyiWindowList.addEventListener('click', (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-fyi-window-key]');
+    const key = button?.dataset.fyiWindowKey;
+    if (!button || !key || key === fyiMapWindowKey) return;
+    fyiMapWindowKey = key;
+    const index = fyiMapWindowIndex();
+    if (fyiMapController && index >= 0) {
+      fyiMapController.setWindow(index);
+      setFyiMapStatus('Map updated for the selected supplemental plan window.');
+    } else if (fyiMapController) {
+      unmountFyiMap();
+      setFyiMapStatus('Load the map again to see feeder-area dots for the selected plan window.');
+    } else {
+      setFyiMapStatus('Selected plan window. Load the map to see supplemental feeder-area dots.');
+    }
+    renderFyiMapPanel();
+    fyiWindowList.querySelector<HTMLButtonElement>(`[data-fyi-window-key="${CSS.escape(key)}"]`)?.focus();
+  });
+
   for (const input of typeInputs) {
     input.addEventListener('change', () => renderBrowse());
   }
@@ -2973,6 +3788,8 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     appliedArea = '';
     city = '';
     detected = '';
+    clearFyiMapMarker();
+
     forceAnswerAnnouncement = true;
     render();
     search.focus();
@@ -2985,6 +3802,7 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     search.value = '';
     appliedArea = '';
     detected = '';
+    clearFyiMapMarker();
     forceAnswerAnnouncement = true;
     render();
     search.focus();
@@ -3090,13 +3908,28 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
     if (dayOutsideWindow) selectedDay = '';
     calendar = data.calendar;
     warnings = data.warnings || [];
-    fyi = fyiOf(data);
     sourceReadability = nextReadability;
     if (sourceReadability !== 'unreadable') lastFetch = Date.now();
     refreshFailed = false;
     fetchedAt = Date.parse(data.updated) || Date.now();
     stampFooter(data);
     return moved || dayOutsideWindow;
+  }
+
+  async function reloadFyi() {
+    if (fyiLoading) return;
+    fyiLoading = true;
+    try {
+      const response = await fetch('/api/fyi');
+      const payload: unknown = await response.json();
+      if (!response.ok) throw new Error(`FYI responded ${response.status}`);
+      setFyi(fyiOf(payload));
+    } catch (error) {
+      console.error(error);
+      setFyi(fyiUnavailable());
+    } finally {
+      fyiLoading = false;
+    }
   }
 
   async function reload() {
@@ -3115,14 +3948,13 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       }
     } catch (error) {
       // The last successful schedule beats a blank page, but the confidence line says this
-      // refresh failed rather than silently treating retained rows as fresh. A failed
-      // whole-feed refresh cannot leave a supplemental operator record looking current.
+      // refresh failed rather than silently treating retained rows as fresh.
       refreshFailed = lastFetch > 0;
-      fyi = fyiUnavailable();
       console.error(error);
       refresh();
     } finally {
       loading = false;
+      void reloadFyi();
     }
   }
 
@@ -3145,12 +3977,14 @@ const optionLabel = ({ value, lgus }: Suggestion) =>
       entries = [];
       byKey = new Map();
       warnings = [];
-      fyi = fyiUnavailable();
       setChrome('failed');
       render();
       updated.textContent = 'Feed unreachable.';
       console.error(error);
+    } finally {
+      void reloadFyi();
     }
+
   }
 
   retryBtn.addEventListener('click', () => {

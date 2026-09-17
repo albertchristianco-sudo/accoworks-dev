@@ -12,6 +12,15 @@ const MAX_FYI_ENTRIES_PER_PLAN = 24;
 const MAX_FYI_FEEDERS_PER_ENTRY = 128;
 const MAX_FYI_FEEDER_REFERENCES = 8_192;
 const MAX_FYI_OUTPUT_WINDOWS = 256;
+const MAX_FYI_MAP_CLOUDS = 64;
+const MAX_FYI_MAP_POINT_PAIRS = 24_000;
+const MAX_FYI_MAP_POINT_PAIRS_PER_CLOUD = 4_096;
+const MAX_FYI_MAP_OUTPUT_BYTES = 256 * 1024;
+const CEBU_LATITUDE_MIN = 9;
+const CEBU_LATITUDE_MAX = 12;
+const CEBU_LONGITUDE_MIN = 122;
+const CEBU_LONGITUDE_MAX = 125;
+const CEBU_OFFSET_MS = 8 * 60 * 60 * 1000;
 const BOOT_ASSIGNMENT_RE = /\b(?:const|let|var)\s+BOOT\s*=\s*/g;
 const INIT_RE = /\bgoog\.script\.init\s*\(/g;
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -165,7 +174,14 @@ function publicBoot(value) {
   }
   // Discard unrelated bootstrap state before it reaches the summarizer. The array values
   // stay local to this module and are immediately reduced to the public API shape.
-  return { view: value.view, stamp: safeSourceStamp(value.stamp), plans: value.plans, outages: value.outages };
+  const feeders = isObject(value.feeders) && isObject(value.feeders.f) ? { f: value.feeders.f } : null;
+  return {
+    view: value.view,
+    stamp: safeSourceStamp(value.stamp),
+    plans: value.plans,
+    outages: value.outages,
+    ...(feeders ? { feeders } : {}),
+  };
 }
 
 /** Parse a plain FYI userHtml document without executing any embedded script. */
@@ -355,8 +371,8 @@ function actualSummary(records, coverage, total, nowMs) {
   };
 }
 
-function windowActual(hourEntries, window, nowMs) {
-  const perFeeder = [];
+function perFeederActuals(hourEntries, window) {
+  const records = [];
   for (const feeder of window.feeders) {
     let record = null;
     for (let hour = window.startHour; hour <= window.endHour; hour += 1) {
@@ -365,19 +381,36 @@ function windowActual(hourEntries, window, nowMs) {
       record = rawActual(byFeeder[feeder]);
       if (record) break;
     }
-    if (record) perFeeder.push(record);
+    if (record) records.push({ feeder, record });
   }
-  if (perFeeder.length) return actualSummary(perFeeder, 'per-feeder', window.feeders.length, nowMs);
-
-  const aggregate = [];
-  for (let hour = window.startHour; hour <= window.endHour; hour += 1) {
-    const record = rawActual(hourEntries.get(hour)?.actual);
-    if (record) aggregate.push(record);
-  }
-  return actualSummary(aggregate, 'aggregate', null, nowMs);
+  return records;
 }
 
-function planWindows(date, entries, nowMs, outputBudget) {
+function aggregateActuals(hourEntries, window) {
+  const records = [];
+  for (let hour = window.startHour; hour <= window.endHour; hour += 1) {
+    const record = rawActual(hourEntries.get(hour)?.actual);
+    if (record) records.push(record);
+  }
+  return records;
+}
+
+function windowActualDetails(hourEntries, window, nowMs) {
+  const perFeeder = perFeederActuals(hourEntries, window);
+  if (perFeeder.length) {
+    return {
+      actual: actualSummary(perFeeder.map(({ record }) => record), 'per-feeder', window.feeders.length, nowMs),
+      perFeeder,
+    };
+  }
+  return {
+    actual: actualSummary(aggregateActuals(hourEntries, window), 'aggregate', null, nowMs),
+    perFeeder: [],
+  };
+}
+
+
+function planWindows(date, entries, nowMs, outputBudget, retainMapContext = false) {
   const runs = new Map();
   const feeders = new Set();
   for (const entry of entries.values()) for (const feeder of entry.feeders) feeders.add(feeder);
@@ -391,8 +424,10 @@ function planWindows(date, entries, nowMs, outputBudget) {
         const endHour = hour - 1;
         const key = `${startHour}-${endHour}`;
         if (!runs.has(key)) {
-          if (outputBudget.count >= MAX_FYI_OUTPUT_WINDOWS) throw new Error('FYI output windows exceeded the collection limit');
-          outputBudget.count += 1;
+          if (outputBudget) {
+            if (outputBudget.count >= MAX_FYI_OUTPUT_WINDOWS) throw new Error('FYI output windows exceeded the collection limit');
+            outputBudget.count += 1;
+          }
           runs.set(key, { startHour, endHour, feeders: [] });
         }
         runs.get(key).feeders.push(feeder);
@@ -405,17 +440,19 @@ function planWindows(date, entries, nowMs, outputBudget) {
     .sort((left, right) => left.startHour - right.startHour || left.endHour - right.endHour)
     .map((window) => {
       window.feeders.sort();
+      const actualDetails = windowActualDetails(entries, window, nowMs);
       return {
         start: dateAtHour(date, window.startHour),
         end: dateAtHour(date, window.endHour + 1),
         hours: window.endHour - window.startHour + 1,
         feederCount: window.feeders.length,
-        actual: windowActual(entries, window, nowMs),
+        actual: actualDetails.actual,
+        ...(retainMapContext ? { mapContext: { feeders: window.feeders, actualDetails } } : {}),
       };
     });
 }
 
-function summarizePlan(plan, nowMs, outputBudget) {
+function normalizedPlan(plan) {
   if (!isObject(plan) || plan.du !== 'VECO') return { value: null, malformed: false };
   const id = safeId(plan.id);
   const date = parseDate(plan.date);
@@ -431,8 +468,14 @@ function summarizePlan(plan, nowMs, outputBudget) {
     }
     if (feeders.size) entries.set(raw.hour, { feeders, byFeeder: raw.byFeeder, actual: raw.actual });
   }
+  return entries.size ? { value: { id, date, entries }, malformed: false } : { value: null, malformed: true };
+}
+
+function summarizePlan(plan, nowMs, outputBudget) {
+  const normalized = normalizedPlan(plan);
+  if (!normalized.value) return normalized;
+  const { id, date, entries } = normalized.value;
   const windows = planWindows(date, entries, nowMs, outputBudget);
-  if (!windows.length) return { value: null, malformed: true };
   return { value: { id, date: date.value, windows }, malformed: false };
 }
 
@@ -533,4 +576,229 @@ export function summarizeFyiBoot(boot, { from, to, nowMs = Date.now() } = {}) {
     advisories: advisories.sort((left, right) => left.start.localeCompare(right.start) || left.id.localeCompare(right.id)),
     warnings,
   };
+}
+
+function cebuDate(nowMs, daysAhead = 0) {
+  const local = new Date(nowMs + CEBU_OFFSET_MS + daysAhead * 24 * 60 * 60 * 1000);
+  return parseDate([
+    local.getUTCFullYear(),
+    String(local.getUTCMonth() + 1).padStart(2, '0'),
+    String(local.getUTCDate()).padStart(2, '0'),
+  ].join('-'));
+}
+
+function normalizedCloud(value) {
+  if (!isObject(value) || !Array.isArray(value.c) || value.c.length !== 2 || !Array.isArray(value.p)) return null;
+  const [latitude, longitude] = value.c;
+  const { p } = value;
+  if (
+    !Number.isFinite(latitude)
+    || !Number.isFinite(longitude)
+    || latitude < CEBU_LATITUDE_MIN
+    || latitude > CEBU_LATITUDE_MAX
+    || longitude < CEBU_LONGITUDE_MIN
+    || longitude > CEBU_LONGITUDE_MAX
+    || !p.length
+    || p.length % 2
+    || p.length / 2 > MAX_FYI_MAP_POINT_PAIRS_PER_CLOUD
+  ) return null;
+
+  const bounds = { south: Infinity, west: Infinity, north: -Infinity, east: -Infinity };
+  for (let index = 0; index < p.length; index += 2) {
+    const latitudeDelta = p[index];
+    const longitudeDelta = p[index + 1];
+    if (!Number.isSafeInteger(latitudeDelta) || !Number.isSafeInteger(longitudeDelta)) return null;
+    const pointLatitude = latitude + latitudeDelta / 100_000;
+    const pointLongitude = longitude + longitudeDelta / 100_000;
+    if (
+      pointLatitude < CEBU_LATITUDE_MIN
+      || pointLatitude > CEBU_LATITUDE_MAX
+      || pointLongitude < CEBU_LONGITUDE_MIN
+      || pointLongitude > CEBU_LONGITUDE_MAX
+    ) return null;
+    bounds.south = Math.min(bounds.south, pointLatitude);
+    bounds.west = Math.min(bounds.west, pointLongitude);
+    bounds.north = Math.max(bounds.north, pointLatitude);
+    bounds.east = Math.max(bounds.east, pointLongitude);
+  }
+  return { cloud: { c: [latitude, longitude], p: [...p] }, pointPairs: p.length / 2, bounds };
+}
+
+function mapClouds(feederKeys, rawClouds) {
+  const clouds = [];
+  const byFeeder = new Map();
+  const bounds = { south: Infinity, west: Infinity, north: -Infinity, east: -Infinity };
+  let pointPairs = 0;
+  let malformed = 0;
+
+  for (const feeder of feederKeys) {
+    if (!isObject(rawClouds) || !Object.hasOwn(rawClouds, feeder)) continue;
+    const cloud = normalizedCloud(rawClouds[feeder]);
+    if (!cloud) {
+      malformed += 1;
+      continue;
+    }
+    if (clouds.length >= MAX_FYI_MAP_CLOUDS) throw new Error('FYI map clouds exceeded the collection limit');
+    if (pointPairs + cloud.pointPairs > MAX_FYI_MAP_POINT_PAIRS) {
+      throw new Error('FYI map point pairs exceeded the collection limit');
+    }
+    pointPairs += cloud.pointPairs;
+    byFeeder.set(feeder, clouds.length);
+    clouds.push(cloud.cloud);
+    bounds.south = Math.min(bounds.south, cloud.bounds.south);
+    bounds.west = Math.min(bounds.west, cloud.bounds.west);
+    bounds.north = Math.max(bounds.north, cloud.bounds.north);
+    bounds.east = Math.max(bounds.east, cloud.bounds.east);
+  }
+  return { clouds, byFeeder, bounds: clouds.length ? bounds : null, malformed };
+}
+
+function isFreshOpen(record, nowMs) {
+  return !record.end && record.start.milliseconds <= nowMs && nowMs - record.start.milliseconds <= ONGOING_MAX_MS;
+}
+
+const MAP_OPERATOR_STATE_PRIORITY = {
+  none: 0,
+  restored: 1,
+  stale: 2,
+  aggregate: 3,
+  'per-feeder': 4,
+};
+
+function mapOperatorState(actual) {
+  if (!actual) return 'none';
+  if (actual.ongoing) return actual.coverage === 'per-feeder' ? 'per-feeder' : 'aggregate';
+  if (actual.stale) return 'stale';
+  return actual.state === 'restored' ? 'restored' : 'none';
+}
+
+function mergeMapWindows(mapWindows, nowMs) {
+  const merged = new Map();
+  for (const { window } of mapWindows) {
+    const key = `${window.start}\0${window.end}`;
+    let current = merged.get(key);
+    if (!current) {
+      current = {
+        start: window.start,
+        end: window.end,
+        feeders: new Set(),
+        confirmedFeeders: new Map(),
+        operatorState: 'none',
+      };
+      merged.set(key, current);
+    }
+
+    const { feeders, actualDetails } = window.mapContext;
+    for (const feeder of feeders) current.feeders.add(feeder);
+    const operatorState = mapOperatorState(actualDetails.actual);
+    if (MAP_OPERATOR_STATE_PRIORITY[operatorState] > MAP_OPERATOR_STATE_PRIORITY[current.operatorState]) {
+      current.operatorState = operatorState;
+    }
+
+    if (actualDetails.actual?.coverage !== 'per-feeder') continue;
+    for (const { feeder, record } of actualDetails.perFeeder) {
+      if (!isFreshOpen(record, nowMs)) continue;
+      const confirmedUntil = record.start.milliseconds + ONGOING_MAX_MS;
+      const previous = current.confirmedFeeders.get(feeder);
+      if (previous === undefined || confirmedUntil < previous) current.confirmedFeeders.set(feeder, confirmedUntil);
+    }
+  }
+
+  return [...merged.values()].map((window) => ({
+    start: window.start,
+    end: window.end,
+    feeders: [...window.feeders].sort(),
+    confirmedFeeders: [...window.confirmedFeeders].sort(([left], [right]) => left.localeCompare(right)),
+    operatorState: window.operatorState,
+  }));
+}
+
+function summarizeMapWindow(window, byFeeder) {
+  const cloudIndexes = window.feeders.map((feeder) => byFeeder.get(feeder)).filter((index) => index !== undefined);
+  const confirmedCloudIndexes = [];
+  let confirmedUntil = null;
+  for (const [feeder, expiresAt] of window.confirmedFeeders) {
+    const index = byFeeder.get(feeder);
+    if (index === undefined) continue;
+    confirmedCloudIndexes.push(index);
+    if (confirmedUntil === null || expiresAt < confirmedUntil) confirmedUntil = expiresAt;
+  }
+  return {
+    start: window.start,
+    end: window.end,
+    feederCount: window.feeders.length,
+    cloudIndexes,
+    confirmedCloudIndexes,
+    confirmedUntil: confirmedUntil === null ? null : new Date(confirmedUntil).toISOString(),
+    operatorState: window.operatorState,
+  };
+}
+
+function serializedByteLength(value) {
+  const text = JSON.stringify(value);
+  let bytes = 0;
+  for (let index = 0; index < text.length; index += 1) {
+    const code = text.charCodeAt(index);
+    if (code <= 0x7f) bytes += 1;
+    else if (code <= 0x7ff) bytes += 2;
+    else if (code >= 0xd800 && code <= 0xdbff && text.charCodeAt(index + 1) >= 0xdc00 && text.charCodeAt(index + 1) <= 0xdfff) {
+      bytes += 4;
+      index += 1;
+    } else bytes += 3;
+  }
+  return bytes;
+}
+
+/**
+ * Reduce FYI's optional feeder point clouds to non-identifying supplemental map data.
+ * Only the current and following Cebu calendar day are represented.
+ */
+export function summarizeFyiMap(boot, { nowMs = Date.now() } = {}) {
+  const publicData = publicBoot(boot);
+  if (!Number.isFinite(nowMs)) throw new Error('FYI map summary requires a valid current time');
+  const today = cebuDate(nowMs);
+  const tomorrow = cebuDate(nowMs, 1);
+  if (!today || !tomorrow) throw new Error('FYI map summary requires a valid current time');
+  assertFyiBudgets(publicData);
+
+  const mapWindows = [];
+  let malformedPlans = 0;
+  for (const plan of publicData.plans) {
+    const normalized = normalizedPlan(plan);
+    if (normalized.malformed) {
+      malformedPlans += 1;
+      continue;
+    }
+    if (!normalized.value || (normalized.value.date.value !== today.value && normalized.value.date.value !== tomorrow.value)) continue;
+    const windows = planWindows(normalized.value.date, normalized.value.entries, nowMs, null, true);
+    for (const window of windows) mapWindows.push({ id: normalized.value.id, window });
+  }
+
+  mapWindows.sort((left, right) => (
+    left.window.start.localeCompare(right.window.start)
+    || left.window.end.localeCompare(right.window.end)
+    || left.id.localeCompare(right.id)
+  ));
+  const normalizedWindows = mergeMapWindows(mapWindows, nowMs);
+  if (normalizedWindows.length > MAX_FYI_OUTPUT_WINDOWS) throw new Error('FYI output windows exceeded the collection limit');
+
+  const feederKeys = [...new Set(normalizedWindows.flatMap((window) => window.feeders))].sort();
+  const geometry = mapClouds(feederKeys, publicData.feeders?.f);
+  const warnings = [];
+  if (malformedPlans) warnings.push(`Skipped ${malformedPlans} malformed FYI ${malformedPlans === 1 ? 'plan' : 'plans'}`);
+  if (geometry.malformed) warnings.push(`Skipped ${geometry.malformed} malformed FYI map ${geometry.malformed === 1 ? 'cloud' : 'clouds'}`);
+
+  const source = sourceMetadata(publicData.stamp);
+  const result = {
+    sourceStamp: source.sourceStamp,
+    freshness: source.freshness,
+    bounds: geometry.bounds,
+    clouds: geometry.clouds,
+    windows: normalizedWindows
+      .map((window) => summarizeMapWindow(window, geometry.byFeeder))
+      .filter((window) => window.cloudIndexes.length),
+    warnings,
+  };
+  if (serializedByteLength(result) > MAX_FYI_MAP_OUTPUT_BYTES) throw new Error('FYI map output exceeded the size limit');
+  return result;
 }

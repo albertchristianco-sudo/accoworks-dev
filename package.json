@@ -18,7 +18,8 @@
     "@fontsource/barlow-semi-condensed": "^5.2.7",
     "@fontsource/ibm-plex-sans": "^5.2.7",
     "@fontsource/jetbrains-mono": "^5.2.7",
-    "astro": "^6.4.2"
+    "astro": "^6.4.2",
+    "leaflet": "^1.9.4"
   },
   "optionalDependencies": {
     "@rollup/rollup-darwin-arm64": "^4.60.4",
