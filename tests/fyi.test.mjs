@@ -6,6 +6,7 @@ import {
   emptyFyi,
   parseFyiResponse,
   summarizeFyiBoot,
+  summarizeFyiMap,
 } from '../src/scripts/fyi.mjs';
 
 const NOW = Date.parse('2026-09-03T12:00:00.000Z');
@@ -72,6 +73,17 @@ function collectionPlans(count, entryCount, feedersPerEntry = 1) {
     { length: count },
     (_, index) => collectionPlan(`PLAN-${index}`, entryCount, feedersPerEntry),
   );
+}
+
+function cloud(pointPairs = 1, latitudeDelta = 0, longitudeDelta = 0) {
+  return {
+    c: [10, 123],
+    p: Array.from({ length: pointPairs }, () => [latitudeDelta, longitudeDelta]).flat(),
+  };
+}
+
+function mapGeometry(ids, pointPairs = 1, latitudeDelta = 0, longitudeDelta = 0) {
+  return Object.fromEntries(ids.map((id) => [id, cloud(pointPairs, latitudeDelta, longitudeDelta)]));
 }
 
 test('reads plain userHtml and an escaped Apps Script init wrapper without executing source', () => {
@@ -276,4 +288,240 @@ test('retains only minimal VECO advisories and cannot serialize private FYI fiel
   for (const privateValue of ['F-SECRET', 'radius', 'reason', 'notes', 'centroid', 'polygon', 'private']) {
     assert.equal(serialized.includes(privateValue), false);
   }
+});
+
+test('retains only the feeder geometry allowlist branch when parsing FYI BOOT', () => {
+  const value = boot({
+    feeders: {
+      f: { 'F-ONE': { c: [10, 123], p: [0, 0] } },
+      staffOnly: { location: 'do not retain' },
+    },
+  });
+
+  assert.deepEqual(parseFyiResponse(userHtml(value)).feeders, {
+    f: { 'F-ONE': { c: [10, 123], p: [0, 0] } },
+  });
+});
+
+test('summarizes sorted, bounded FYI point clouds for current and next Cebu day only', () => {
+  const freshStart = '2026-09-03T11:00:00.000Z';
+  const staleStart = '2026-09-02T23:00:00.000Z';
+  const result = summarizeFyiMap(boot({
+    plans: [
+      plan('TODAY', [entry(8, ['Z-F', 'A-F'], { byFeeder: {
+        'A-F': { start: freshStart, mw: 987654.321 },
+        'Z-F': { start: staleStart, mw: 2 },
+      } })]),
+      { ...plan('TOMORROW', [entry(9, ['T-F'])]), date: '2026-09-04' },
+      { ...plan('OUTSIDE', [entry(10, ['OUTSIDE-F'])]), date: '2026-09-05' },
+    ],
+    feeders: {
+      f: {
+        'Z-F': { c: [10.5, 123.5], p: [0, 0, 100_000, -100_000], area: 'private area' },
+        'A-F': { c: [10, 123], p: [0, 0], notes: 'private geometry note' },
+        'T-F': { c: [11, 124], p: [0, 0] },
+        'OUTSIDE-F': { c: [10, 123], p: [0, 0] },
+      },
+      areas: { secret: 'private area registry' },
+    },
+  }), { nowMs: NOW });
+
+  assert.deepEqual(result, {
+    sourceStamp: '42.23961.115z31j',
+    freshness: 'unknown',
+    bounds: { south: 10, west: 122.5, north: 11.5, east: 124 },
+    clouds: [
+      { c: [10, 123], p: [0, 0] },
+      { c: [11, 124], p: [0, 0] },
+      { c: [10.5, 123.5], p: [0, 0, 100_000, -100_000] },
+    ],
+    windows: [
+      {
+        start: '2026-09-03T08:00:00+08:00',
+        end: '2026-09-03T09:00:00+08:00',
+        feederCount: 2,
+        cloudIndexes: [0, 2],
+        confirmedCloudIndexes: [0],
+        confirmedUntil: '2026-09-03T23:00:00.000Z',
+        operatorState: 'per-feeder',
+      },
+      {
+        start: '2026-09-04T09:00:00+08:00',
+        end: '2026-09-04T10:00:00+08:00',
+        feederCount: 1,
+        cloudIndexes: [1],
+        confirmedCloudIndexes: [],
+        confirmedUntil: null,
+        operatorState: 'none',
+      },
+    ],
+    warnings: [],
+  });
+
+  const serialized = JSON.stringify(result);
+  for (const privateValue of ['A-F', 'Z-F', 'T-F', 'OUTSIDE-F', 'private area', 'private geometry note', freshStart, staleStart, '987654.321']) {
+    assert.equal(serialized.includes(privateValue), false);
+  }
+});
+
+test('skips malformed point clouds while retaining useful plan references', () => {
+  const result = summarizeFyiMap(boot({
+    plans: [plan('MAP-WARN', [entry(8, ['GOOD', 'BROKEN'])])],
+    feeders: { f: {
+      GOOD: { c: [10, 123], p: [0, 0] },
+      BROKEN: { c: [10, 123], p: [0] },
+    } },
+  }), { nowMs: NOW });
+
+  assert.deepEqual(result, {
+    sourceStamp: '42.23961.115z31j',
+    freshness: 'unknown',
+    bounds: { south: 10, west: 123, north: 10, east: 123 },
+    clouds: [{ c: [10, 123], p: [0, 0] }],
+    windows: [{
+      start: '2026-09-03T08:00:00+08:00',
+      end: '2026-09-03T09:00:00+08:00',
+      feederCount: 2,
+      cloudIndexes: [0],
+      confirmedCloudIndexes: [],
+      confirmedUntil: null,
+      operatorState: 'none',
+    }],
+    warnings: ['Skipped 1 malformed FYI map cloud'],
+  });
+});
+
+test('uses conservative aggregate, stale, and restored FYI map operator states', () => {
+  const freshStart = '2026-09-03T11:00:00.000Z';
+  const staleStart = '2026-09-02T23:00:00.000Z';
+  const restoredAt = '2026-09-03T11:30:00.000Z';
+  const result = summarizeFyiMap(boot({
+    plans: [
+      plan('AGGREGATE', [entry(8, ['AGGREGATE'], { actual: { start: freshStart, mw: 5 } })]),
+      plan('STALE', [entry(9, ['STALE'], { byFeeder: { STALE: { start: staleStart, mw: 3 } } })]),
+      plan('RESTORED', [entry(10, ['RESTORED'], { byFeeder: {
+        RESTORED: { start: freshStart, end: restoredAt, mw: 2 },
+      } })]),
+    ],
+    feeders: { f: mapGeometry(['AGGREGATE', 'STALE', 'RESTORED']) },
+  }), { nowMs: NOW });
+
+  assert.deepEqual(result.windows, [
+    {
+      start: '2026-09-03T08:00:00+08:00',
+      end: '2026-09-03T09:00:00+08:00',
+      feederCount: 1,
+      cloudIndexes: [0],
+      confirmedCloudIndexes: [],
+      confirmedUntil: null,
+      operatorState: 'aggregate',
+    },
+    {
+      start: '2026-09-03T09:00:00+08:00',
+      end: '2026-09-03T10:00:00+08:00',
+      feederCount: 1,
+      cloudIndexes: [2],
+      confirmedCloudIndexes: [],
+      confirmedUntil: null,
+      operatorState: 'stale',
+    },
+    {
+      start: '2026-09-03T10:00:00+08:00',
+      end: '2026-09-03T11:00:00+08:00',
+      feederCount: 1,
+      cloudIndexes: [1],
+      confirmedCloudIndexes: [],
+      confirmedUntil: null,
+      operatorState: 'restored',
+    },
+  ]);
+});
+
+test('merges coincident map windows with conservative state and earliest confirmation expiry', () => {
+  const result = summarizeFyiMap(boot({
+    plans: [
+      plan('PER-FEEDER', [entry(8, ['F-ALPHA', 'F-GOLF'], { byFeeder: {
+        'F-ALPHA': { start: '2026-09-03T01:00:00.000Z', mw: 1 },
+        'F-GOLF': { start: '2026-09-03T03:00:00.000Z', mw: 1 },
+      } })]),
+      plan('AGGREGATE', [entry(8, ['F-BRAVO'], { actual: { start: '2026-09-03T11:00:00.000Z', mw: 1 } })]),
+      plan('STALE', [entry(8, ['F-CHARLIE'], { byFeeder: {
+        'F-CHARLIE': { start: '2026-09-02T23:00:00.000Z', mw: 1 },
+      } })]),
+      plan('RESTORED', [entry(8, ['F-DELTA'], { byFeeder: {
+        'F-DELTA': { start: '2026-09-03T01:00:00.000Z', end: '2026-09-03T11:30:00.000Z', mw: 1 },
+      } })]),
+      plan('NONE', [entry(8, ['F-ECHO'])]),
+    ],
+    feeders: { f: mapGeometry(['F-ALPHA', 'F-BRAVO', 'F-CHARLIE', 'F-DELTA', 'F-ECHO', 'F-GOLF']) },
+  }), { nowMs: NOW });
+
+  assert.deepEqual(result.windows, [{
+    start: '2026-09-03T08:00:00+08:00',
+    end: '2026-09-03T09:00:00+08:00',
+    feederCount: 6,
+    cloudIndexes: [0, 1, 2, 3, 4, 5],
+    confirmedCloudIndexes: [0, 5],
+    confirmedUntil: '2026-09-03T13:00:00.000Z',
+    operatorState: 'per-feeder',
+  }]);
+  assert.equal(JSON.stringify(result).includes('PER-FEEDER'), false);
+  assert.equal(JSON.stringify(result).includes('F-ALPHA'), false);
+});
+
+test('omits map windows without renderable feeder geometry', () => {
+  const result = summarizeFyiMap(boot({
+    plans: [plan('NO-GEOMETRY', [entry(8, ['BROKEN'])])],
+    feeders: { f: { BROKEN: { c: [10, 123], p: [0] } } },
+  }), { nowMs: NOW });
+
+  assert.deepEqual(result, {
+    sourceStamp: '42.23961.115z31j',
+    freshness: 'unknown',
+    bounds: null,
+    clouds: [],
+    windows: [],
+    warnings: ['Skipped 1 malformed FYI map cloud'],
+  });
+});
+
+test('calculates exact map bounds from normalized point clouds', () => {
+  const result = summarizeFyiMap(boot({
+    plans: [plan('BOUNDS', [entry(8, ['BOUNDS-FEEDER'])])],
+    feeders: { f: {
+      'BOUNDS-FEEDER': { c: [10, 123], p: [-50_000, 20_000, 100_000, -100_000] },
+    } },
+  }), { nowMs: NOW });
+
+  assert.deepEqual(result.bounds, { south: 9.5, west: 122, north: 11, east: 123.2 });
+});
+
+test('fails closed at global FYI map cloud, point, and normalized-output caps', () => {
+  const atCloudLimit = feeders(64, 'CLOUD');
+  assert.doesNotThrow(() => summarizeFyiMap(boot({
+    plans: [plan('CLOUD-LIMIT', [entry(8, atCloudLimit)])],
+    feeders: { f: mapGeometry(atCloudLimit) },
+  }), { nowMs: NOW }));
+  const overCloudLimit = feeders(65, 'CLOUD');
+  assert.throws(() => summarizeFyiMap(boot({
+    plans: [plan('CLOUD-OVER', [entry(8, overCloudLimit)])],
+    feeders: { f: mapGeometry(overCloudLimit) },
+  }), { nowMs: NOW }), /map clouds exceeded/);
+
+  const atPointLimit = feeders(6, 'POINT');
+  assert.doesNotThrow(() => summarizeFyiMap(boot({
+    plans: [plan('POINT-LIMIT', [entry(8, atPointLimit)])],
+    feeders: { f: mapGeometry(atPointLimit, 4_000) },
+  }), { nowMs: NOW }));
+  const overPointLimit = [...atPointLimit, 'POINT-OVER'];
+  assert.throws(() => summarizeFyiMap(boot({
+    plans: [plan('POINT-OVER', [entry(8, overPointLimit)])],
+    feeders: { f: { ...mapGeometry(atPointLimit, 4_000), 'POINT-OVER': cloud() } },
+  }), { nowMs: NOW }), /point pairs exceeded/);
+
+  const outputClouds = feeders(5, 'OUTPUT');
+  assert.throws(() => summarizeFyiMap(boot({
+    plans: [plan('OUTPUT-OVER', [entry(8, outputClouds)])],
+    feeders: { f: mapGeometry(outputClouds, 4_096, 200_000, 200_000) },
+  }), { nowMs: NOW }), /map output exceeded/);
 });
