@@ -1597,9 +1597,13 @@ var RF_DATA = (function () {
           'Pact of the Chain': { minLevel: 1, text: 'You learn Find Familiar and can cast it as a Magic action without expending a spell slot. Your familiar can take the special forms Imp, Pseudodragon, Quasit, Skeleton, Slaad Tadpole, Sphinx of Wonder, Sprite, or Venomous Snake. You can forgo one of your attacks to let it attack with its Reaction.' },
           'Pact of the Tome': { minLevel: 1, needs: 'tome', text: 'A Book of Shadows appears in your hand at the end of a Short or Long Rest. Choose three cantrips and two level 1 Ritual spells from any class list that you do not already have prepared; you have them prepared while the book is on you, and it works as a Spellcasting Focus.' },
           'Repelling Blast': { minLevel: 2, needs: 'attackCantrip', repeatable: true, text: 'Prerequisite: a Warlock cantrip that deals damage via an attack roll. When you hit a Large or smaller creature with that cantrip, you can push it up to 10 feet straight away from you. Repeatable with a different cantrip.' },
-          'Eldritch Smite': { minLevel: 5, requires: 'Pact of the Blade', text: 'Prerequisite: level 5 Warlock, Pact of the Blade. Once per turn when you hit a creature with your pact weapon, you can expend a Pact Magic spell slot to deal an extra 1d8 Force damage per level of the slot, plus 1d8, and give a Large or smaller target the Prone condition.' },
-          'Gaze of Two Minds': { minLevel: 5, text: 'Prerequisite: level 5 Warlock. As a Magic action, you can touch a willing creature and perceive through its senses while it remains on the same plane of existence. While perceiving through it you gain the benefit of any special senses it has, and you have the Blinded and Deafened conditions on your own body.' },
+          'Ascendant Step': { minLevel: 5, text: 'Prerequisite: level 5 Warlock. You can cast Levitate on yourself without expending a spell slot.' },
+          'Eldritch Smite': { minLevel: 5, requires: 'Pact of the Blade', text: 'Prerequisite: level 5 Warlock, Pact of the Blade. Once per turn when you hit a creature with your pact weapon, you can expend a Pact Magic spell slot to deal an extra 1d8 Force damage per level of the slot, plus 1d8, and give a Huge or smaller target the Prone condition.' },
+          'Gaze of Two Minds': { minLevel: 5, text: 'Prerequisite: level 5 Warlock. As a Bonus Action, touch a willing creature to perceive through its senses until the end of your next turn. While it remains on your plane of existence, you can use a Bonus Action on later turns to extend the connection until the end of your next turn. While perceiving through its senses, you benefit from its special senses and can cast spells as if you were in your space or its space, if you are within 60 feet of each other.' },
           'Gift of the Depths': { minLevel: 5, text: 'Prerequisite: level 5 Warlock. You can breathe underwater, and you gain a Swim Speed equal to your Speed. You can also cast Water Breathing without expending a spell slot once per Long Rest.' },
+          'Investment of the Chain Master': { minLevel: 5, requires: 'Pact of the Chain', text: 'Prerequisite: level 5 Warlock, Pact of the Chain. When you cast Find Familiar, your familiar gains a Fly Speed or Swim Speed of 40 feet (your choice). You can use a Bonus Action to command it to take the Attack action. When it deals Bludgeoning, Piercing, or Slashing damage, you can make that damage Necrotic or Radiant instead. When it forces a saving throw, it uses your spell save DC. When it takes damage, you can use your Reaction to grant it Resistance to that damage.' },
+          'Master of Myriad Forms': { minLevel: 5, text: 'Prerequisite: level 5 Warlock. You can cast Alter Self without expending a spell slot.' },
+          'One with Shadows': { minLevel: 5, text: 'Prerequisite: level 5 Warlock. While you are in Dim Light or Darkness, you can cast Invisibility on yourself without expending a spell slot.' },
           'Thirsting Blade': { minLevel: 5, requires: 'Pact of the Blade', text: 'Prerequisite: level 5 Warlock, Pact of the Blade. You can attack twice with your pact weapon, instead of once, whenever you take the Attack action on your turn.' }
         },
         tome: { cantrips: 3, rituals: 2 }
@@ -1671,14 +1675,14 @@ var RF_DATA = (function () {
         'Illusionist': { blurb: 'Weave subtle spells of deception.', features: [
           [3, 'Illusion Savant', 'Choose two Wizard spells from the Illusion school of level 2 or lower and add them to your spellbook for free. You add another whenever you gain a new level of spell slots.'],
           [3, 'Improved Illusions', 'You can cast Illusion spells without Verbal components, and Illusion spells with a range of 10 feet or more gain 60 feet of range. You know Minor Illusion (it does not count against your cantrips known), can create both a sound and an image with one casting, and can cast it as a Bonus Action.'],
-          [6, 'Phantasmal Creatures', 'You always have the Summon Beast and Summon Fey spells prepared, and you can cast each of them once per Long Rest without expending a spell slot. A creature summoned by one of those free castings appears as a spectral Illusion and has half its normal Hit Points. Casting either spell with a spell slot works normally.']
+          [6, 'Phantasmal Creatures', 'You always have Summon Beast and Summon Fey prepared. You can change either spell to the Illusion school, making its summoned creature spectral. You can cast the Illusion version of either spell without expending a spell slot, but its creature has half its normal Hit Points. Once you cast either spell without a slot, you must finish a Long Rest before you can cast one this way again.']
         ], savantSchool: 'Illusion', grantsCantrip: 'Minor Illusion',
           alwaysPreparedAt: { 6: ['Summon Beast', 'Summon Fey'] } }
       }
     }
   };
 
-  /* ---------- SPELLS (2024 PHB, ch. 7): levels 0 to 2 only ---------- */
+  /* ---------- SPELLS (2024 PHB, ch. 7): levels 0 to 3 ---------- */
 
   var SPELLS = [
     { n:"Acid Splash", l:0, s:"Evocation", c:0, r:0, cl:["So", "Wi"], d:"You create an acidic bubble at a point within range, where it explodes in a 5-foot-radius Sphere. Each creature in that Sphere must succeed on a Dexterity saving throw or take 1d6 Acid damage." },
@@ -1858,6 +1862,7 @@ var RF_DATA = (function () {
     { n:'Call Lightning', l:3, s:"Conjuration", c:null, r:null, cl:["Dr"], d:"" },
     { n:'Clairvoyance', l:3, s:"Divination", c:null, r:null, cl:["Ba", "Cl", "So", "Wi"], d:"" },
     { n:'Conjure Animals', l:3, s:"Conjuration", c:null, r:null, cl:["Dr", "Ra"], d:"" },
+    { n:'Conjure Barrage', l:3, s:"Conjuration", c:null, r:null, cl:["Ra"], d:"" },
     { n:'Counterspell', l:3, s:"Abjuration", c:null, r:null, cl:["So", "Wa", "Wi"], d:"" },
     { n:'Create Food and Water', l:3, s:"Conjuration", c:null, r:null, cl:["Cl", "Pa"], d:"" },
     { n:"Crusader's Mantle", l:3, s:"Evocation", c:null, r:null, cl:["Pa"], d:"" },
@@ -1886,7 +1891,7 @@ var RF_DATA = (function () {
     { n:'Protection from Energy', l:3, s:"Abjuration", c:null, r:null, cl:["Cl", "Dr", "Ra", "So", "Wi"], d:"" },
     { n:'Remove Curse', l:3, s:"Abjuration", c:null, r:null, cl:["Cl", "Pa", "Wa", "Wi"], d:"" },
     { n:'Revivify', l:3, s:"Necromancy", c:null, r:null, cl:["Cl", "Dr", "Pa", "Ra"], d:"" },
-    { n:'Sending', l:3, s:"Divination", c:null, r:null, cl:["Ba", "Cl", "So", "Wi"], d:"" },
+    { n:'Sending', l:3, s:"Divination", c:null, r:null, cl:["Ba", "Cl", "Wi"], d:"" },
     { n:'Sleet Storm', l:3, s:"Conjuration", c:null, r:null, cl:["Dr", "So", "Wi"], d:"" },
     { n:'Slow', l:3, s:"Transmutation", c:null, r:null, cl:["Ba", "So", "Wi"], d:"" },
     { n:'Speak with Dead', l:3, s:"Necromancy", c:null, r:null, cl:["Ba", "Cl", "Wi"], d:"" },
@@ -1896,8 +1901,7 @@ var RF_DATA = (function () {
     { n:'Summon Fey', l:3, s:"Conjuration", c:null, r:null, cl:["Dr", "Ra", "Wa", "Wi"], d:"" },
     { n:'Summon Undead', l:3, s:"Necromancy", c:null, r:null, cl:["Wa", "Wi"], d:"" },
     { n:'Tongues', l:3, s:"Divination", c:null, r:null, cl:["Ba", "Cl", "So", "Wa", "Wi"], d:"" },
-    { n:'Vampiric Touch', l:3, s:"Necromancy", c:null, r:null, cl:["Wa", "Wi"], d:"" },
-    { n:'Wall of Water', l:3, s:"Evocation", c:null, r:null, cl:["Dr", "So", "Wi"], d:"" },
+    { n:'Vampiric Touch', l:3, s:"Necromancy", c:null, r:null, cl:["So", "Wa", "Wi"], d:"" },
     { n:'Water Breathing', l:3, s:"Transmutation", c:null, r:null, cl:["Dr", "Ra", "So", "Wi"], d:"" },
     { n:'Water Walk', l:3, s:"Transmutation", c:null, r:null, cl:["Cl", "Dr", "Ra", "So"], d:"" },
     { n:'Wind Wall', l:3, s:"Evocation", c:null, r:null, cl:["Dr", "Ra"], d:"" },
@@ -2340,6 +2344,20 @@ var RF_APP = (function (D) {
     var sub = SUB(st);
     if (!sub || !sub.savantSchool) return 0;
     return levelOf(st) >= 5 ? 3 : 2;
+  }
+  /* Keep the original two level 3 Savant choices at level 2 or lower. A
+     higher-level school spell can occupy only the later slot gained at 5. */
+  function savantPicks(st) {
+    var sub = SUB(st), picks = [], top = pickableSpellLevel(st);
+    if (!sub || !sub.savantSchool) return picks;
+    (st.savant || []).forEach(function (n) {
+      var sp = spellByName(n);
+      if (!sp || sp.l < 1 || sp.l > top || (picks.length < 2 && sp.l > 2) ||
+          sp.s !== sub.savantSchool || !has(sp.cl, 'Wi') ||
+          has(st.spellbook, n) || has(picks, n) || picks.length >= savantCount(st)) return;
+      picks.push(n);
+    });
+    return picks;
   }
   /* Bard College of Lore learns two spells from other lists at level 6. */
   function discoverySpec(st) {
@@ -3240,8 +3258,12 @@ var RF_APP = (function (D) {
           }
         }
         var savantNeed = savantCount(st);
-        if (savantNeed && st.savant.length !== savantNeed) {
-          out.push('Choose ' + savantNeed + ' free ' + sub.savantSchool + ' spells for your spellbook (you have ' + st.savant.length + ').');
+        var legalSavant = savantPicks(st);
+        if (savantNeed && legalSavant.length !== savantNeed) {
+          out.push('Choose ' + savantNeed + ' free ' + sub.savantSchool + ' spells for your spellbook (you have ' + legalSavant.length + ').');
+        }
+        if (legalSavant.length !== st.savant.length) {
+          out.push('Savant spells must be Wizard spells from your school. The first two must be level 2 or lower.');
         }
         /* Above level 2 the spell list here runs out, so a written-in spell
            counts toward the prepared total just like a picked one. */
@@ -3912,13 +3934,13 @@ var RF_APP = (function (D) {
         var savantNeed = savantCount(S);
         if (savantNeed) {
           h += '<h3 style="margin-top:22px">' + esc(sub.savantSchool) + ' Savant: ' + savantNeed + ' free spells ' + counterHTML(S.savant.length, savantNeed) + '</h3>' +
-            '<p class="muted small">Two arrive with the subclass at level 3 and another when your level 3 spell slots do at level 5. ' +
-            'They are added to your spellbook for free and must be ' + esc(sub.savantSchool) + ' spells of a level you can cast.</p><div class="spelllist">';
+            '<p class="muted small">The first two arrive with the subclass at level 3 and must be level 2 or lower. ' +
+            'A third arrives with your level 3 spell slots at level 5 and may be level 3. All must be ' + esc(sub.savantSchool) + ' Wizard spells added to your spellbook for free.</p><div class="spelllist">';
           [1, 2, 3].forEach(function (sl) {
             if (sl > R2.caster.pickableLevel) return;
             spellsFor(ci.list, sl).filter(function (sp) { return sp.s === sub.savantSchool; }).forEach(function (sp) {
               var mine = has(S.savant, sp.n);
-              h += spellCardHTML(sp, mine, 'savant', !mine && (S.savant.length >= savantNeed || has(S.spellbook, sp.n)));
+              h += spellCardHTML(sp, mine, 'savant', !mine && (S.savant.length >= savantNeed || has(S.spellbook, sp.n) || (sp.l > 2 && S.savant.length < 2)));
             });
           });
           h += '</div>';
@@ -4506,7 +4528,6 @@ var RF_APP = (function (D) {
       var top = pickableSpellLevel(S);
       function tooHigh(n) { var sx = spellByName(n); return !!sx && sx.l > top; }
       S.spellbook = S.spellbook.filter(function (n) { return !tooHigh(n); });
-      S.savant = S.savant.filter(function (n) { return !tooHigh(n); });
       S.discoveries = S.discoveries.filter(function (n) { return !tooHigh(n); });
       /* The book cannot hold more high level spells than the level allows,
          at any spell level. Entries are kept in order and the first ones that
@@ -4518,8 +4539,7 @@ var RF_APP = (function (D) {
       });
       S.spellbook = keptBook;
       if (S.spellbook.length > ci.spellbook) S.spellbook = S.spellbook.slice(0, ci.spellbook);
-      var savantNeed = savantCount(S);
-      if (S.savant.length > savantNeed) S.savant = S.savant.slice(0, savantNeed);
+      S.savant = savantPicks(S);
       S.prepared = S.prepared.filter(function (n) {
         if (tooHigh(n)) return false;
         if (!ci.spellbook) return true;
@@ -4661,9 +4681,12 @@ var RF_APP = (function (D) {
       var sbSpell = spellByName(value);
       var noRoom = sbSpell && !has(S.spellbook, value) && !spellbookRoomFor(S, S.spellbook, sbSpell.l);
       if (!noRoom) toggle(S.spellbook, value, casterInfo(S).spellbook);
+      S.savant = savantPicks(S);
       S.prepared = S.prepared.filter(function (n) { return has(S.spellbook, n) || has(S.savant, n); });
     } else if (kind === 'savant') {
+      S.savant = savantPicks(S);
       toggle(S.savant, value, savantCount(S));
+      S.savant = savantPicks(S);
       S.prepared = S.prepared.filter(function (n) { return has(S.spellbook, n) || has(S.savant, n); });
     } else if (kind === 'discoveries') {
       var dspec = discoverySpec(S);
