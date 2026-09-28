@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { loadForge, loadFixtures, readBaseline, digest, clone } from './support/load-forge.mjs';
@@ -641,4 +642,59 @@ test('the old name is migrated wherever a spell name can be stored', () => {
   assert.deepEqual([...st.invocations[0].s], ['Hideous Laughter']);
   assert.equal(st.asiFeatOpts.spell, 'Hideous Laughter');
   assert.equal(st.phbSpells, 'Hideous Laughter');
+});
+
+/* ---------- Fix 6: Export JSON and Import JSON ---------- */
+
+for (const fx of FIXTURES) {
+  test(`${fx.slug}: Export JSON then Import JSON restores the exact state`, () => {
+    const st = boot(fx.sheet);
+    st.step = 4;
+    const file = JSON.parse(APP.exportJSON(st));
+    assert.equal(file.format, 'character-forge');
+    assert.equal(file.version, 1);
+    assert.match(file.exportedAt, /^\d{4}-\d\d-\d\dT/);
+    assert.deepEqual(file.character, clone(st));
+    const r = APP.parseImport(JSON.stringify(file));
+    assert.equal(r.ok, true);
+    APP.setState(r.state);
+    APP.normalize();
+    assert.deepEqual(clone(APP.getState()), clone(st));
+    assert.deepEqual(digest(APP.compute(APP.getState())), BASELINE[fx.slug]);
+  });
+}
+
+test('an exported level 4 character with a General feat and purchases survives the trip', () => {
+  const st = takeFeat('baldwin-eisenstrom', 'Great Weapon Master', { ability: 'str' });
+  APP.setState(st);
+  APP.setGroup('gearDrop', 'Breastplate');
+  APP.setGroup('gearBuy', 'Greatsword');
+  APP.setGroup('mastery', 'Greatsword');
+  const before = clone(APP.getState());
+  const r = APP.parseImport(APP.exportJSON(APP.getState()));
+  APP.setState(r.state);
+  APP.normalize();
+  assert.deepEqual(clone(APP.getState()), before);
+  assert.equal(APP.compute(APP.getState()).equipment.gp, 9);
+  assert.equal(APP.exportFileName(before), 'baldwin-eisenstrom-level-4.json');
+});
+
+test('Import JSON reads a bare v3 state and a verification fixture, migrating old encodings', () => {
+  const raw = readFileSync(new URL('./fixtures/character-forge/kaelen-nightshade.json', import.meta.url), 'utf8');
+  const fromFixture = APP.parseImport(raw);
+  assert.equal(fromFixture.ok, true);
+  assert.deepEqual([...fromFixture.state.skillPicks['skilled:background']], SKILLED['kaelen-nightshade']);
+  const bare = APP.parseImport(JSON.stringify(fixture('eldrad').sheet));
+  assert.equal(bare.ok, true);
+  assert.ok(bare.state.spellbook.includes('Hideous Laughter'));
+});
+
+test('Import JSON refuses files it cannot read, with a reason', () => {
+  const bad = (text) => APP.parseImport(text);
+  assert.match(bad('{nope').error, /not valid JSON/);
+  assert.match(bad('{"hello":1}').error, /not a Character Forge file/);
+  assert.match(bad(JSON.stringify({ format: 'character-forge', version: 2, character: {} })).error, /newer Character Forge \(format 2\)/);
+  assert.match(bad(JSON.stringify({ format: 'character-forge', version: 1, character: { v: 2 } })).error, /state version 2/);
+  assert.match(bad(JSON.stringify({ ...fixture('eldrad').sheet, cls: 'Artificer' })).error, /class \(Artificer\)/);
+  assert.equal(bad('{"hello":1}').ok, false);
 });

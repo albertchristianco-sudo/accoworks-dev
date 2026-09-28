@@ -325,12 +325,13 @@ select{cursor:pointer}
   .masthead .sub{margin-top:14px; font-size:1rem}
   .masthead-meta{margin:12px 0 0; white-space:normal}
   .toolbar{
-    position:static; display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+    position:static; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); grid-auto-flow:row dense;
     gap:8px; padding:10px 0;
   }
   .toolbar .spacer{display:none}
   .toolbar .levelpick{grid-column:span 2}
   .toolbar button{min-width:0; padding:9px 7px; font-size:.78rem}
+  .toolbar #btn-export, .toolbar #btn-import{grid-column:span 2}
   .progress{grid-template-columns:repeat(4,minmax(0,1fr)); row-gap:4px; padding-top:18px; margin-bottom:26px}
   .pstep{min-height:58px; padding:7px 4px 8px; font-size:.72rem}
   .pstep.active{padding-top:6px}
@@ -432,6 +433,9 @@ footer.foot{color:var(--ink-3); font-size:.78rem; padding:28px 0 0; border-top:1
     <button type="button" id="btn-review">Review</button>
     <button type="button" id="btn-print" class="primary">Save PDF</button>
     <button type="button" id="btn-copy">Copy text</button>
+    <button type="button" id="btn-export" title="Save this character as a file you can import in another browser">Export JSON</button>
+    <button type="button" id="btn-import" title="Load a character from an exported file">Import JSON</button>
+    <input type="file" id="file-import" accept=".json,application/json" hidden>
     <button type="button" id="btn-reset" class="ghost">Reset</button>
   </nav>
 
@@ -3974,7 +3978,7 @@ var RF_APP = (function (D) {
       '<div><h3>The rules</h3><p class="muted">2024 Player\'s Handbook only. Species grant no ability score increases; your background does. ' +
       'Your proficiency bonus is +' + pb + '.</p></div>' +
       '<div><h3>How this works</h3><p class="muted">' + steps + ' steps, about twenty minutes. Every number is calculated for you. ' +
-      'Your progress is saved in this browser, so a refresh will not lose your work.</p></div>' +
+      'Your progress is saved in this browser, so a refresh will not lose your work. Use <b>Export JSON</b> to move a character to another browser, and <b>Import JSON</b> to bring it back.</p></div>' +
       '</div>' +
       '<div class="note">When you finish, use <b>Save as PDF</b> in the toolbar. Your browser print dialog will produce a two page character sheet. ' +
       'Choose "Save as PDF" as the destination.</div>' +
@@ -5138,6 +5142,59 @@ var RF_APP = (function (D) {
   }
 
   /* ============================================================
+     14b. JSON EXPORT AND IMPORT
+     The file wraps the exact state in a versioned envelope, so another
+     browser, or a later tool, can tell what it is reading. "version" is the
+     file format; the state inside carries its own v.
+     ============================================================ */
+
+  var EXPORT_FORMAT = 'character-forge';
+  var EXPORT_VERSION = 1;
+
+  function exportJSON(st) {
+    return JSON.stringify({
+      format: EXPORT_FORMAT, version: EXPORT_VERSION,
+      exportedAt: new Date().toISOString(),
+      character: st
+    }, null, 2) + '\n';
+  }
+  function exportFileName(st) {
+    var slug = String(st.name || 'character').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'character';
+    return slug + '-level-' + levelOf(st) + '.json';
+  }
+  /* Accepts an exported file, a bare v3 state, or a verification fixture
+     ({ fixtureFormat, sheet }). Returns { ok, state } or { ok, error }. */
+  function parseImport(text) {
+    var o;
+    try { o = JSON.parse(text); } catch (e) { return { ok: false, error: 'The file is not valid JSON.' }; }
+    if (!o || typeof o !== 'object') return { ok: false, error: 'The file does not hold a character.' };
+    var st;
+    if (o.format === EXPORT_FORMAT) {
+      if (typeof o.version !== 'number' || o.version < 1) return { ok: false, error: 'The file has no format version.' };
+      if (o.version > EXPORT_VERSION) {
+        return { ok: false, error: 'The file was saved by a newer Character Forge (format ' + o.version + '). Reload the page to update it, then import again.' };
+      }
+      st = o.character;
+    } else if (o.fixtureFormat && o.sheet) {
+      st = o.sheet;
+    } else if (o.v !== undefined) {
+      st = o;
+    } else {
+      return { ok: false, error: 'This is not a Character Forge file.' };
+    }
+    if (!st || typeof st !== 'object' || st.v !== 3) {
+      return { ok: false, error: 'The character uses state version ' + (st && st.v) + ', which this page cannot read.' };
+    }
+    var unknown = [['species', D.SPECIES], ['background', D.BACKGROUNDS], ['cls', D.CLASSES]].filter(function (p) {
+      return st[p[0]] && !p[1][st[p[0]]];
+    });
+    if (unknown.length) {
+      return { ok: false, error: 'The file names a ' + unknown.map(function (p) { return (p[0] === 'cls' ? 'class' : p[0]) + ' (' + st[p[0]] + ')'; }).join(' and a ') + ' this page does not know.' };
+    }
+    return { ok: true, state: hydrate(st) };
+  }
+
+  /* ============================================================
      15. RENDER AND EVENTS
      ============================================================ */
 
@@ -5613,6 +5670,32 @@ var RF_APP = (function (D) {
         document.body.removeChild(ta); done(ok);
       }
     });
+    $('#btn-export').addEventListener('click', function () {
+      var url = URL.createObjectURL(new Blob([exportJSON(S)], { type: 'application/json' }));
+      var a = document.createElement('a');
+      a.href = url; a.download = exportFileName(S);
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    });
+    $('#btn-import').addEventListener('click', function () { $('#file-import').click(); });
+    $('#file-import').addEventListener('change', function (e) {
+      var input = e.target, file = input.files && input.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        input.value = '';
+        var r = parseImport(String(reader.result));
+        if (!r.ok) { window.alert('Import failed. ' + r.error); return; }
+        var started = S.species || S.background || S.cls || S.name;
+        if (started && !window.confirm('Replace ' + (S.name || 'the current character') + ' with ' + (r.state.name || 'the imported character') +
+            '? Export the current one first if you want to keep it.')) return;
+        S = r.state;
+        normalize();
+        render();
+      };
+      reader.onerror = function () { input.value = ''; window.alert('Import failed. The file could not be read.'); };
+      reader.readAsText(file);
+    });
     $('#btn-reset').addEventListener('click', function () {
       if (!window.confirm('Clear every choice and start again?')) return;
       var keepLevel = levelOf(S);
@@ -5653,7 +5736,8 @@ var RF_APP = (function (D) {
     grantedSpells: grantedSpells, grantedCantrips: grantedCantrips, grantedNames: grantedNames,
     invList: invList, invSpec: invSpec, invTargetPool: invTargetPool, duplicateFeats: duplicateFeats,
     sheetHTML: sheetHTML, render: render, goto: goto, setGroup: setGroup,
-    hydrate: hydrate, skilledKey: skilledKey,
+    hydrate: hydrate, skilledKey: skilledKey, exportJSON: exportJSON, parseImport: parseImport, exportFileName: exportFileName,
+    EXPORT_FORMAT: EXPORT_FORMAT, EXPORT_VERSION: EXPORT_VERSION,
     setState: function (o) { S = o; }, getState: function () { return S; }, boot: boot
   };
   if (typeof document !== 'undefined' && document.getElementById('steps')) {
