@@ -1,0 +1,260 @@
+{
+  "fixtureFormat": "forge-v3-fixture/1",
+  "slug": "kaelen-nightshade",
+  "character": "Kaelen Nightshade",
+  "player": null,
+  "source": {
+    "pdf": "f7e22a1d57e49cdc6a83be6f68f16d1cd0da736cb7bbffe3962e2ed529d9d051.pdf",
+    "printedAt": "not shown",
+    "forgeCommit": "2bcbcbb7bc2dd4c45a3962df830d3b81274bed6b",
+    "printedLevel": 3
+  },
+  "summary": {
+    "level": 3,
+    "species": "Human",
+    "class": "Warlock",
+    "subclass": "Fiend Patron",
+    "background": "Noble"
+  },
+  "sheet": {
+    "v": 3,
+    "step": 0,
+    "level": 3,
+    "species": "Human",
+    "speciesChoice": {},
+    "speciesAbility": "",
+    "humanFeat": "Crafter",
+    "background": "Noble",
+    "bgMode": "2-1",
+    "bgAssign": {
+      "two": "cha",
+      "one": "int"
+    },
+    "bgEquip": "A",
+    "cls": "Warlock",
+    "classChoice": {},
+    "subclass": "Fiend Patron",
+    "subChoice": {},
+    "fightingStyle": "",
+    "blessedWarrior": [],
+    "druidicWarrior": [],
+    "metamagic": [],
+    "invocations": [
+      {
+        "n": "Armor of Shadows",
+        "t": "",
+        "c": [],
+        "s": []
+      },
+      {
+        "n": "Fiendish Vigor",
+        "t": "",
+        "c": [],
+        "s": []
+      },
+      {
+        "n": "Mask of Many Faces",
+        "t": "",
+        "c": [],
+        "s": []
+      }
+    ],
+    "maneuvers": [],
+    "abilityMethod": "array",
+    "rolls": [],
+    "assign": {
+      "str": 5,
+      "dex": 4,
+      "con": 2,
+      "int": 3,
+      "wis": 1,
+      "cha": 0
+    },
+    "pointBuy": {
+      "str": 8,
+      "dex": 8,
+      "con": 8,
+      "int": 8,
+      "wis": 8,
+      "cha": 8
+    },
+    "skillPicks": {
+      "class": [
+        "Deception",
+        "Intimidation"
+      ],
+      "species": [
+        "Perception"
+      ],
+      "skilled0": [
+        "Acrobatics",
+        "Sleight of Hand",
+        "Arcana"
+      ]
+    },
+    "expertise": {},
+    "hpMode": "average",
+    "hpRolls": [],
+    "equipChoice": "A",
+    "armor": "Leather Armor",
+    "shield": false,
+    "extraWeapons": [],
+    "cantrips": [
+      "Eldritch Blast",
+      "Mind Sliver"
+    ],
+    "prepared": [
+      "Hellish Rebuke",
+      "Misty Step",
+      "Crown of Madness",
+      "Hold Person"
+    ],
+    "spellbook": [],
+    "savant": [],
+    "discoveries": [],
+    "phbSpells": "",
+    "mi": {},
+    "asiMode": "",
+    "asiBumpA": "",
+    "asiBumpB": "",
+    "asiFeat": "",
+    "asi2Mode": "",
+    "asi2BumpA": "",
+    "asi2BumpB": "",
+    "asi2Feat": "",
+    "name": "Kaelen Nightshade",
+    "pronouns": "",
+    "alignment": "Chaotic Good",
+    "appearance": "",
+    "trait": "",
+    "ideal": "",
+    "bond": "",
+    "flaw": ""
+  },
+  "printed": {
+    "ac": 11,
+    "hp": 21,
+    "initiative": 0,
+    "speed": 30,
+    "pb": 2,
+    "passivePerception": 14,
+    "hitDice": "3d8",
+    "scores": {
+      "str": 8,
+      "dex": 10,
+      "con": 13,
+      "int": 13,
+      "wis": 14,
+      "cha": 17
+    },
+    "saves": {
+      "str": -1,
+      "dex": 0,
+      "con": 1,
+      "int": 1,
+      "wis": 4,
+      "cha": 5
+    },
+    "skills": {
+      "Acrobatics": 2,
+      "Animal Handling": 2,
+      "Arcana": 3,
+      "Athletics": -1,
+      "Deception": 5,
+      "History": 3,
+      "Insight": 2,
+      "Intimidation": 5,
+      "Investigation": 1,
+      "Medicine": 2,
+      "Nature": 1,
+      "Perception": 4,
+      "Performance": 3,
+      "Persuasion": 5,
+      "Religion": 1,
+      "Sleight of Hand": 2,
+      "Stealth": 0,
+      "Survival": 2
+    },
+    "expertise": [],
+    "attacks": [
+      [
+        "Sickle",
+        1,
+        "1d4 -1 Slashing"
+      ],
+      [
+        "Dagger",
+        2,
+        "1d4 Piercing"
+      ]
+    ],
+    "caster": {
+      "ability": "cha",
+      "dc": 13,
+      "attack": 5,
+      "slots": "2 x L2"
+    },
+    "innate": [],
+    "cantrips": [
+      "Eldritch Blast",
+      "Mind Sliver"
+    ],
+    "spells": [
+      "Hellish Rebuke",
+      "Misty Step",
+      "Crown of Madness",
+      "Hold Person",
+      "Burning Hands",
+      "Command",
+      "Scorching Ray",
+      "Suggestion"
+    ],
+    "spellbook": [],
+    "features": [
+      "Eldritch Invocations",
+      "Pact Magic",
+      "Magical Cunning",
+      "Dark One's Blessing",
+      "Fiend Spells"
+    ],
+    "invocations": [
+      "Armor of Shadows",
+      "Fiendish Vigor",
+      "Mask of Many Faces"
+    ],
+    "feats": [
+      "Skilled",
+      "Crafter"
+    ],
+    "coin": 44,
+    "armorWorn": "Leather Armor"
+  },
+  "inferred": [
+    {
+      "field": "abilityMethod",
+      "note": "'array' chosen. Base scores 8/10/13/12/14/15 are both the Standard Array and a legal 27-point buy. No effect on numbers."
+    },
+    {
+      "field": "skillPicks (class vs Skillful vs Skilled)",
+      "note": "The eight proficient skills are certain (Acrobatics, Arcana, Deception, History, Intimidation, Perception, Persuasion, Sleight of Hand). Noble gives History and Persuasion. Which two of Arcana / Deception / Intimidation were the Warlock picks, and which skills came from Skillful versus the Skilled feat, is not shown. Recorded class = Deception + Intimidation, Skillful = Perception, Skilled = Acrobatics, Sleight of Hand, Arcana. No effect on numbers."
+    },
+    {
+      "field": "Skilled feat tools",
+      "note": "The Forge only records skills for the Skilled feat; if the player took tools instead, the sheet would still show skills. Treat as skills."
+    },
+    {
+      "field": "Crafter tools",
+      "note": "The three Artisan's Tools chosen for Crafter are not recorded by the Forge or shown on the sheet. Ask the player."
+    },
+    {
+      "field": "details",
+      "note": "Only Alignment is filled in. Pronouns, appearance, trait, ideal, bond and flaw are blank on the sheet."
+    }
+  ],
+  "verification": {
+    "allMatch": true,
+    "mismatches": [],
+    "stepIssues": {},
+    "unknownSpellNames": []
+  }
+}

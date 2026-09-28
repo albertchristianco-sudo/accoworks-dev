@@ -1,0 +1,239 @@
+{
+  "fixtureFormat": "forge-v3-fixture/1",
+  "slug": "baldwin-eisenstrom",
+  "character": "Baldwin Eisenstrom",
+  "player": null,
+  "source": {
+    "pdf": "a38a8ad688791531bd39f41c9a6843d051f8061e6e14f9dc76f2269310c00e92.pdf",
+    "printedAt": "26/09/2026, 12:40 (browser footer)",
+    "forgeCommit": "2bcbcbb7bc2dd4c45a3962df830d3b81274bed6b",
+    "printedLevel": 3
+  },
+  "summary": {
+    "level": 3,
+    "species": "Human",
+    "class": "Paladin",
+    "subclass": "Oath of Devotion",
+    "background": "Guard"
+  },
+  "sheet": {
+    "v": 3,
+    "step": 0,
+    "level": 3,
+    "species": "Human",
+    "speciesChoice": {},
+    "speciesAbility": "",
+    "humanFeat": "Savage Attacker",
+    "background": "Guard",
+    "bgMode": "2-1",
+    "bgAssign": {
+      "two": "str",
+      "one": "wis"
+    },
+    "bgEquip": "B",
+    "cls": "Paladin",
+    "classChoice": {},
+    "subclass": "Oath of Devotion",
+    "subChoice": {},
+    "fightingStyle": "Great Weapon Fighting",
+    "blessedWarrior": [],
+    "druidicWarrior": [],
+    "metamagic": [],
+    "invocations": [],
+    "maneuvers": [],
+    "abilityMethod": "pointbuy",
+    "rolls": [],
+    "assign": {
+      "str": "",
+      "dex": "",
+      "con": "",
+      "int": "",
+      "wis": "",
+      "cha": ""
+    },
+    "pointBuy": {
+      "str": 14,
+      "dex": 11,
+      "con": 11,
+      "int": 10,
+      "wis": 11,
+      "cha": 15
+    },
+    "skillPicks": {
+      "class": [
+        "Intimidation",
+        "Persuasion"
+      ],
+      "species": [
+        "Religion"
+      ]
+    },
+    "expertise": {},
+    "hpMode": "average",
+    "hpRolls": [],
+    "equipChoice": "A",
+    "armor": "Breastplate",
+    "shield": false,
+    "extraWeapons": [
+      "Greatsword"
+    ],
+    "cantrips": [],
+    "prepared": [
+      "Cure Wounds",
+      "Divine Favor",
+      "Heroism",
+      "Thunderous Smite"
+    ],
+    "spellbook": [],
+    "savant": [],
+    "discoveries": [],
+    "phbSpells": "",
+    "mi": {},
+    "asiMode": "",
+    "asiBumpA": "",
+    "asiBumpB": "",
+    "asiFeat": "",
+    "asi2Mode": "",
+    "asi2BumpA": "",
+    "asi2BumpB": "",
+    "asi2Feat": "",
+    "name": "Baldwin Eisenstrom",
+    "pronouns": "He/Him",
+    "alignment": "Lawful Good",
+    "appearance": "",
+    "trait": "I am calm in a crisis and useless at parties.",
+    "ideal": "Protection. The people behind me never have to know how close it was.",
+    "bond": "The town I guarded is gone. I still guard.",
+    "flaw": "I mistake stubbornness for discipline."
+  },
+  "printed": {
+    "ac": 14,
+    "hp": 22,
+    "initiative": 2,
+    "speed": 30,
+    "pb": 2,
+    "passivePerception": 13,
+    "hitDice": "3d10",
+    "scores": {
+      "str": 16,
+      "dex": 11,
+      "con": 11,
+      "int": 10,
+      "wis": 12,
+      "cha": 15
+    },
+    "saves": {
+      "str": 3,
+      "dex": 0,
+      "con": 0,
+      "int": 0,
+      "wis": 3,
+      "cha": 4
+    },
+    "skills": {
+      "Acrobatics": 0,
+      "Animal Handling": 1,
+      "Arcana": 0,
+      "Athletics": 5,
+      "Deception": 2,
+      "History": 0,
+      "Insight": 1,
+      "Intimidation": 4,
+      "Investigation": 0,
+      "Medicine": 1,
+      "Nature": 0,
+      "Perception": 3,
+      "Performance": 2,
+      "Persuasion": 4,
+      "Religion": 2,
+      "Sleight of Hand": 0,
+      "Stealth": 0,
+      "Survival": 1
+    },
+    "expertise": [],
+    "attacks": [
+      [
+        "Longsword",
+        5,
+        "1d8 +3 Slashing"
+      ],
+      [
+        "Javelin",
+        5,
+        "1d6 +3 Piercing"
+      ],
+      [
+        "Greatsword",
+        5,
+        "2d6 +3 Slashing"
+      ]
+    ],
+    "caster": {
+      "ability": "cha",
+      "dc": 12,
+      "attack": 4,
+      "slots": "3 x L1"
+    },
+    "innate": [],
+    "cantrips": [],
+    "spells": [
+      "Cure Wounds",
+      "Divine Favor",
+      "Heroism",
+      "Thunderous Smite",
+      "Divine Smite",
+      "Protection from Evil and Good",
+      "Shield of Faith"
+    ],
+    "spellbook": [],
+    "features": [
+      "Lay On Hands",
+      "Spellcasting",
+      "Weapon Mastery",
+      "Fighting Style",
+      "Paladin's Smite",
+      "Fighting Style: Great Weapon Fighting",
+      "Channel Divinity",
+      "Oath of Devotion Spells",
+      "Sacred Weapon"
+    ],
+    "feats": [
+      "Alert",
+      "Savage Attacker"
+    ],
+    "coin": 59,
+    "armorWorn": "Breastplate"
+  },
+  "inferred": [
+    {
+      "field": "abilityMethod + pointBuy",
+      "note": "'pointbuy' with base STR 14, DEX 11, CON 11, INT 10, WIS 11, CHA 15. Two 11s rule out the Standard Array. This split costs exactly 27 points, which strongly suggests point buy, but rolled scores cannot be excluded. No effect on numbers."
+    },
+    {
+      "field": "bgAssign",
+      "note": "Ambiguous. +2 STR / +1 WIS (INT base 10, WIS base 11) and +2 STR / +1 INT (INT base 9, WIS base 12) both cost exactly 27 points and give identical final scores. Recorded the first. No effect on numbers."
+    },
+    {
+      "field": "skillPicks (class vs Skillful)",
+      "note": "Intimidation, Persuasion and Religion are all on the Paladin list, so which one came from the Human Skillful trait is not shown. Recorded class = Intimidation + Persuasion, Skillful = Religion. No effect on numbers."
+    },
+    {
+      "field": "bgEquip",
+      "note": "'B' (50 GP instead of the Guard kit), deduced from the background column showing only 50 GP and coin 59 (9 + 50)."
+    },
+    {
+      "field": "armor / extraWeapons",
+      "note": "Breastplate worn (not the Chain Mail and Shield from the package) and Greatsword added, as printed, with no gold spent. Albert ruled that characters must own what they wear and wield, so this gear is flagged at onboarding. Breastplate costs 400 GP (Baldwin has 59 GP), so it cannot be bought; the Greatsword (50 GP) can, leaving 9 GP. Reverting to the package Chain Mail gives AC 16 (18 with the Shield). The fixture keeps the printed gear so the printed numbers still verify."
+    },
+    {
+      "field": "text layer",
+      "note": "This PDF was printed from a different browser setup (Google Sans font, dd/mm/yyyy footer). Its text layer lost most labels, several skill names, ability modifiers and save values, so values were read from a rendered image of the page (pdftoppm)."
+    }
+  ],
+  "verification": {
+    "allMatch": true,
+    "mismatches": [],
+    "stepIssues": {},
+    "unknownSpellNames": []
+  }
+}
