@@ -5,7 +5,12 @@ import { loadForge, loadFixtures, readBaseline, digest, clone } from './support/
 
 const { D, APP } = loadForge();
 const FIXTURES = loadFixtures();
-const BASELINE = readBaseline().characters;
+// The 2bcbcbb baseline, with the one intentional spell rename applied.
+const RENAMED = { "Tasha's Hideous Laughter": 'Hideous Laughter' };
+const rename = (n) => RENAMED[n] || n;
+const BASELINE = Object.fromEntries(Object.entries(readBaseline().characters).map(([slug, d]) => [slug, {
+  ...d, spells: d.spells.map(rename).sort(), spellbook: d.spellbook.map(rename),
+}]));
 const STEP_IDS = APP.STEPS.map((s) => s.id);
 
 function issues(st) {
@@ -597,4 +602,43 @@ test('the Weapon Master feat adds one kind, even for a Wizard', () => {
   const dup = takeFeat('mortimer-vale', 'Weapon Master', { ability: 'dex', weapon: 'Dagger' });
   dup.masteries = ['Dagger', 'Shortbow'];
   assert.ok(asiIssues(dup).some((t) => /already use the Dagger mastery through your class/.test(t)));
+});
+
+/* ---------- Fix 5: Hideous Laughter, with the old name aliased on load ---------- */
+
+test('the spell carries its 2024 name and the old name is an alias', () => {
+  assert.ok(D.SPELLS.some((sp) => sp.n === 'Hideous Laughter'));
+  assert.ok(!D.SPELLS.some((sp) => /Tasha/.test(sp.n)));
+  assert.equal(D.SPELL_ALIASES["Tasha's Hideous Laughter"], 'Hideous Laughter');
+  assert.ok(D.CLASSES.Warlock.subclasses['Great Old One Patron'].alwaysPrepared.includes('Hideous Laughter'));
+});
+
+test('Eldrad saved with the old name loads with the new one and keeps every number', () => {
+  const raw = fixture('eldrad').sheet;
+  assert.ok(raw.spellbook.includes("Tasha's Hideous Laughter"));
+  const st = boot(raw);
+  assert.ok(st.spellbook.includes('Hideous Laughter'));
+  assert.ok(st.prepared.includes('Hideous Laughter'));
+  assert.ok(!JSON.stringify(st).includes('Tasha'));
+  assert.deepEqual(unexpectedIssues('eldrad', st), {});
+  const R = APP.compute(st);
+  assert.ok(R.sheetSpells.some((x) => x.name === 'Hideous Laughter'));
+  assert.equal(digest(R).spells.length, fixture('eldrad').printed.spells.length);
+  assert.match(APP.sheetHTML(), /Hideous Laughter\.<\/b> Level 1 Enchantment/);
+});
+
+test('the old name is migrated wherever a spell name can be stored', () => {
+  const old = "Tasha's Hideous Laughter";
+  const st = APP.hydrate({
+    ...APP.BLANK(), level: 4, cls: 'Warlock', subclass: 'Fiend Patron', prepared: [old],
+    mi: { Wizard: { c: [], s: old, a: 'int' } },
+    invocations: [{ n: 'Pact of the Tome', t: '', c: [], s: [old] }],
+    asiMode: 'feat', asiFeat: 'Fey Touched', asiFeatOpts: { ability: 'cha', spell: old },
+    phbSpells: old,
+  });
+  assert.deepEqual([...st.prepared], ['Hideous Laughter']);
+  assert.equal(st.mi.Wizard.s, 'Hideous Laughter');
+  assert.deepEqual([...st.invocations[0].s], ['Hideous Laughter']);
+  assert.equal(st.asiFeatOpts.spell, 'Hideous Laughter');
+  assert.equal(st.phbSpells, 'Hideous Laughter');
 });

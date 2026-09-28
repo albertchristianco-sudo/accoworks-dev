@@ -601,6 +601,12 @@ var RF_DATA = (function () {
     'Longbow':       { cat: 'martial', melee: false, dmg: '1d8',  type: 'Piercing',    props: ['Ammunition (150/600)', 'Heavy', 'Two-Handed'], mastery: 'Slow', cost: 50 }
   };
 
+  /* Spell names that changed, old name to current. A saved character that
+     still carries an old name is brought forward when it loads. */
+  var SPELL_ALIASES = {
+    "Tasha's Hideous Laughter": 'Hideous Laughter'
+  };
+
   /* ---------- ORIGIN FEATS (2024 PHB, ch. 5) ---------- */
 
   var ORIGIN_FEATS = {
@@ -1745,10 +1751,10 @@ var RF_DATA = (function () {
           [3, 'Fiend Spells', 'You always have Burning Hands, Command, Scorching Ray, and Suggestion prepared. They do not count against your prepared spells.'],
           [6, "Dark One's Own Luck", 'When you make a D20 Test, you can add 1d10 to the roll. You can do so after seeing the d20 roll but before any of its effects occur. Uses equal to your Charisma modifier (minimum 1) per Long Rest.']
         ] },
-        'Great Old One Patron': { blurb: 'Unearth forbidden lore of ineffable beings.', alwaysPrepared: ['Detect Thoughts', 'Dissonant Whispers', 'Phantasmal Force', "Tasha's Hideous Laughter"],
+        'Great Old One Patron': { blurb: 'Unearth forbidden lore of ineffable beings.', alwaysPrepared: ['Detect Thoughts', 'Dissonant Whispers', 'Phantasmal Force', 'Hideous Laughter'],
           alwaysPreparedAt: { 5: ['Clairvoyance', 'Hunger of Hadar'] }, features: [
           [3, 'Awakened Mind', 'As a Bonus Action, form a telepathic connection with a creature within 30 feet. It lasts a number of minutes equal to your Warlock level ({lv}) and works within a number of miles equal to your Charisma modifier (minimum 1).'],
-          [3, 'Great Old One Spells', "You always have Detect Thoughts, Dissonant Whispers, Phantasmal Force, and Tasha's Hideous Laughter prepared. They do not count against your prepared spells."],
+          [3, 'Great Old One Spells', "You always have Detect Thoughts, Dissonant Whispers, Phantasmal Force, and Hideous Laughter prepared. They do not count against your prepared spells."],
           [3, 'Psychic Spells', 'When you cast a Warlock spell that deals damage, you can change its damage type to Psychic. Warlock Enchantment and Illusion spells can be cast without Verbal or Somatic components.'],
           [6, 'Clairvoyant Combatant', 'When you form a telepathic bond with a creature using Awakened Mind, you can force it to make a Wisdom saving throw against your spell save DC. On a failure, for the duration of the bond you have Advantage on attack rolls against it and it has Disadvantage on attack rolls against you. Once per Short or Long Rest.']
         ] }
@@ -1894,7 +1900,7 @@ var RF_DATA = (function () {
     { n:"Silent Image", l:1, s:"Illusion", c:1, r:0, cl:["Ba", "So", "Wi"], d:"You create the image of an object, a creature, or some other visible phenomenon that is no larger than a 15-foot Cube. The image appears at a spot within range and lasts for the duration. The image is purely visual; it isn't accompanied by sound, smell, or other sensory effects." },
     { n:"Sleep", l:1, s:"Enchantment", c:1, r:0, cl:["Ba", "So", "Wi"], d:"Each creature of your choice in a 5-foot-radius Sphere centered on a point within range must succeed on a Wisdom saving throw or have the Incapacitated condition until the end of its next turn, at which point it must repeat the save." },
     { n:"Speak with Animals", l:1, s:"Divination", c:0, r:1, cl:["Ba", "Dr", "Ra", "Wa"], d:"For the duration, you can comprehend and verbally communicate with Beasts, and you can use any of the Influence action's skill options with them." },
-    { n:"Tasha's Hideous Laughter", l:1, s:"Enchantment", c:1, r:0, cl:["Ba", "Wa", "Wi"], d:"One creature of your choice that you can see within range makes a Wisdom saving throw. On a failed save, it has the Prone and Incapacitated conditions for the duration. During that time, it laughs uncontrollably if it's capable of laughter, and it can't end the Prone condition on itself." },
+    { n:"Hideous Laughter", l:1, s:"Enchantment", c:1, r:0, cl:["Ba", "Wa", "Wi"], d:"One creature of your choice that you can see within range makes a Wisdom saving throw. On a failed save, it has the Prone and Incapacitated conditions for the duration. During that time, it laughs uncontrollably if it's capable of laughter, and it can't end the Prone condition on itself." },
     { n:"Tenser's Floating Disk", l:1, s:"Conjuration", c:0, r:1, cl:["Wi"], d:"This spell creates a circular, horizontal plane of force, 3 feet in diameter and 1 inch thick, that floats 3 feet above the ground in an unoccupied space of your choice that you can see within range. The disk remains for the duration and can hold up to 500 pounds." },
     { n:"Thunderous Smite", l:1, s:"Evocation", c:0, r:0, cl:["Pa"], d:"Cast as a Bonus Action right after you hit with a Melee weapon or Unarmed Strike: your strike rings with thunder audible within 300 feet, dealing an extra 2d6 Thunder damage. The target must succeed on a Strength saving throw or be pushed 10 feet away and knocked Prone." },
     { n:"Thunderwave", l:1, s:"Evocation", c:0, r:0, cl:["Ba", "Dr", "So", "Wi"], d:"You unleash a wave of thunderous energy. Each creature in a 15-foot Cube originating from you makes a Constitution saving throw. On a failed save, a creature takes 2d8 Thunder damage and is pushed 10 feet away from you. On a successful save, a creature takes half as much damage only." },
@@ -2039,6 +2045,7 @@ var RF_DATA = (function () {
     REPEATABLE_ORIGIN_FEATS: REPEATABLE_ORIGIN_FEATS,
     WEAPONS: WEAPONS,
     ORIGIN_FEATS: ORIGIN_FEATS,
+    SPELL_ALIASES: SPELL_ALIASES,
     GENERAL_FEATS: GENERAL_FEATS,
     FIGHTING_STYLES: FIGHTING_STYLES,
     SPECIES: SPECIES,
@@ -2200,7 +2207,29 @@ var RF_APP = (function (D) {
     var b = BLANK();
     for (var k in b) { if (o[k] !== undefined) b[k] = o[k]; }
     migrateSkilledKeys(b);
+    migrateSpellNames(b);
     return b;
+  }
+  function currentSpellName(n) { return D.SPELL_ALIASES[n] || n; }
+  function migrateSpellNames(st) {
+    function list(a) { return Array.isArray(a) ? a.map(currentSpellName) : a; }
+    ['cantrips', 'prepared', 'spellbook', 'savant', 'discoveries', 'blessedWarrior', 'druidicWarrior'].forEach(function (k) { st[k] = list(st[k]); });
+    Object.keys(st.mi || {}).forEach(function (k) {
+      var e = st.mi[k];
+      if (!e) return;
+      e.c = list(e.c);
+      if (e.s) e.s = currentSpellName(e.s);
+    });
+    (st.invocations || []).forEach(function (e) { if (e) { e.c = list(e.c); e.s = list(e.s); } });
+    ['asiFeatOpts', 'asi2FeatOpts'].forEach(function (k) {
+      var o = st[k];
+      if (!o) return;
+      if (o.spell) o.spell = currentSpellName(o.spell);
+      o.spells = list(o.spells);
+    });
+    if (typeof st.phbSpells === 'string') {
+      Object.keys(D.SPELL_ALIASES).forEach(function (old) { st.phbSpells = st.phbSpells.split(old).join(D.SPELL_ALIASES[old]); });
+    }
   }
   /* Skilled picks used to be keyed by the feat's position in featList
      ("skilled0"), which shifts whenever an earlier feat comes or goes. They
@@ -4668,6 +4697,7 @@ var RF_APP = (function (D) {
     return Object.keys(cast.slots).map(function (k) { return cast.slots[k] + ' x L' + k; }).join(', ');
   }
   function spellByName(n) {
+    n = currentSpellName(n);
     for (var i = 0; i < D.SPELLS.length; i++) { if (D.SPELLS[i].n === n) return D.SPELLS[i]; }
     return null;
   }
