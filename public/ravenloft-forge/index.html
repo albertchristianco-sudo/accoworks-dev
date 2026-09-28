@@ -512,6 +512,7 @@ var RF_DATA = (function () {
   };
 
   var SHIELD_BONUS = 2;
+  var SHIELD_COST = 10;
 
   /* Cantrips that deal damage, with the properties the Warlock invocation
      prerequisites ask about (2024 PHB, ch. 7 spell descriptions).
@@ -553,49 +554,51 @@ var RF_DATA = (function () {
      that rule on its own. */
   var REPEATABLE_ORIGIN_FEATS = ['Skilled'];
 
-  /* ---------- WEAPONS (2024 PHB, ch. 6) ---------- */
+  /* ---------- WEAPONS (2024 PHB, ch. 6) ----------
+     cost is in GP, as in the SRD 5.2.1 weapon table: 1 SP is 0.1 GP and
+     1 CP is 0.01 GP. */
 
   var WEAPONS = {
     /* Simple Melee */
-    'Club':          { cat: 'simple',  melee: true,  dmg: '1d4',  type: 'Bludgeoning', props: ['Light'], mastery: 'Slow' },
-    'Dagger':        { cat: 'simple',  melee: true,  dmg: '1d4',  type: 'Piercing',    props: ['Finesse', 'Light', 'Thrown (20/60)'], mastery: 'Nick' },
-    'Greatclub':     { cat: 'simple',  melee: true,  dmg: '1d8',  type: 'Bludgeoning', props: ['Two-Handed'], mastery: 'Push' },
-    'Handaxe':       { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Slashing',    props: ['Light', 'Thrown (20/60)'], mastery: 'Vex' },
-    'Javelin':       { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Piercing',    props: ['Thrown (30/120)'], mastery: 'Slow' },
-    'Light Hammer':  { cat: 'simple',  melee: true,  dmg: '1d4',  type: 'Bludgeoning', props: ['Light', 'Thrown (20/60)'], mastery: 'Nick' },
-    'Mace':          { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Bludgeoning', props: [], mastery: 'Sap' },
-    'Quarterstaff':  { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Bludgeoning', props: ['Versatile (1d8)'], mastery: 'Topple' },
-    'Sickle':        { cat: 'simple',  melee: true,  dmg: '1d4',  type: 'Slashing',    props: ['Light'], mastery: 'Nick' },
-    'Spear':         { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Piercing',    props: ['Thrown (20/60)', 'Versatile (1d8)'], mastery: 'Sap' },
+    'Club':          { cat: 'simple',  melee: true,  dmg: '1d4',  type: 'Bludgeoning', props: ['Light'], mastery: 'Slow', cost: 0.1 },
+    'Dagger':        { cat: 'simple',  melee: true,  dmg: '1d4',  type: 'Piercing',    props: ['Finesse', 'Light', 'Thrown (20/60)'], mastery: 'Nick', cost: 2 },
+    'Greatclub':     { cat: 'simple',  melee: true,  dmg: '1d8',  type: 'Bludgeoning', props: ['Two-Handed'], mastery: 'Push', cost: 0.2 },
+    'Handaxe':       { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Slashing',    props: ['Light', 'Thrown (20/60)'], mastery: 'Vex', cost: 5 },
+    'Javelin':       { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Piercing',    props: ['Thrown (30/120)'], mastery: 'Slow', cost: 0.5 },
+    'Light Hammer':  { cat: 'simple',  melee: true,  dmg: '1d4',  type: 'Bludgeoning', props: ['Light', 'Thrown (20/60)'], mastery: 'Nick', cost: 2 },
+    'Mace':          { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Bludgeoning', props: [], mastery: 'Sap', cost: 5 },
+    'Quarterstaff':  { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Bludgeoning', props: ['Versatile (1d8)'], mastery: 'Topple', cost: 0.2 },
+    'Sickle':        { cat: 'simple',  melee: true,  dmg: '1d4',  type: 'Slashing',    props: ['Light'], mastery: 'Nick', cost: 1 },
+    'Spear':         { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Piercing',    props: ['Thrown (20/60)', 'Versatile (1d8)'], mastery: 'Sap', cost: 1 },
     /* Simple Ranged */
-    'Dart':          { cat: 'simple',  melee: false, dmg: '1d4',  type: 'Piercing',    props: ['Finesse', 'Thrown (20/60)'], mastery: 'Vex' },
-    'Light Crossbow':{ cat: 'simple',  melee: false, dmg: '1d8',  type: 'Piercing',    props: ['Ammunition (80/320)', 'Loading', 'Two-Handed'], mastery: 'Slow' },
-    'Shortbow':      { cat: 'simple',  melee: false, dmg: '1d6',  type: 'Piercing',    props: ['Ammunition (80/320)', 'Two-Handed'], mastery: 'Vex' },
-    'Sling':         { cat: 'simple',  melee: false, dmg: '1d4',  type: 'Bludgeoning', props: ['Ammunition (30/120)'], mastery: 'Slow' },
+    'Dart':          { cat: 'simple',  melee: false, dmg: '1d4',  type: 'Piercing',    props: ['Finesse', 'Thrown (20/60)'], mastery: 'Vex', cost: 0.05 },
+    'Light Crossbow':{ cat: 'simple',  melee: false, dmg: '1d8',  type: 'Piercing',    props: ['Ammunition (80/320)', 'Loading', 'Two-Handed'], mastery: 'Slow', cost: 25 },
+    'Shortbow':      { cat: 'simple',  melee: false, dmg: '1d6',  type: 'Piercing',    props: ['Ammunition (80/320)', 'Two-Handed'], mastery: 'Vex', cost: 25 },
+    'Sling':         { cat: 'simple',  melee: false, dmg: '1d4',  type: 'Bludgeoning', props: ['Ammunition (30/120)'], mastery: 'Slow', cost: 0.1 },
     /* Martial Melee */
-    'Battleaxe':     { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Slashing',    props: ['Versatile (1d10)'], mastery: 'Topple' },
-    'Flail':         { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Bludgeoning', props: [], mastery: 'Sap' },
-    'Glaive':        { cat: 'martial', melee: true,  dmg: '1d10', type: 'Slashing',    props: ['Heavy', 'Reach', 'Two-Handed'], mastery: 'Graze' },
-    'Greataxe':      { cat: 'martial', melee: true,  dmg: '1d12', type: 'Slashing',    props: ['Heavy', 'Two-Handed'], mastery: 'Cleave' },
-    'Greatsword':    { cat: 'martial', melee: true,  dmg: '2d6',  type: 'Slashing',    props: ['Heavy', 'Two-Handed'], mastery: 'Graze' },
-    'Halberd':       { cat: 'martial', melee: true,  dmg: '1d10', type: 'Slashing',    props: ['Heavy', 'Reach', 'Two-Handed'], mastery: 'Cleave' },
-    'Lance':         { cat: 'martial', melee: true,  dmg: '1d10', type: 'Piercing',    props: ['Heavy', 'Reach', 'Two-Handed (unless mounted)'], mastery: 'Topple' },
-    'Longsword':     { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Slashing',    props: ['Versatile (1d10)'], mastery: 'Sap' },
-    'Maul':          { cat: 'martial', melee: true,  dmg: '2d6',  type: 'Bludgeoning', props: ['Heavy', 'Two-Handed'], mastery: 'Topple' },
-    'Morningstar':   { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Piercing',    props: [], mastery: 'Sap' },
-    'Pike':          { cat: 'martial', melee: true,  dmg: '1d10', type: 'Piercing',    props: ['Heavy', 'Reach', 'Two-Handed'], mastery: 'Push' },
-    'Rapier':        { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Piercing',    props: ['Finesse'], mastery: 'Vex' },
-    'Scimitar':      { cat: 'martial', melee: true,  dmg: '1d6',  type: 'Slashing',    props: ['Finesse', 'Light'], mastery: 'Nick' },
-    'Shortsword':    { cat: 'martial', melee: true,  dmg: '1d6',  type: 'Piercing',    props: ['Finesse', 'Light'], mastery: 'Vex' },
-    'Trident':       { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Piercing',    props: ['Thrown (20/60)', 'Versatile (1d10)'], mastery: 'Topple' },
-    'Warhammer':     { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Bludgeoning', props: ['Versatile (1d10)'], mastery: 'Push' },
-    'War Pick':      { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Piercing',    props: ['Versatile (1d10)'], mastery: 'Sap' },
-    'Whip':          { cat: 'martial', melee: true,  dmg: '1d4',  type: 'Slashing',    props: ['Finesse', 'Reach'], mastery: 'Slow' },
+    'Battleaxe':     { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Slashing',    props: ['Versatile (1d10)'], mastery: 'Topple', cost: 10 },
+    'Flail':         { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Bludgeoning', props: [], mastery: 'Sap', cost: 10 },
+    'Glaive':        { cat: 'martial', melee: true,  dmg: '1d10', type: 'Slashing',    props: ['Heavy', 'Reach', 'Two-Handed'], mastery: 'Graze', cost: 20 },
+    'Greataxe':      { cat: 'martial', melee: true,  dmg: '1d12', type: 'Slashing',    props: ['Heavy', 'Two-Handed'], mastery: 'Cleave', cost: 30 },
+    'Greatsword':    { cat: 'martial', melee: true,  dmg: '2d6',  type: 'Slashing',    props: ['Heavy', 'Two-Handed'], mastery: 'Graze', cost: 50 },
+    'Halberd':       { cat: 'martial', melee: true,  dmg: '1d10', type: 'Slashing',    props: ['Heavy', 'Reach', 'Two-Handed'], mastery: 'Cleave', cost: 20 },
+    'Lance':         { cat: 'martial', melee: true,  dmg: '1d10', type: 'Piercing',    props: ['Heavy', 'Reach', 'Two-Handed (unless mounted)'], mastery: 'Topple', cost: 10 },
+    'Longsword':     { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Slashing',    props: ['Versatile (1d10)'], mastery: 'Sap', cost: 15 },
+    'Maul':          { cat: 'martial', melee: true,  dmg: '2d6',  type: 'Bludgeoning', props: ['Heavy', 'Two-Handed'], mastery: 'Topple', cost: 10 },
+    'Morningstar':   { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Piercing',    props: [], mastery: 'Sap', cost: 15 },
+    'Pike':          { cat: 'martial', melee: true,  dmg: '1d10', type: 'Piercing',    props: ['Heavy', 'Reach', 'Two-Handed'], mastery: 'Push', cost: 5 },
+    'Rapier':        { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Piercing',    props: ['Finesse'], mastery: 'Vex', cost: 25 },
+    'Scimitar':      { cat: 'martial', melee: true,  dmg: '1d6',  type: 'Slashing',    props: ['Finesse', 'Light'], mastery: 'Nick', cost: 25 },
+    'Shortsword':    { cat: 'martial', melee: true,  dmg: '1d6',  type: 'Piercing',    props: ['Finesse', 'Light'], mastery: 'Vex', cost: 10 },
+    'Trident':       { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Piercing',    props: ['Thrown (20/60)', 'Versatile (1d10)'], mastery: 'Topple', cost: 5 },
+    'Warhammer':     { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Bludgeoning', props: ['Versatile (1d10)'], mastery: 'Push', cost: 15 },
+    'War Pick':      { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Piercing',    props: ['Versatile (1d10)'], mastery: 'Sap', cost: 5 },
+    'Whip':          { cat: 'martial', melee: true,  dmg: '1d4',  type: 'Slashing',    props: ['Finesse', 'Reach'], mastery: 'Slow', cost: 2 },
     /* Martial Ranged */
-    'Blowgun':       { cat: 'martial', melee: false, dmg: '1',    type: 'Piercing',    props: ['Ammunition (25/100)', 'Loading'], mastery: 'Vex' },
-    'Hand Crossbow': { cat: 'martial', melee: false, dmg: '1d6',  type: 'Piercing',    props: ['Ammunition (30/120)', 'Light', 'Loading'], mastery: 'Vex' },
-    'Heavy Crossbow':{ cat: 'martial', melee: false, dmg: '1d10', type: 'Piercing',    props: ['Ammunition (100/400)', 'Heavy', 'Loading', 'Two-Handed'], mastery: 'Push' },
-    'Longbow':       { cat: 'martial', melee: false, dmg: '1d8',  type: 'Piercing',    props: ['Ammunition (150/600)', 'Heavy', 'Two-Handed'], mastery: 'Slow' }
+    'Blowgun':       { cat: 'martial', melee: false, dmg: '1',    type: 'Piercing',    props: ['Ammunition (25/100)', 'Loading'], mastery: 'Vex', cost: 10 },
+    'Hand Crossbow': { cat: 'martial', melee: false, dmg: '1d6',  type: 'Piercing',    props: ['Ammunition (30/120)', 'Light', 'Loading'], mastery: 'Vex', cost: 75 },
+    'Heavy Crossbow':{ cat: 'martial', melee: false, dmg: '1d10', type: 'Piercing',    props: ['Ammunition (100/400)', 'Heavy', 'Loading', 'Two-Handed'], mastery: 'Push', cost: 50 },
+    'Longbow':       { cat: 'martial', melee: false, dmg: '1d8',  type: 'Piercing',    props: ['Ammunition (150/600)', 'Heavy', 'Two-Handed'], mastery: 'Slow', cost: 50 }
   };
 
   /* ---------- ORIGIN FEATS (2024 PHB, ch. 5) ---------- */
@@ -2030,6 +2033,7 @@ var RF_DATA = (function () {
     MAX_SCORE: MAX_SCORE,
     ARMOR: ARMOR,
     SHIELD_BONUS: SHIELD_BONUS,
+    SHIELD_COST: SHIELD_COST,
     DAMAGE_CANTRIPS: DAMAGE_CANTRIPS,
     REPEATABLE_ORIGIN_FEATS: REPEATABLE_ORIGIN_FEATS,
     WEAPONS: WEAPONS,
@@ -2152,7 +2156,9 @@ var RF_APP = (function (D) {
       pointBuy: { str: 8, dex: 8, con: 8, int: 8, wis: 8, cha: 8 },
       skillPicks: {}, expertise: {},
       hpMode: 'average', hpRolls: [],
-      equipChoice: 'A', armor: '', shield: false, extraWeapons: [],
+      /* bought lists gear paid for out of starting coin; anything worn or
+         wielded must be in the package, the background kit, or here. */
+      equipChoice: 'A', armor: '', shield: false, extraWeapons: [], bought: [],
       cantrips: [], prepared: [], spellbook: [], savant: [], discoveries: [],
       /* Spells above the level this builder's spell list covers, typed in by
          hand. They count toward the prepared total. */
@@ -2816,6 +2822,104 @@ var RF_APP = (function (D) {
   }
 
   /* ============================================================
+     6b. GEAR OWNERSHIP
+     A character must own what it wears and wields: the class package, the
+     weapons in its background kit, or gear bought with its starting coin.
+     Money is counted in copper so SP and CP prices stay exact.
+     ============================================================ */
+
+  function equipPkg(st) {
+    var c = CLS(st);
+    if (!c) return null;
+    return c.equipment.filter(function (p) { return p.label === st.equipChoice; })[0] || c.equipment[0];
+  }
+  /* Weapons in the background's equipment kit, read from its item list
+     ("2 Daggers" is a Dagger). */
+  function kitWeapons(st) {
+    var bg = BGD(st);
+    if (!bg || st.bgEquip !== 'A') return [];
+    return uniq(bg.equipA.split(/,\s*/).map(function (item) {
+      var n = item.replace(/^\d+\s+/, '');
+      if (D.WEAPONS[n]) return n;
+      n = n.replace(/s$/, '');
+      return D.WEAPONS[n] ? n : null;
+    }).filter(Boolean));
+  }
+  function carriedWeapons(st) {
+    var pkg = equipPkg(st);
+    return uniq((pkg ? pkg.weapons : []).concat(st.extraWeapons || []));
+  }
+  /* Everything worn or wielded, as buyable item names. */
+  function carriedGear(st) {
+    var out = [];
+    if (st.armor && st.armor !== 'None') out.push(st.armor);
+    if (st.shield) out.push('Shield');
+    return out.concat(carriedWeapons(st));
+  }
+  /* Gear that comes with the character at no cost. */
+  function freeGear(st) {
+    var pkg = equipPkg(st), out = {};
+    out.None = 'nothing to buy';
+    if (pkg) {
+      if (pkg.armor && pkg.armor !== 'None') out[pkg.armor] = 'class package';
+      if (pkg.shield) out.Shield = 'class package';
+      pkg.weapons.forEach(function (w) { out[w] = 'class package'; });
+    }
+    kitWeapons(st).forEach(function (w) { if (!out[w]) out[w] = st.background + ' kit'; });
+    return out;
+  }
+  function itemCostGp(name) {
+    if (name === 'Shield') return D.SHIELD_COST;
+    if (D.ARMOR[name]) return D.ARMOR[name].cost;
+    if (D.WEAPONS[name]) return D.WEAPONS[name].cost;
+    return null;
+  }
+  /* Crafter: a 20 percent discount on every nonmagical item bought. */
+  function priceCp(st, name) {
+    var gp = itemCostGp(name);
+    if (gp == null) return null;
+    var cp = Math.round(gp * 100);
+    return hasFeat(st, 'Crafter') ? Math.round(cp * 0.8) : cp;
+  }
+  function coinText(cp) {
+    var neg = cp < 0, n = Math.abs(cp);
+    var gp = Math.floor(n / 100), sp = Math.floor((n % 100) / 10), c = n % 10;
+    var parts = [];
+    if (gp || (!sp && !c)) parts.push(gp + ' GP');
+    if (sp) parts.push(sp + ' SP');
+    if (c) parts.push(c + ' CP');
+    return (neg ? 'minus ' : '') + parts.join(' ');
+  }
+  function gearLedger(st) {
+    var pkg = equipPkg(st), bg = BGD(st), free = freeGear(st), carried = carriedGear(st);
+    var startCp = ((pkg ? pkg.gp : 0) + (bg ? (st.bgEquip === 'A' ? bg.equipAGold : 50) : 0)) * 100;
+    var bought = [], spent = 0;
+    uniq(st.bought || []).forEach(function (n) {
+      if (free[n] || !has(carried, n) || priceCp(st, n) == null) return;
+      bought.push({ name: n, cp: priceCp(st, n) });
+      spent += priceCp(st, n);
+    });
+    var boughtNames = bought.map(function (b) { return b.name; });
+    var unowned = carried.filter(function (n) { return !free[n] && !has(boughtNames, n); }).map(function (n) {
+      return { name: n, cp: priceCp(st, n), kind: n === 'Shield' ? 'shield' : (D.ARMOR[n] ? 'armor' : 'weapon') };
+    });
+    return { startCp: startCp, spentCp: spent, leftCp: startCp - spent, bought: bought, unowned: unowned, free: free };
+  }
+  /* Coin free to spend on "name" if it replaced what is worn in its place:
+     swapping one bought armor for another refunds the first. */
+  function spendableFor(st, name) {
+    var L = gearLedger(st), back = 0;
+    if (D.ARMOR[name] && name !== 'Shield') {
+      L.bought.forEach(function (b) { if (b.name === st.armor) back = b.cp; });
+    }
+    return L.leftCp + back;
+  }
+  function canAfford(st, name) {
+    var cp = priceCp(st, name);
+    return cp != null && cp <= spendableFor(st, name);
+  }
+
+  /* ============================================================
      7. SPELL ACCESS
      ============================================================ */
 
@@ -3299,11 +3403,8 @@ var RF_APP = (function (D) {
     R.initiativeNote = initParts.join(' plus ');
 
     /* --- weapons and attacks --- */
-    var pkg = null;
-    if (c) {
-      pkg = c.equipment.filter(function (p) { return p.label === st.equipChoice; })[0] || c.equipment[0];
-    }
-    var wlist = uniq((pkg ? pkg.weapons : []).concat(st.extraWeapons || []));
+    var pkg = equipPkg(st);
+    var wlist = carriedWeapons(st);
     /* Martial Arts only works while unarmored, without a Shield, and with a
        Monk weapon: a Simple Melee weapon, or a Martial Melee weapon that has
        the Light property. */
@@ -3448,12 +3549,15 @@ var RF_APP = (function (D) {
     }
     R.proficiencies.saves += Object.keys(featSaves).map(function (k) { return ', plus ' + abName(k) + ' (' + featSaves[k] + ')'; }).join('');
 
-    /* --- equipment and money --- */
-    var gp = (pkg ? pkg.gp : 0) + (bg ? (st.bgEquip === 'A' ? bg.equipAGold : 50) : 0);
+    /* --- equipment and money ---
+       gp is the coin left after purchases, in GP (it can carry SP and CP). */
+    var L = gearLedger(st);
     R.equipment = {
       pkg: pkg, items: pkg ? pkg.items.slice() : [],
       bgItems: bg ? (st.bgEquip === 'A' ? bg.equipA.split(/,\s*/) : ['50 GP']) : [],
-      gp: gp
+      gp: L.leftCp / 100, startGp: L.startCp / 100, spentGp: L.spentCp / 100, coin: coinText(L.leftCp),
+      bought: L.bought.map(function (b) { return { name: b.name, gp: b.cp / 100, price: coinText(b.cp) }; }),
+      unowned: L.unowned.map(function (u) { return u.name; })
     };
 
     /* --- feats and invocations --- */
@@ -3623,6 +3727,21 @@ var RF_APP = (function (D) {
     }
     if (id === 'equipment') {
       if (!st.equipChoice) out.push('Choose a starting equipment package.');
+      var ledger = gearLedger(st), pkgNow = equipPkg(st);
+      ledger.unowned.forEach(function (u) {
+        var price = u.cp == null ? 'an unknown price' : coinText(u.cp);
+        var afford = u.cp != null && u.cp <= ledger.leftCp;
+        var verb = u.kind === 'weapon' ? 'carry the ' : 'wear ';
+        var instead = u.kind === 'armor'
+          ? (pkgNow && pkgNow.armor && pkgNow.armor !== 'None' ? 'wear your package ' + pkgNow.armor + ' instead' : 'take it off')
+          : (u.kind === 'shield' ? 'set the Shield down' : 'remove it');
+        out.push('You ' + verb + u.name + ' but do not own it: it is not in your class package or background kit. ' +
+          (afford ? 'Buy it for ' + price + ' (you have ' + coinText(ledger.leftCp) + ') or ' + instead + '.'
+                  : 'It costs ' + price + ' and you have ' + coinText(ledger.leftCp) + ', so you cannot buy it. ' + instead.charAt(0).toUpperCase() + instead.slice(1) + '.'));
+      });
+      if (ledger.leftCp < 0) {
+        out.push('Your purchases cost ' + coinText(ledger.spentCp) + ' but you only have ' + coinText(ledger.startCp) + '. Return something or take more coin.');
+      }
       if (lv > 1 && st.hpMode === 'roll' && st.hpRolls.length !== lv - 1) {
         out.push('Roll your hit points for levels 2 to ' + lv + '.');
       }
@@ -4213,23 +4332,49 @@ var RF_APP = (function (D) {
     });
     h += '</div>';
 
+    var ledger = gearLedger(S), free = ledger.free, pkg = equipPkg(S);
+    var boughtNames = ledger.bought.map(function (b) { return b.name; });
+    /* How an item is held, or what it would cost to buy. */
+    function gearNote(name) {
+      if (free[name]) return free[name] === 'class package' ? 'in your package' : 'in your ' + free[name];
+      if (has(boughtNames, name)) return 'bought, ' + coinText(priceCp(S, name));
+      return coinText(priceCp(S, name));
+    }
     h += '<div class="row" style="margin-top:18px">';
     h += '<div class="field"><label>Armor worn</label><select data-sel="armor">' +
       Object.keys(D.ARMOR).map(function (k) {
-        var a = D.ARMOR[k];
-        var lab = k === 'None' ? 'None' : k + ' (AC ' + a.base + (a.dexCap === 0 ? '' : ' + Dex' + (a.dexCap != null ? ' max ' + a.dexCap : '')) + ')';
-        return '<option value="' + esc(k) + '"' + (S.armor === k ? ' selected' : '') + '>' + esc(lab) + '</option>';
+        var a = D.ARMOR[k], worn = S.armor === k || (!S.armor && k === 'None');
+        var lab = k === 'None' ? 'None' : k + ' (AC ' + a.base + (a.dexCap === 0 ? '' : ' + Dex' + (a.dexCap != null ? ' max ' + a.dexCap : '')) + ') · ' + gearNote(k);
+        var blocked = !worn && !free[k] && !canAfford(S, k);
+        return '<option value="' + esc(k) + '"' + (worn ? ' selected' : '') + (blocked ? ' disabled' : '') + '>' + esc(lab) + (blocked ? ' (cannot afford)' : '') + '</option>';
       }).join('') + '</select></div>';
-    h += '<div class="field"><label>Shield</label><select data-sel="shield"><option value="no"' + (!S.shield ? ' selected' : '') + '>No shield</option><option value="yes"' + (S.shield ? ' selected' : '') + '>Shield (+2 AC)</option></select></div>';
+    var shieldBlocked = !S.shield && !free.Shield && !canAfford(S, 'Shield');
+    h += '<div class="field"><label>Shield</label><select data-sel="shield"><option value="no"' + (!S.shield ? ' selected' : '') + '>No shield</option>' +
+      '<option value="yes"' + (S.shield ? ' selected' : '') + (shieldBlocked ? ' disabled' : '') + '>Shield (+2 AC) · ' + esc(gearNote('Shield')) + (shieldBlocked ? ' (cannot afford)' : '') + '</option></select></div>';
     h += '</div>';
 
-    h += '<h3 style="margin-top:14px">Weapons carried</h3><p class="muted small">Your package weapons are included automatically. Add anything else you want on the sheet.</p><div class="chips">';
+    h += '<h3 style="margin-top:14px">Weapons carried</h3><p class="muted small">Your package weapons are included automatically. ' +
+      'Weapons from your background kit are free to add. Anything else is bought when you add it and refunded when you remove it.</p><div class="chips">';
     Object.keys(D.WEAPONS).forEach(function (w) {
-      var pkg = c.equipment.filter(function (p) { return p.label === S.equipChoice; })[0];
-      var inPkg = pkg && has(pkg.weapons, w);
-      h += chipHTML(w, w + (inPkg ? ' (packed)' : ''), inPkg || has(S.extraWeapons, w), 'extraWeapons', inPkg);
+      var inPkg = pkg && has(pkg.weapons, w), mine = inPkg || has(S.extraWeapons, w);
+      var blocked = inPkg || (!mine && !free[w] && !canAfford(S, w));
+      h += chipHTML(w, w + ' · ' + (inPkg ? 'packed' : gearNote(w)), mine, 'extraWeapons', blocked);
     });
     h += '</div>';
+
+    if (ledger.unowned.length) {
+      h += '<div class="note warn" style="margin-top:14px"><b>Gear you do not own.</b> A character can only wear and wield what it starts with or buys.';
+      ledger.unowned.forEach(function (u) {
+        var afford = u.cp != null && u.cp <= ledger.leftCp;
+        var back = u.kind === 'armor' ? (pkg && pkg.armor && pkg.armor !== 'None' ? 'Wear ' + pkg.armor + ' instead' : 'Take it off')
+          : (u.kind === 'shield' ? 'Set it down' : 'Remove it');
+        h += '<div style="margin-top:8px"><b>' + esc(u.name) + '</b> · ' + esc(u.cp == null ? 'no price' : coinText(u.cp)) + ' ' +
+          '<button type="button" class="tiny" data-group="gearBuy" data-value="' + esc(u.name) + '"' + (afford ? '' : ' disabled') + '>' +
+          (afford ? 'Buy it' : 'Cannot afford') + '</button> ' +
+          '<button type="button" class="tiny" data-group="gearDrop" data-value="' + esc(u.name) + '">' + esc(back) + '</button></div>';
+      });
+      h += '</div>';
+    }
 
     var R2 = compute(S);
     h += '<h3 style="margin-top:20px">Armor Class</h3><div class="statline">' + statBox('AC', R2.ac.value, R2.ac.parts.join(' · ')) + '</div>';
@@ -4267,7 +4412,9 @@ var RF_APP = (function (D) {
       h += '</table>';
       if (c.weaponMastery) h += '<p class="muted small" style="margin-top:8px">Weapon Mastery: you use the mastery property of ' + c.weaponMastery + ' kinds of weapons. Pick from the Mastery column above.</p>';
     }
-    h += '<p class="muted" style="margin-top:14px">Coin in hand: <b>' + R2.equipment.gp + ' GP</b> (class package plus background).</p>';
+    h += '<p class="muted" style="margin-top:14px">Coin in hand: <b>' + esc(R2.equipment.coin) + '</b> (' + esc(coinText(ledger.startCp)) + ' from your class package and background' +
+      (R2.equipment.bought.length ? ', less ' + esc(coinText(ledger.spentCp)) + ' spent on ' + esc(R2.equipment.bought.map(function (b) { return b.name + ' (' + b.price + ')'; }).join(', ')) : '') +
+      (hasFeat(S, 'Crafter') ? '. Crafter takes 20 percent off every purchase' : '') + ').</p>';
     h += issuesHTML('equipment') + '</div></div>';
     return h;
   };
@@ -4771,7 +4918,8 @@ var RF_APP = (function (D) {
       '<div><b>Class package</b>' + esc(R2.equipment.items.join(', ') || 'None') + '</div>' +
       '<div><b>Background</b>' + esc(R2.equipment.bgItems.join(', ') || 'None') + '</div>' +
       '<div><b>Armor worn</b>' + esc(R2.ac.armor) + (R2.ac.shield ? ' and a Shield' : '') + '</div>' +
-      '<div><b>Coin</b>' + R2.equipment.gp + ' GP</div>' +
+      (R2.equipment.bought.length ? '<div><b>Bought</b>' + esc(R2.equipment.bought.map(function (b) { return b.name + ' (' + b.price + ')'; }).join(', ')) + '</div>' : '') +
+      '<div><b>Coin</b>' + esc(R2.equipment.coin) + '</div>' +
       '</div></div>';
 
     /* details */
@@ -4880,7 +5028,8 @@ var RF_APP = (function (D) {
     h2('Equipment');
     out.push('  ' + R2.equipment.items.join(', '));
     out.push('  ' + R2.equipment.bgItems.join(', '));
-    out.push('  Wearing: ' + R2.ac.armor + (R2.ac.shield ? ' and a Shield' : '') + '.  Coin: ' + R2.equipment.gp + ' GP');
+    if (R2.equipment.bought.length) out.push('  Bought: ' + R2.equipment.bought.map(function (b) { return b.name + ' (' + b.price + ')'; }).join(', '));
+    out.push('  Wearing: ' + R2.ac.armor + (R2.ac.shield ? ' and a Shield' : '') + '.  Coin: ' + R2.equipment.coin);
     h2('Character');
     if (S.alignment) out.push('  Alignment: ' + S.alignment);
     if (S.appearance) out.push('  Appearance: ' + S.appearance);
@@ -5019,6 +5168,7 @@ var RF_APP = (function (D) {
     pruneExpertise();
     pruneSpellPicks();
     pruneFeatPicks();
+    pruneGear();
   }
 
   function setGroup(group, value) {
@@ -5062,7 +5212,7 @@ var RF_APP = (function (D) {
         S.asi2Mode = ''; S.asi2BumpA = ''; S.asi2BumpB = ''; S.asi2Feat = ''; S.asi2FeatOpts = {};
         var cc = D.CLASSES[value];
         S.equipChoice = cc.equipment[0].label;
-        S.armor = cc.equipment[0].armor; S.shield = cc.equipment[0].shield; S.extraWeapons = [];
+        S.armor = cc.equipment[0].armor; S.shield = cc.equipment[0].shield; S.extraWeapons = []; S.bought = [];
         S.hpRolls = [];
       }
     } else if (kind === 'classChoice') {
@@ -5132,7 +5282,34 @@ var RF_APP = (function (D) {
       var pkg = CLS(S).equipment.filter(function (p) { return p.label === value; })[0];
       if (pkg) { S.armor = pkg.armor; S.shield = pkg.shield; }
     } else if (kind === 'extraWeapons') {
-      toggle(S.extraWeapons, value);
+      /* Adding a weapon the character does not already own buys it, and only
+         if the coin covers it. Removing one returns the coin (pruneGear). */
+      if (has(S.extraWeapons, value)) toggle(S.extraWeapons, value);
+      else if (freeGear(S)[value]) S.extraWeapons.push(value);
+      else if (canAfford(S, value)) { S.extraWeapons.push(value); S.bought.push(value); }
+    } else if (kind === 'armor') {
+      if (value !== S.armor && D.ARMOR[value]) {
+        var affordArmor = !!freeGear(S)[value] || canAfford(S, value);
+        if (affordArmor) {
+          S.armor = value;
+          pruneGear();
+          if (!freeGear(S)[value]) S.bought.push(value);
+        }
+      }
+    } else if (kind === 'shield') {
+      var wantShield = value === 'yes';
+      if (wantShield && !S.shield) {
+        if (freeGear(S).Shield) S.shield = true;
+        else if (canAfford(S, 'Shield')) { S.shield = true; S.bought.push('Shield'); }
+      } else if (!wantShield) S.shield = false;
+    } else if (kind === 'gearBuy') {
+      var gl = gearLedger(S);
+      var ug = gl.unowned.filter(function (u) { return u.name === value; })[0];
+      if (ug && ug.cp != null && ug.cp <= gl.leftCp) S.bought.push(value);
+    } else if (kind === 'gearDrop') {
+      if (value === S.armor) { var dp = equipPkg(S); S.armor = dp ? dp.armor : 'None'; }
+      else if (value === 'Shield') S.shield = false;
+      else S.extraWeapons = S.extraWeapons.filter(function (w) { return w !== value; });
     } else if (kind === 'hpMode') {
       S.hpMode = value;
       if (value === 'average') S.hpRolls = [];
@@ -5170,6 +5347,7 @@ var RF_APP = (function (D) {
     pruneExpertise();
     pruneSpellPicks();
     pruneFeatPicks();
+    pruneGear();
     render();
   }
 
@@ -5179,6 +5357,12 @@ var RF_APP = (function (D) {
   function pruneFeatPicks() {
     var live = magicInitiateLists(S);
     Object.keys(S.mi).forEach(function (k) { if (live.indexOf(k) === -1) delete S.mi[k]; });
+  }
+  /* A purchase only stands while the item is carried and not already free:
+     taking gear off, or switching to a package that includes it, refunds it. */
+  function pruneGear() {
+    var free = freeGear(S), carried = carriedGear(S);
+    S.bought = uniq(S.bought || []).filter(function (n) { return has(carried, n) && !free[n]; });
   }
   /* A spell granted by another source never uses up a chosen slot, so a pick
      that a later choice turns into a grant is released rather than wasted.
@@ -5259,8 +5443,8 @@ var RF_APP = (function (D) {
       if (el.hasAttribute && el.hasAttribute('data-sel')) {
         var key = el.getAttribute('data-sel');
         var val = el.value;
-        if (key === 'shield') { S.shield = (val === 'yes'); }
-        else if (key.indexOf('.') !== -1) {
+        if (key === 'shield' || key === 'armor') { setGroup(key, val); return; }
+        if (key.indexOf('.') !== -1) {
           var p = key.split('.');
           S[p[0]][p[1]] = val;
           if (p[0] === 'bgAssign' && p[1] === 'two' && S.bgAssign.one === val) S.bgAssign.one = '';
@@ -5276,7 +5460,7 @@ var RF_APP = (function (D) {
             S[key + 'Opts'] = {};
           }
         }
-        pruneSkillPicks(); pruneExpertise(); pruneSpellPicks(); pruneFeatPicks();
+        pruneSkillPicks(); pruneExpertise(); pruneSpellPicks(); pruneFeatPicks(); pruneGear();
         render(); return;
       }
       if (el.hasAttribute && el.hasAttribute('data-mi')) {
@@ -5361,6 +5545,7 @@ var RF_APP = (function (D) {
     spellbookCapAtOrAbove: spellbookCapAtOrAbove, spellbookRoomFor: spellbookRoomFor, phbSpellAudit: phbSpellAudit,
     phbSpellList: phbSpellList, pruneExpertise: pruneExpertise, grantedRaw: grantedRaw,
     magicInitiateLists: magicInitiateLists, miEntry: miEntry, featList: featList,
+    gearLedger: gearLedger, kitWeapons: kitWeapons, coinText: coinText,
     heldGeneralFeats: heldGeneralFeats, featPrereq: featPrereq, featChoiceIssues: featChoiceIssues, scoresBefore: scoresBefore,
     grantedSpells: grantedSpells, grantedCantrips: grantedCantrips, grantedNames: grantedNames,
     invList: invList, invSpec: invSpec, invTargetPool: invTargetPool, duplicateFeats: duplicateFeats,

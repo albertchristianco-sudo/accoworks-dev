@@ -36,6 +36,21 @@ function setLevel(st, n) {
 
 const SKILLED = { 'kaelen-nightshade': ['Acrobatics', 'Sleight of Hand', 'Arcana'], 'mortimer-vale': ['History', 'Religion', 'Perception'] };
 
+// Step issues a fix deliberately raises on a fixture as recorded: both
+// Paladins wear and wield gear they never paid for.
+const GEAR_FLAGGED = { 'baldwin-eisenstrom': ['Breastplate', 'Greatsword'], 'erwin-eisenstrom': ['Breastplate', 'Maul'] };
+function expectedIssue(slug, step, text) {
+  return step === 'equipment' && (GEAR_FLAGGED[slug] || []).some((item) => text.includes(item + ' but do not own it'));
+}
+function unexpectedIssues(slug, st) {
+  const out = {};
+  for (const [step, list] of Object.entries(issues(st))) {
+    const rest = list.filter((t) => !expectedIssue(slug, step, t));
+    if (rest.length) out[step] = rest;
+  }
+  return out;
+}
+
 test('there are five level 3 fixtures', () => {
   assert.deepEqual(FIXTURES.map((f) => f.slug), [
     'baldwin-eisenstrom', 'eldrad', 'erwin-eisenstrom', 'kaelen-nightshade', 'mortimer-vale',
@@ -72,8 +87,8 @@ for (const fx of FIXTURES) {
     assert.deepEqual(digest(APP.compute(hydrated(fx))), BASELINE[fx.slug]);
   });
 
-  test(`${fx.slug}: passes every step check as recorded`, () => {
-    assert.deepEqual(issues(hydrated(fx)), {});
+  test(`${fx.slug}: passes every step check as recorded, apart from deliberate flags`, () => {
+    assert.deepEqual(unexpectedIssues(fx.slug, hydrated(fx)), {});
   });
 }
 
@@ -91,7 +106,7 @@ for (const fx of FIXTURES) {
   test(`${fx.slug}: the boot path keeps every choice and every number`, () => {
     const st = boot(fx.sheet);
     if (SKILLED[fx.slug]) assert.deepEqual([...st.skillPicks['skilled:background']], SKILLED[fx.slug]);
-    assert.deepEqual(issues(st), {});
+    assert.deepEqual(unexpectedIssues(fx.slug, st), {});
     assert.deepEqual(digest(APP.compute(st)), BASELINE[fx.slug]);
     const again = clone(st);
     APP.setState(again);
@@ -389,4 +404,118 @@ test('dropping below level 4 releases the feat and its choices', () => {
   assert.equal(down.asiFeat, '');
   assert.deepEqual({ ...down.asiFeatOpts }, {});
   assert.deepEqual(digest(APP.compute(down)), BASELINE['mortimer-vale']);
+});
+
+/* ---------- Fix 3: characters must own what they wear and wield ---------- */
+
+const gearIssues = (st) => [...APP.stepIssues(st, 'equipment')].filter((t) => /do not own it|purchases cost/.test(t));
+
+test('every weapon carries its SRD 5.2.1 cost', () => {
+  const expected = {
+    Club: 0.1, Dagger: 2, Greatclub: 0.2, Handaxe: 5, Javelin: 0.5, 'Light Hammer': 2, Mace: 5, Quarterstaff: 0.2, Sickle: 1, Spear: 1,
+    Dart: 0.05, 'Light Crossbow': 25, Shortbow: 25, Sling: 0.1,
+    Battleaxe: 10, Flail: 10, Glaive: 20, Greataxe: 30, Greatsword: 50, Halberd: 20, Lance: 10, Longsword: 15, Maul: 10,
+    Morningstar: 15, Pike: 5, Rapier: 25, Scimitar: 25, Shortsword: 10, Trident: 5, Warhammer: 15, 'War Pick': 5, Whip: 2,
+    Blowgun: 10, 'Hand Crossbow': 75, 'Heavy Crossbow': 50, Longbow: 50,
+  };
+  assert.deepEqual(Object.fromEntries(Object.entries(D.WEAPONS).map(([k, w]) => [k, w.cost])), expected);
+  assert.equal(D.ARMOR.Breastplate.cost, 400);
+  assert.equal(D.ARMOR['Chain Mail'].cost, 75);
+  assert.equal(D.SHIELD_COST, 10);
+});
+
+for (const [slug, [armor, weapon]] of Object.entries(GEAR_FLAGGED)) {
+  test(`${slug}: unowned ${armor} and ${weapon} are flagged`, () => {
+    const st = boot(fixture(slug).sheet);
+    const list = gearIssues(st);
+    assert.equal(list.length, 2);
+    assert.match(list[0], new RegExp(`wear ${armor} but do not own it.*costs 400 GP and you have \\d+ GP, so you cannot buy it\\. Wear your package Chain Mail instead`));
+    assert.match(list[1], new RegExp(`carry the ${weapon} but do not own it.*Buy it for \\d+ GP`));
+    assert.deepEqual([...APP.compute(st).equipment.unowned], [armor, weapon]);
+  });
+}
+
+test('Baldwin: reverting to package gear gives AC 16, 18 with the Shield; the Greatsword is bought', () => {
+  APP.setState(boot(fixture('baldwin-eisenstrom').sheet));
+  APP.setGroup('gearBuy', 'Breastplate');
+  assert.equal(APP.getState().bought.length, 0, '400 GP is out of reach with 59 GP');
+  APP.setGroup('gearDrop', 'Breastplate');
+  let R = APP.compute(APP.getState());
+  assert.equal(R.ac.armor, 'Chain Mail');
+  assert.equal(R.ac.value, 16);
+  APP.setGroup('shield', 'yes');
+  R = APP.compute(APP.getState());
+  assert.equal(R.ac.value, 18);
+  assert.equal(R.equipment.gp, 59, 'package gear costs nothing');
+  APP.setGroup('gearBuy', 'Greatsword');
+  const st = APP.getState();
+  R = APP.compute(st);
+  assert.equal(R.equipment.gp, 9);
+  assert.equal(R.equipment.coin, '9 GP');
+  assert.deepEqual(clone(R.equipment.bought.map((b) => [b.name, b.gp])), [['Greatsword', 50]]);
+  assert.deepEqual(gearIssues(st), []);
+  assert.equal(R.attacks.find((a) => a.name === 'Greatsword').line, '2d6 +3 Slashing');
+  assert.match(APP.asText(), /Bought: Greatsword \(50 GP\)/);
+  assert.match(APP.asText(), /Coin: 9 GP/);
+});
+
+test('Erwin: the Maul is bought for 10 GP, leaving 11 GP; re-choosing the package restores its gear', () => {
+  APP.setState(boot(fixture('erwin-eisenstrom').sheet));
+  APP.setGroup('gearBuy', 'Maul');
+  APP.setGroup('equipChoice', 'A');
+  const st = APP.getState();
+  const R = APP.compute(st);
+  assert.equal(R.ac.value, 18, 'Chain Mail and Shield');
+  assert.equal(R.equipment.gp, 11);
+  assert.deepEqual(gearIssues(st), []);
+});
+
+test('buying on selection: affordable gear is paid for, unaffordable gear is refused, removal refunds', () => {
+  APP.setState(boot(fixture('erwin-eisenstrom').sheet));
+  APP.setGroup('equipChoice', 'A');
+  APP.setGroup('extraWeapons', 'Maul');
+  assert.equal(APP.compute(APP.getState()).equipment.gp, 21, 'the Maul was already carried, so unticking it drops it');
+  APP.setGroup('extraWeapons', 'Maul');
+  assert.equal(APP.compute(APP.getState()).equipment.gp, 11);
+  APP.setGroup('extraWeapons', 'Greatsword');
+  assert.ok(!APP.getState().extraWeapons.includes('Greatsword'), '50 GP with 11 GP left is refused');
+  APP.setGroup('extraWeapons', 'Spear');
+  assert.equal(APP.compute(APP.getState()).equipment.gp, 11, 'the Guard kit already holds a Spear');
+  APP.setGroup('armor', 'Breastplate');
+  assert.equal(APP.getState().armor, 'Chain Mail', 'cannot afford a Breastplate');
+  APP.setGroup('armor', 'Leather Armor');
+  let R = APP.compute(APP.getState());
+  assert.equal(R.ac.armor, 'Leather Armor');
+  assert.equal(R.equipment.gp, 1);
+  APP.setGroup('armor', 'Chain Mail');
+  R = APP.compute(APP.getState());
+  assert.equal(R.equipment.gp, 11, 'back in package armor, the Leather Armor is refunded');
+  APP.setGroup('extraWeapons', 'Maul');
+  assert.equal(APP.compute(APP.getState()).equipment.gp, 21);
+  assert.deepEqual([...APP.getState().bought], []);
+});
+
+test('Crafter takes 20 percent off, and coin is exact to the copper', () => {
+  APP.setState(boot(fixture('kaelen-nightshade').sheet));
+  APP.setGroup('extraWeapons', 'Light Crossbow');
+  APP.setGroup('extraWeapons', 'Dart');
+  const R = APP.compute(APP.getState());
+  assert.equal(R.equipment.coin, '23 GP 9 SP 6 CP', '44 GP less 20 GP and 4 CP');
+  assert.deepEqual(clone(R.equipment.bought.map((b) => b.price)), ['20 GP', '4 CP']);
+});
+
+test('switching to smaller background coin after buying flags the overspend', () => {
+  APP.setState(boot(fixture('baldwin-eisenstrom').sheet));
+  APP.setGroup('equipChoice', 'A');
+  APP.setGroup('gearBuy', 'Greatsword');
+  APP.setGroup('bgEquip', 'A');
+  const st = APP.getState();
+  assert.equal(APP.compute(st).equipment.gp, -29);
+  assert.ok(gearIssues(st).some((t) => /purchases cost 50 GP but you only have 21 GP/.test(t)));
+});
+
+test('background kits count as owned weapons', () => {
+  const st = boot(fixture('erwin-eisenstrom').sheet);
+  assert.deepEqual([...APP.kitWeapons(st)], ['Spear', 'Light Crossbow']);
+  assert.deepEqual([...APP.kitWeapons(boot(fixture('baldwin-eisenstrom').sheet))], [], 'Baldwin took 50 GP instead');
 });
