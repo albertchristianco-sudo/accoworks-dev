@@ -2063,12 +2063,33 @@ var RF_APP = (function (D) {
     try {
       var raw = localStorage.getItem(STORE_KEY);
       if (!raw) return false;
-      var o = JSON.parse(raw);
-      if (!o || o.v !== 3) return false;
-      var b = BLANK();
-      for (var k in b) { if (o[k] !== undefined) b[k] = o[k]; }
+      var b = hydrate(JSON.parse(raw));
+      if (!b) return false;
       S = b; return true;
     } catch (e) { return false; }
+  }
+  /* A stored v3 object becomes a full state: fields added since it was saved
+     take their blank defaults, and older encodings are brought forward. */
+  function hydrate(o) {
+    if (!o || o.v !== 3) return null;
+    var b = BLANK();
+    for (var k in b) { if (o[k] !== undefined) b[k] = o[k]; }
+    migrateSkilledKeys(b);
+    return b;
+  }
+  /* Skilled picks used to be keyed by the feat's position in featList
+     ("skilled0"), which shifts whenever an earlier feat comes or goes. They
+     are now keyed by the slot that grants the feat. */
+  function migrateSkilledKeys(st) {
+    var feats = featList(st);
+    Object.keys(st.skillPicks || {}).forEach(function (k) {
+      var m = /^skilled(\d+)$/.exec(k);
+      if (!m) return;
+      var f = feats[parseInt(m[1], 10)];
+      var picks = st.skillPicks[k];
+      delete st.skillPicks[k];
+      if (f && f.name === 'Skilled' && !st.skillPicks[skilledKey(f.slot)]) st.skillPicks[skilledKey(f.slot)] = picks;
+    });
   }
 
   /* ============================================================
@@ -2190,20 +2211,23 @@ var RF_APP = (function (D) {
     return out;
   }
 
-  /* Feats the character actually holds. */
+  /* Feats the character actually holds. "slot" names the choice that grants
+     each one, so anything picked for a feat can be keyed to where it came
+     from rather than to its position in this list. */
   function featList(st) {
     var out = [];
     var bg = BGD(st);
-    if (bg) out.push({ name: bg.feat, source: st.background });
+    if (bg) out.push({ name: bg.feat, source: st.background, slot: 'background' });
     var sp = SPC(st);
-    if (sp && sp.bonusOriginFeat && st.humanFeat) out.push({ name: st.humanFeat, source: 'Human (Versatile)' });
+    if (sp && sp.bonusOriginFeat && st.humanFeat) out.push({ name: st.humanFeat, source: 'Human (Versatile)', slot: 'human' });
     invList(st).forEach(function (e) {
-      if (e.n === 'Lessons of the First Ones' && e.t) out.push({ name: e.t, source: 'Lessons of the First Ones' });
+      if (e.n === 'Lessons of the First Ones' && e.t) out.push({ name: e.t, source: 'Lessons of the First Ones', slot: 'lessons' });
     });
-    if (levelOf(st) >= 4 && st.asiFeat) out.push({ name: st.asiFeat, source: 'Level 4 feat' });
-    if (extraASILevel(st) && st.asi2Feat) out.push({ name: st.asi2Feat, source: 'Level ' + extraASILevel(st) + ' feat' });
+    if (levelOf(st) >= 4 && st.asiFeat) out.push({ name: st.asiFeat, source: 'Level 4 feat', slot: 'asi' });
+    if (extraASILevel(st) && st.asi2Feat) out.push({ name: st.asi2Feat, source: 'Level ' + extraASILevel(st) + ' feat', slot: 'asi2' });
     return out;
   }
+  function skilledKey(slot) { return 'skilled:' + slot; }
   function hasFeat(st, name) {
     return featList(st).some(function (f) { return f.name === name; });
   }
@@ -2250,10 +2274,13 @@ var RF_APP = (function (D) {
       if (sub.bonusSkillFromList && c) g.push({ id: 'subList', label: 'Student of War (one Fighter skill)', count: sub.bonusSkillFromList, from: c.skills });
       if (sub.skillChoice) g.push({ id: 'subChoiceSkill', label: sub.skillChoice.label, count: sub.skillChoice.count, from: sub.skillChoice.from });
     }
-    featList(st).forEach(function (f, i) {
-      if (f.name === 'Skilled') {
-        g.push({ id: 'skilled' + i, label: 'Skilled feat (' + f.source + '): three skills', count: 3, from: ALL_SKILLS, note: 'The feat allows any combination of three skills or tools. Pick skills here and swap for tools at the table if you prefer.' });
-      }
+    /* Two Lessons of the First Ones cannot both be Skilled (the Class step
+       reports it), so one group per slot is enough. */
+    var seenSlot = {};
+    featList(st).forEach(function (f) {
+      if (f.name !== 'Skilled' || seenSlot[f.slot]) return;
+      seenSlot[f.slot] = 1;
+      g.push({ id: skilledKey(f.slot), label: 'Skilled feat (' + f.source + '): three skills', count: 3, from: ALL_SKILLS, note: 'The feat allows any combination of three skills or tools. Pick skills here and swap for tools at the table if you prefer.' });
     });
     return g;
   }
@@ -3855,7 +3882,9 @@ var RF_APP = (function (D) {
         cardHTML('roll', 'Roll for it', 'Roll a d' + c.hd + ' for ' + range.toLowerCase() + '. Level 1 is always the maximum.', S.hpMode === 'roll', 'hpMode') +
         '</div>';
       if (S.hpMode === 'roll') {
-        h += '<div class="rolled"><button type="button" id="btn-hproll">' + (S.hpRolls.length ? 'Reroll' : 'Roll ' + rolls + 'd' + c.hd) + '</button>';
+        var missing = rolls - S.hpRolls.length;
+        h += '<div class="rolled"><button type="button" id="btn-hproll">' +
+          (!S.hpRolls.length ? 'Roll ' + rolls + 'd' + c.hd : (missing > 0 ? 'Roll ' + missing + 'd' + c.hd + ' for the new level' + (missing > 1 ? 's' : '') : 'Reroll')) + '</button>';
         if (S.hpRolls.length) h += '<span class="muted">Rolled ' + S.hpRolls.join(' and ') + '</span>';
         h += '</div>';
       }
@@ -4452,6 +4481,9 @@ var RF_APP = (function (D) {
   }
 
   function render() {
+    /* Outside a browser (the node tests) state changes still apply; there is
+       just nothing to draw. */
+    if (typeof document === 'undefined') return;
     var list = activeSteps();
     if (S.step >= list.length) S.step = list.length - 1;
     var step = list[S.step];
@@ -4551,14 +4583,18 @@ var RF_APP = (function (D) {
       if (!beyondSpellData(S)) S.phbSpells = '';
     }
 
+    /* Rolls for levels already reached are kept on a level up; the
+       Equipment step asks only for the new level's roll. */
     if (lv < 2) S.hpRolls = [];
     else if (S.hpRolls.length > lv - 1) S.hpRolls = S.hpRolls.slice(0, lv - 1);
-    if (S.hpMode === 'roll' && S.hpRolls.length && S.hpRolls.length < lv - 1) S.hpRolls = [];
 
+    /* Feat picks are only dropped here when the feat granting them is gone.
+       A change of species, background, or feat clears its own picks in
+       setGroup. */
     pruneSkillPicks();
     pruneExpertise();
     pruneSpellPicks();
-    clearFeatPicks();
+    pruneFeatPicks();
   }
 
   function setGroup(group, value) {
@@ -4571,15 +4607,15 @@ var RF_APP = (function (D) {
            the spellcasting ability that choice used, and the extra Origin feat
            only Human grants. */
         S.species = value; S.speciesChoice = {}; S.speciesAbility = ''; S.humanFeat = '';
-        clearPick('species'); clearFeatPicks();
+        clearPick('species'); clearPick(skilledKey('human'));
       }
     } else if (kind === 'speciesChoice') {
       S.speciesChoice[sub] = value;
     } else if (kind === 'humanFeat') {
       S.humanFeat = S.humanFeat === value ? '' : value;
-      clearFeatPicks();
+      clearPick(skilledKey('human'));
     } else if (kind === 'background') {
-      if (S.background !== value) { S.background = value; S.bgAssign = { two: '', one: '' }; clearFeatPicks(); S.trait = S.ideal = S.bond = S.flaw = ''; }
+      if (S.background !== value) { S.background = value; S.bgAssign = { two: '', one: '' }; clearPick(skilledKey('background')); S.trait = S.ideal = S.bond = S.flaw = ''; }
     } else if (kind === 'bgMode') {
       S.bgMode = value;
     } else if (kind === 'bgEquip') {
@@ -4617,15 +4653,16 @@ var RF_APP = (function (D) {
       } else if (ispec && !ispec.repeatable && hasInv(S, value)) {
         S.invocations = invList(S).filter(function (e) { return e.n !== value; });
       }
-      clearFeatPicks();
     } else if (kind === 'invRemove') {
       S.invocations = invList(S).filter(function (e, i) { return i !== parseInt(value, 10); });
-      clearFeatPicks();
     } else if (kind === 'invTarget') {
       var tparts = value.split('|'), ti = parseInt(tparts[0], 10), tv = tparts.slice(1).join('|');
       var te = invList(S)[ti];
-      if (te) { invEntry(te); te.t = te.t === tv ? '' : tv; }
-      clearFeatPicks();
+      if (te) {
+        invEntry(te);
+        if (te.n === 'Lessons of the First Ones' && (te.t === 'Skilled' || tv === 'Skilled')) clearPick(skilledKey('lessons'));
+        te.t = te.t === tv ? '' : tv;
+      }
     } else if (kind === 'invTomeCantrip') {
       var tc = invList(S)[parseInt(sub, 10)];
       if (tc) toggle(invEntry(tc).c, value, CLS(S).invocations.tome.cantrips);
@@ -4704,12 +4741,14 @@ var RF_APP = (function (D) {
     pruneSkillPicks();
     pruneExpertise();
     pruneSpellPicks();
+    pruneFeatPicks();
     render();
   }
 
   function clearPick(id) { delete S.skillPicks[id]; }
-  function clearFeatPicks() {
-    Object.keys(S.skillPicks).forEach(function (k) { if (k.indexOf('skilled') === 0) delete S.skillPicks[k]; });
+  /* Skilled groups that lost their feat are pruned with the other skill
+     groups; Magic Initiate choices go when no feat holds that list any more. */
+  function pruneFeatPicks() {
     var live = magicInitiateLists(S);
     Object.keys(S.mi).forEach(function (k) { if (live.indexOf(k) === -1) delete S.mi[k]; });
   }
@@ -4778,8 +4817,8 @@ var RF_APP = (function (D) {
       }
       if (e.target.id === 'btn-hproll') {
         var hd = CLS(S).hd, rolls = levelOf(S) - 1;
-        S.hpRolls = [];
-        for (var ri = 0; ri < rolls; ri++) S.hpRolls.push(roll(hd));
+        if (S.hpRolls.length >= rolls) S.hpRolls = [];
+        while (S.hpRolls.length < rolls) S.hpRolls.push(roll(hd));
         render(); return;
       }
     });
@@ -4797,12 +4836,17 @@ var RF_APP = (function (D) {
           S[p[0]][p[1]] = val;
           if (p[0] === 'bgAssign' && p[1] === 'two' && S.bgAssign.one === val) S.bgAssign.one = '';
         } else {
+          var before = S[key];
           S[key] = val;
           /* Both halves of a +1/+1 must hit different abilities, for the
              level 4 improvement and the Fighter's level 6 one alike. */
           if (key === 'asiBumpA' && val && S.asiBumpB === val) S.asiBumpB = '';
           if (key === 'asi2BumpA' && val && S.asi2BumpB === val) S.asi2BumpB = '';
+          if ((key === 'asiFeat' || key === 'asi2Feat') && before !== val) {
+            clearPick(skilledKey(key === 'asiFeat' ? 'asi' : 'asi2'));
+          }
         }
+        pruneSkillPicks(); pruneExpertise(); pruneSpellPicks(); pruneFeatPicks();
         render(); return;
       }
       if (el.hasAttribute && el.hasAttribute('data-mi')) {
@@ -4890,6 +4934,7 @@ var RF_APP = (function (D) {
     grantedSpells: grantedSpells, grantedCantrips: grantedCantrips, grantedNames: grantedNames,
     invList: invList, invSpec: invSpec, invTargetPool: invTargetPool, duplicateFeats: duplicateFeats,
     sheetHTML: sheetHTML, render: render, goto: goto, setGroup: setGroup,
+    hydrate: hydrate, skilledKey: skilledKey,
     setState: function (o) { S = o; }, getState: function () { return S; }, boot: boot
   };
   if (typeof document !== 'undefined' && document.getElementById('steps')) {
