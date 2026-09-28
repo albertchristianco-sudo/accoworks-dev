@@ -1146,7 +1146,7 @@ var RF_DATA = (function () {
       features: [
         [1, 'Rage', 'Bonus Action while not in Heavy armor. Resistance to Bludgeoning, Piercing, and Slashing damage; +{rageDmg} bonus to damage on Strength-based attacks; Advantage on Strength checks and Strength saves. No Concentration and no spells. Lasts until the end of your next turn and can be extended. {rageUses} uses at level {lv}, one regained on a Short Rest.'],
         [1, 'Unarmored Defense', 'While you are not wearing armor, your base Armor Class equals 10 plus your Dexterity and Constitution modifiers. You can use a Shield and still gain this benefit.'],
-        [1, 'Weapon Mastery', 'You can use the mastery properties of two kinds of Simple or Martial Melee weapons of your choice. You can change one choice on a Long Rest.'],
+        [1, 'Weapon Mastery', 'You can use the mastery properties of {masteries} kinds of Simple or Martial Melee weapons of your choice (two at level 1, three from level 4). You can change one choice on a Long Rest.'],
         [2, 'Danger Sense', 'You have Advantage on Dexterity saving throws unless you have the Incapacitated condition.'],
         [2, 'Reckless Attack', 'On your first attack roll of your turn you can attack recklessly, gaining Advantage on Strength-based attack rolls until the start of your next turn. Attack rolls against you also have Advantage during that time.'],
         [3, 'Primal Knowledge', 'You gain proficiency in another skill from the Barbarian list. While your Rage is active, you can make Acrobatics, Intimidation, Perception, Stealth, or Survival checks as Strength checks.'],
@@ -1154,7 +1154,8 @@ var RF_DATA = (function () {
         [5, 'Fast Movement', 'Your Speed increases by 10 feet while you are not wearing Heavy armor.']
       ],
       extraSkillFromList: 1, extraSkillLevel: 3,
-      weaponMastery: 2,
+      /* Weapon Mastery kinds by level, and whether they must be melee weapons. */
+      weaponMastery: [2, 2, 2, 3, 3, 3], masteryMelee: true,
       subclasses: {
         'Path of the Berserker': { blurb: 'Channel Rage into violent fury.', features: [
           [3, 'Frenzy', 'If you use Reckless Attack while your Rage is active, you deal extra damage to the first target you hit on your turn with a Strength-based attack: roll a number of d6s equal to your Rage Damage bonus ({rageDmg}).'],
@@ -1383,7 +1384,7 @@ var RF_DATA = (function () {
       features: [
         [1, 'Fighting Style', 'You gain a Fighting Style feat of your choice. Defense is recommended.'],
         [1, 'Second Wind', 'As a Bonus Action, regain 1d10 plus your Fighter level ({lv}) Hit Points. 2 uses, one regained on a Short Rest and all on a Long Rest.'],
-        [1, 'Weapon Mastery', 'You can use the mastery properties of three kinds of Simple or Martial weapons of your choice. You can change one choice on a Long Rest.'],
+        [1, 'Weapon Mastery', 'You can use the mastery properties of {masteries} kinds of Simple or Martial weapons of your choice (three at level 1, four from level 4). You can change one choice on a Long Rest.'],
         [2, 'Action Surge', 'On your turn, take one additional action (not the Magic action). Once per Short or Long Rest.'],
         [2, 'Tactical Mind', 'When you fail an ability check, you can expend a use of Second Wind to roll 1d10 and add it to the check. If it still fails, the use is not expended.'],
         [5, 'Extra Attack', 'You can attack twice, instead of once, whenever you take the Attack action on your turn.'],
@@ -1392,7 +1393,7 @@ var RF_DATA = (function () {
       ],
       fightingStyle: true, fightingStyleLevel: 1,
       extraASI: 6,
-      weaponMastery: 3,
+      weaponMastery: [3, 3, 3, 4, 4, 4],
       subclasses: {
         'Battle Master': { blurb: 'Master sophisticated battle maneuvers.', features: [
           [3, 'Combat Superiority', 'You learn three maneuvers of your choice and have four Superiority Dice (d8), regained on a Short or Long Rest. Maneuver save DC equals 8 plus your Strength or Dexterity modifier (your choice) and Proficiency Bonus.'],
@@ -2159,6 +2160,8 @@ var RF_APP = (function (D) {
       /* bought lists gear paid for out of starting coin; anything worn or
          wielded must be in the package, the background kit, or here. */
       equipChoice: 'A', armor: '', shield: false, extraWeapons: [], bought: [],
+      /* Weapon kinds chosen for the class Weapon Mastery feature. */
+      masteries: [],
       cantrips: [], prepared: [], spellbook: [], savant: [], discoveries: [],
       /* Spells above the level this builder's spell list covers, typed in by
          hand. They count toward the prepared total. */
@@ -2534,6 +2537,7 @@ var RF_APP = (function (D) {
     if (spec.weapon) {
       if (!o.weapon) out.push('choose a kind of weapon you are proficient with.');
       else if (!featWeaponOk(st, o.weapon)) out.push('you are not proficient with the ' + o.weapon + '.');
+      else if (has(classMasteries(st), o.weapon)) out.push('you already use the ' + o.weapon + ' mastery through your class. Choose another kind.');
     }
     return out;
   }
@@ -2919,6 +2923,37 @@ var RF_APP = (function (D) {
     return cp != null && cp <= spendableFor(st, name);
   }
 
+  /* ---- Weapon Mastery ----
+     Barbarian, Fighter, Paladin, Ranger, and Rogue use the mastery property
+     of a number of weapon kinds they choose; no other class does. */
+  function masteryCount(st) {
+    var c = CLS(st);
+    if (!c || !c.weaponMastery) return 0;
+    return Array.isArray(c.weaponMastery) ? c.weaponMastery[levelOf(st) - 1] : c.weaponMastery;
+  }
+  function masteryEligible(st, name) {
+    var c = CLS(st), w = D.WEAPONS[name];
+    if (!c || !w || !c.weaponMastery) return false;
+    if (c.masteryMelee && !w.melee) return false;
+    return weaponProficient(st, name);
+  }
+  /* The class picks that are legal, in order, up to the count. */
+  function classMasteries(st) {
+    var n = masteryCount(st), out = [];
+    uniq(st.masteries || []).forEach(function (w) { if (out.length < n && masteryEligible(st, w)) out.push(w); });
+    return out;
+  }
+  /* Every weapon kind whose mastery the character can use: the class picks
+     plus the kind a Weapon Master feat adds. */
+  function masteryKinds(st) {
+    var out = classMasteries(st).map(function (w) { return { name: w, source: st.cls }; });
+    heldGeneralFeats(st).forEach(function (g) {
+      var w = g.opts.weapon;
+      if (g.spec.weapon && featWeaponOk(st, w) && !out.some(function (x) { return x.name === w; })) out.push({ name: w, source: g.name });
+    });
+    return out;
+  }
+
   /* ============================================================
      7. SPELL ACCESS
      ============================================================ */
@@ -3189,6 +3224,7 @@ var RF_APP = (function (D) {
       if (c.sneakAttackDice) tk.sneak = Math.ceil(lv / 2) + 'd6';
       if (c.martialArts) tk.maDie = martialArtsDie(c, lv);
       if (c.invocations) tk.invocations = invocationCount(st);
+      if (c.weaponMastery) tk.masteries = masteryCount(st);
     }
     if (ci) {
       tk.cantrips = cantripCount(st);
@@ -3418,6 +3454,10 @@ var RF_APP = (function (D) {
       note: maActive ? 'Martial Arts is active: Monk weapons and Unarmed Strikes use ' + maDie + ' and may use Dexterity.'
         : 'Martial Arts is inactive while you wear armor or hold a Shield.' } : null;
 
+    var masteries = masteryKinds(st), masteryNames = masteries.map(function (m) { return m.name; });
+    R.masteryCount = masteryCount(st);
+    R.masteries = masteries.map(function (m) { return { name: m.name, mastery: D.WEAPONS[m.name].mastery, source: m.source }; });
+    R.showMastery = R.masteryCount > 0 || R.masteries.length > 0;
     R.attacks = wlist.map(function (wn) {
       var w = D.WEAPONS[wn];
       if (!w) return null;
@@ -3441,7 +3481,7 @@ var RF_APP = (function (D) {
       return {
         name: wn + (monkWeapon && dmg !== w.dmg ? ' (Martial Arts die)' : ''),
         dmg: dmg, type: w.type, ability: abKey, prof: prof,
-        attack: atk, damageBonus: R.mods[abKey], mastery: w.mastery, notes: notes,
+        attack: atk, damageBonus: R.mods[abKey], mastery: has(masteryNames, wn) ? w.mastery : '', notes: notes,
         props: w.props.join(', ') || 'None',
         line: dmg + (R.mods[abKey] ? ' ' + sgn(R.mods[abKey]) : '') + ' ' + w.type
       };
@@ -3456,7 +3496,7 @@ var RF_APP = (function (D) {
       R.attacks.push({
         name: maActive ? 'Unarmed Strike (Martial Arts)' : 'Unarmed Strike',
         dmg: uaDmg, type: 'Bludgeoning', ability: uaAbility, prof: true,
-        attack: R.mods[uaAbility] + PB, damageBonus: R.mods[uaAbility], mastery: 'None', notes: [],
+        attack: R.mods[uaAbility] + PB, damageBonus: R.mods[uaAbility], mastery: '', notes: [],
         props: maActive ? 'Bonus Action strike' : 'No armor or Shield needed for Martial Arts',
         line: uaDmg + (R.mods[uaAbility] ? ' ' + sgn(R.mods[uaAbility]) : '') + ' Bludgeoning'
       });
@@ -3738,6 +3778,13 @@ var RF_APP = (function (D) {
         out.push('You ' + verb + u.name + ' but do not own it: it is not in your class package or background kit. ' +
           (afford ? 'Buy it for ' + price + ' (you have ' + coinText(ledger.leftCp) + ') or ' + instead + '.'
                   : 'It costs ' + price + ' and you have ' + coinText(ledger.leftCp) + ', so you cannot buy it. ' + instead.charAt(0).toUpperCase() + instead.slice(1) + '.'));
+      });
+      var mNeed = masteryCount(st), mHave = classMasteries(st);
+      if (mNeed && mHave.length !== mNeed) {
+        out.push('Weapon Mastery: choose ' + mNeed + ' kinds of weapons (you have ' + mHave.length + ').');
+      }
+      uniq(st.masteries || []).forEach(function (w) {
+        if (!has(mHave, w) && !masteryEligible(st, w)) out.push('Weapon Mastery: ' + w + ' is not a weapon your ' + (st.cls || 'class') + ' Weapon Mastery can use.');
       });
       if (ledger.leftCp < 0) {
         out.push('Your purchases cost ' + coinText(ledger.spentCp) + ' but you only have ' + coinText(ledger.startCp) + '. Return something or take more coin.');
@@ -4362,6 +4409,20 @@ var RF_APP = (function (D) {
     });
     h += '</div>';
 
+    var mNeed = masteryCount(S);
+    if (mNeed) {
+      var mine = classMasteries(S);
+      h += '<h3 style="margin-top:18px">Weapon Mastery ' + counterHTML(mine.length, mNeed) + '</h3>' +
+        '<p class="muted small">A level ' + levelOf(S) + ' ' + esc(S.cls) + ' uses the mastery property of ' + mNeed + ' kinds of ' +
+        (c.masteryMelee ? 'Simple or Martial Melee weapons' : 'weapons it is proficient with') +
+        '. They need not be weapons you carry, and you can change them on a Long Rest.</p><div class="chips">';
+      Object.keys(D.WEAPONS).filter(function (w) { return masteryEligible(S, w); }).forEach(function (w) {
+        var on = has(mine, w);
+        h += chipHTML(w, w + ' · ' + D.WEAPONS[w].mastery, on, 'mastery', !on && mine.length >= mNeed);
+      });
+      h += '</div>';
+    }
+
     if (ledger.unowned.length) {
       h += '<div class="note warn" style="margin-top:14px"><b>Gear you do not own.</b> A character can only wear and wield what it starts with or buys.';
       ledger.unowned.forEach(function (u) {
@@ -4403,14 +4464,14 @@ var RF_APP = (function (D) {
 
     if (R2.attacks.length) {
       h += '<h3 style="margin-top:20px">Attacks</h3><table style="width:100%;border-collapse:collapse;font-size:.86rem">' +
-        '<tr><th style="text-align:left;padding-bottom:6px">Weapon</th><th style="text-align:left">Attack</th><th style="text-align:left">Damage</th><th style="text-align:left">Mastery</th></tr>';
+        '<tr><th style="text-align:left;padding-bottom:6px">Weapon</th><th style="text-align:left">Attack</th><th style="text-align:left">Damage</th>' +
+        (R2.showMastery ? '<th style="text-align:left">Mastery</th>' : '') + '</tr>';
       R2.attacks.forEach(function (a) {
         h += '<tr><td style="padding:4px 8px 4px 0">' + esc(a.name) + (a.prof ? '' : ' <span class="muted small">(not proficient)</span>') + '</td>' +
           '<td>' + sgn(a.attack) + '</td><td>' + esc(a.line) + (a.notes.length ? '<br><span class="muted small">' + esc(a.notes.join('. ')) + '</span>' : '') +
-          '</td><td class="muted">' + esc(a.mastery) + '</td></tr>';
+          '</td>' + (R2.showMastery ? '<td class="muted">' + esc(a.mastery) + '</td>' : '') + '</tr>';
       });
       h += '</table>';
-      if (c.weaponMastery) h += '<p class="muted small" style="margin-top:8px">Weapon Mastery: you use the mastery property of ' + c.weaponMastery + ' kinds of weapons. Pick from the Mastery column above.</p>';
     }
     h += '<p class="muted" style="margin-top:14px">Coin in hand: <b>' + esc(R2.equipment.coin) + '</b> (' + esc(coinText(ledger.startCp)) + ' from your class package and background' +
       (R2.equipment.bought.length ? ', less ' + esc(coinText(ledger.spentCp)) + ' spent on ' + esc(R2.equipment.bought.map(function (b) { return b.name + ' (' + b.price + ')'; }).join(', ')) : '') +
@@ -4813,14 +4874,19 @@ var RF_APP = (function (D) {
 
     /* attacks */
     if (R2.attacks.length) {
-      h += '<div class="sec"><h3>Attacks</h3><table><tr><th>Weapon</th><th>Attack</th><th>Damage</th><th>Mastery</th><th>Properties</th></tr>';
+      h += '<div class="sec"><h3>Attacks</h3><table><tr><th>Weapon</th><th>Attack</th><th>Damage</th>' + (R2.showMastery ? '<th>Mastery</th>' : '') + '<th>Properties</th></tr>';
       R2.attacks.forEach(function (a) {
-        h += '<tr><td>' + esc(a.name) + '</td><td>' + sgn(a.attack) + '</td><td>' + esc(a.line) + '</td><td>' + esc(a.mastery) + '</td><td>' + esc(a.props) +
+        h += '<tr><td>' + esc(a.name) + '</td><td>' + sgn(a.attack) + '</td><td>' + esc(a.line) + '</td>' + (R2.showMastery ? '<td>' + esc(a.mastery) + '</td>' : '') + '<td>' + esc(a.props) +
           (a.notes.length ? '. ' + esc(a.notes.join('. ')) : '') + '</td></tr>';
       });
       h += '</table>';
       if (R2.extraAttack) h += '<p class="item" style="margin-top:8px"><b>Extra Attack.</b> You make two attacks whenever you take the Attack action.</p>';
-      if (c && c.weaponMastery) h += '<p class="item"><b>Weapon Mastery.</b> You use the mastery property of ' + c.weaponMastery + ' kinds of weapons, changeable on a Long Rest.</p>';
+      if (R2.showMastery) {
+        h += '<p class="item"><b>Weapon Mastery.</b> ' + (R2.masteries.length
+          ? esc(R2.masteries.map(function (m) { return m.name + ' (' + m.mastery + (m.source !== S.cls ? ', ' + m.source : '') + ')'; }).join(', ')) + '.'
+          : 'No weapon kinds chosen yet.') +
+          (R2.masteryCount ? ' ' + R2.masteryCount + ' kinds from your class, changeable on a Long Rest.' : '') + '</p>';
+      }
       if (R2.sneakAttack) h += '<p class="item"><b>Sneak Attack.</b> ' + esc(R2.sneakAttack) + ' extra damage, once per turn.</p>';
       h += '</div>';
     }
@@ -4980,7 +5046,8 @@ var RF_APP = (function (D) {
     out.push('  Others: ' + R2.skills.filter(function (s) { return !s.prof && !s.exp; }).map(function (s) { return s.name + ' ' + sgn(s.value); }).join(', '));
     if (R2.attacks.length) {
       h2('Attacks');
-      R2.attacks.forEach(function (a) { out.push('  ' + a.name + '  ' + sgn(a.attack) + ' to hit, ' + a.line + '  [' + a.mastery + ']' + (a.notes.length ? '  ' + a.notes.join('; ') : '')); });
+      R2.attacks.forEach(function (a) { out.push('  ' + a.name + '  ' + sgn(a.attack) + ' to hit, ' + a.line + (a.mastery ? '  [' + a.mastery + ']' : '') + (a.notes.length ? '  ' + a.notes.join('; ') : '')); });
+      if (R2.masteries.length) out.push('  Weapon Mastery: ' + R2.masteries.map(function (m) { return m.name + ' (' + m.mastery + ')'; }).join(', '));
     }
     if (R2.caster) {
       h2('Spellcasting');
@@ -5212,7 +5279,7 @@ var RF_APP = (function (D) {
         S.asi2Mode = ''; S.asi2BumpA = ''; S.asi2BumpB = ''; S.asi2Feat = ''; S.asi2FeatOpts = {};
         var cc = D.CLASSES[value];
         S.equipChoice = cc.equipment[0].label;
-        S.armor = cc.equipment[0].armor; S.shield = cc.equipment[0].shield; S.extraWeapons = []; S.bought = [];
+        S.armor = cc.equipment[0].armor; S.shield = cc.equipment[0].shield; S.extraWeapons = []; S.bought = []; S.masteries = [];
         S.hpRolls = [];
       }
     } else if (kind === 'classChoice') {
@@ -5302,6 +5369,10 @@ var RF_APP = (function (D) {
         if (freeGear(S).Shield) S.shield = true;
         else if (canAfford(S, 'Shield')) { S.shield = true; S.bought.push('Shield'); }
       } else if (!wantShield) S.shield = false;
+    } else if (kind === 'mastery') {
+      S.masteries = classMasteries(S);
+      if (has(S.masteries, value)) toggle(S.masteries, value);
+      else if (masteryEligible(S, value)) toggle(S.masteries, value, masteryCount(S));
     } else if (kind === 'gearBuy') {
       var gl = gearLedger(S);
       var ug = gl.unowned.filter(function (u) { return u.name === value; })[0];
@@ -5363,6 +5434,7 @@ var RF_APP = (function (D) {
   function pruneGear() {
     var free = freeGear(S), carried = carriedGear(S);
     S.bought = uniq(S.bought || []).filter(function (n) { return has(carried, n) && !free[n]; });
+    S.masteries = classMasteries(S);
   }
   /* A spell granted by another source never uses up a chosen slot, so a pick
      that a later choice turns into a grant is released rather than wasted.
@@ -5546,6 +5618,7 @@ var RF_APP = (function (D) {
     phbSpellList: phbSpellList, pruneExpertise: pruneExpertise, grantedRaw: grantedRaw,
     magicInitiateLists: magicInitiateLists, miEntry: miEntry, featList: featList,
     gearLedger: gearLedger, kitWeapons: kitWeapons, coinText: coinText,
+    masteryCount: masteryCount, masteryEligible: masteryEligible, masteryKinds: masteryKinds,
     heldGeneralFeats: heldGeneralFeats, featPrereq: featPrereq, featChoiceIssues: featChoiceIssues, scoresBefore: scoresBefore,
     grantedSpells: grantedSpells, grantedCantrips: grantedCantrips, grantedNames: grantedNames,
     invList: invList, invSpec: invSpec, invTargetPool: invTargetPool, duplicateFeats: duplicateFeats,

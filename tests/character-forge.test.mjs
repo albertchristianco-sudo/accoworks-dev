@@ -37,10 +37,14 @@ function setLevel(st, n) {
 const SKILLED = { 'kaelen-nightshade': ['Acrobatics', 'Sleight of Hand', 'Arcana'], 'mortimer-vale': ['History', 'Religion', 'Perception'] };
 
 // Step issues a fix deliberately raises on a fixture as recorded: both
-// Paladins wear and wield gear they never paid for.
+// Paladins wear and wield gear they never paid for, and the Paladins and the
+// Rogue have Weapon Mastery picks the Forge never recorded.
 const GEAR_FLAGGED = { 'baldwin-eisenstrom': ['Breastplate', 'Greatsword'], 'erwin-eisenstrom': ['Breastplate', 'Maul'] };
+const MASTERY_OWED = ['baldwin-eisenstrom', 'erwin-eisenstrom', 'mortimer-vale'];
 function expectedIssue(slug, step, text) {
-  return step === 'equipment' && (GEAR_FLAGGED[slug] || []).some((item) => text.includes(item + ' but do not own it'));
+  if (step !== 'equipment') return false;
+  if ((GEAR_FLAGGED[slug] || []).some((item) => text.includes(item + ' but do not own it'))) return true;
+  return MASTERY_OWED.includes(slug) && text === 'Weapon Mastery: choose 2 kinds of weapons (you have 0).';
 }
 function unexpectedIssues(slug, st) {
   const out = {};
@@ -518,4 +522,79 @@ test('background kits count as owned weapons', () => {
   const st = boot(fixture('erwin-eisenstrom').sheet);
   assert.deepEqual([...APP.kitWeapons(st)], ['Spear', 'Light Crossbow']);
   assert.deepEqual([...APP.kitWeapons(boot(fixture('baldwin-eisenstrom').sheet))], [], 'Baldwin took 50 GP instead');
+});
+
+/* ---------- Fix 4: Weapon Mastery only where the class has it ---------- */
+
+function newCharacter(fields) {
+  const st = APP.hydrate(APP.BLANK());
+  Object.assign(st, { species: 'Human', humanFeat: 'Alert', background: 'Soldier', bgAssign: { two: 'str', one: 'con' },
+    abilityMethod: 'array', assign: { str: 0, dex: 2, con: 1, int: 5, wis: 3, cha: 4 } }, fields);
+  APP.setState(st);
+  APP.normalize();
+  return APP.getState();
+}
+
+for (const slug of ['eldrad', 'kaelen-nightshade']) {
+  test(`${slug}: no Mastery column for a class without Weapon Mastery`, () => {
+    const st = boot(fixture(slug).sheet);
+    const R = APP.compute(st);
+    assert.equal(R.masteryCount, 0);
+    assert.equal(R.showMastery, false);
+    assert.ok(R.attacks.every((a) => a.mastery === ''));
+    assert.doesNotMatch(APP.sheetHTML(), /<th>Mastery<\/th>|Weapon Mastery/);
+    assert.doesNotMatch(APP.asText(), /\[(Nick|Topple|Sap|Slow|Vex|Graze|Push|Cleave)\]/);
+    assert.deepEqual([...APP.stepIssues(st, 'equipment')].filter((t) => /Mastery/.test(t)), []);
+  });
+}
+
+for (const slug of MASTERY_OWED) {
+  test(`${slug}: Weapon Mastery asks for two kinds and shows only those`, () => {
+    const st = boot(fixture(slug).sheet);
+    assert.equal(APP.masteryCount(st), 2);
+    let R = APP.compute(st);
+    assert.equal(R.showMastery, true);
+    assert.ok(R.attacks.every((a) => a.mastery === ''), 'nothing chosen yet');
+    const [first, second] = R.attacks.map((a) => a.name.replace(/ \(.*$/, ''));
+    APP.setGroup('mastery', first);
+    APP.setGroup('mastery', second);
+    APP.setGroup('mastery', 'Club');
+    const after = APP.getState();
+    assert.deepEqual([...after.masteries], [first, second], 'a third kind is refused');
+    R = APP.compute(after);
+    for (const a of R.attacks) {
+      assert.equal(a.mastery, [first, second].includes(a.name) ? D.WEAPONS[a.name].mastery : '', a.name);
+    }
+    assert.deepEqual([...APP.stepIssues(after, 'equipment')].filter((t) => /Mastery/.test(t)), []);
+    assert.match(APP.sheetHTML(), /<th>Mastery<\/th>/);
+    assert.deepEqual(digest(R), BASELINE[slug], 'mastery changes no number');
+  });
+}
+
+test('Weapon Mastery follows proficiency and the Barbarian melee rule', () => {
+  const rogue = boot(fixture('mortimer-vale').sheet);
+  assert.equal(APP.masteryEligible(rogue, 'Rapier'), true, 'Finesse');
+  assert.equal(APP.masteryEligible(rogue, 'Longsword'), false, 'a Rogue lacks Longsword proficiency');
+  const barb = newCharacter({ cls: 'Barbarian', level: 3, equipChoice: 'A' });
+  assert.equal(APP.masteryEligible(barb, 'Greataxe'), true);
+  assert.equal(APP.masteryEligible(barb, 'Longbow'), false, 'Simple or Martial Melee only');
+  assert.equal(APP.masteryCount(barb), 2);
+  assert.equal(APP.masteryCount(setLevel(barb, 4)), 3);
+  const fighter = newCharacter({ cls: 'Fighter', level: 4, fightingStyle: 'Defense', masteries: ['Greatsword', 'Flail', 'Javelin', 'Longbow'] });
+  assert.equal(APP.masteryCount(fighter), 4);
+  assert.deepEqual([...setLevel(fighter, 3).masteries], ['Greatsword', 'Flail', 'Javelin'], 'dropping to 3 trims to three');
+  assert.match(APP.compute(fighter).features.find((f) => f.name === 'Weapon Mastery').text, /mastery properties of 3 kinds/);
+});
+
+test('the Weapon Master feat adds one kind, even for a Wizard', () => {
+  const st = takeFeat('eldrad', 'Weapon Master', { ability: 'dex', weapon: 'Quarterstaff' });
+  assert.deepEqual(asiIssues(st), []);
+  const R = APP.compute(st);
+  assert.equal(R.showMastery, true);
+  assert.equal(R.attacks.find((a) => a.name === 'Quarterstaff').mastery, 'Topple');
+  assert.equal(R.attacks.find((a) => a.name === 'Dagger').mastery, '');
+  assert.match(APP.sheetHTML(), /Quarterstaff \(Topple, Weapon Master\)/);
+  const dup = takeFeat('mortimer-vale', 'Weapon Master', { ability: 'dex', weapon: 'Dagger' });
+  dup.masteries = ['Dagger', 'Shortbow'];
+  assert.ok(asiIssues(dup).some((t) => /already use the Dagger mastery through your class/.test(t)));
 });
