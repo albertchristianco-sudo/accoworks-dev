@@ -1,0 +1,285 @@
+{
+  "fixtureFormat": "forge-v3-fixture/1",
+  "slug": "eldrad",
+  "character": "Eldrad",
+  "player": null,
+  "source": {
+    "pdf": "bbcbdc67e376d7cc6022d8f5d0ab6423bbf28c0a943649bd4a90e8ac13d8d6da.pdf",
+    "printedAt": "9/25/26, 8:53 PM (browser header)",
+    "forgeCommit": "2bcbcbb7bc2dd4c45a3962df830d3b81274bed6b",
+    "printedLevel": 3
+  },
+  "summary": {
+    "level": 3,
+    "species": "Elf (High Elf)",
+    "class": "Wizard",
+    "subclass": "Evoker",
+    "background": "Sage"
+  },
+  "sheet": {
+    "v": 3,
+    "step": 0,
+    "level": 3,
+    "species": "Elf",
+    "speciesChoice": {
+      "lineage": "High Elf"
+    },
+    "speciesAbility": "int",
+    "humanFeat": "",
+    "background": "Sage",
+    "bgMode": "2-1",
+    "bgAssign": {
+      "two": "int",
+      "one": "con"
+    },
+    "bgEquip": "A",
+    "cls": "Wizard",
+    "classChoice": {},
+    "subclass": "Evoker",
+    "subChoice": {},
+    "fightingStyle": "",
+    "blessedWarrior": [],
+    "druidicWarrior": [],
+    "metamagic": [],
+    "invocations": [],
+    "maneuvers": [],
+    "abilityMethod": "array",
+    "rolls": [],
+    "assign": {
+      "str": 5,
+      "dex": 2,
+      "con": 1,
+      "int": 0,
+      "wis": 4,
+      "cha": 3
+    },
+    "pointBuy": {
+      "str": 8,
+      "dex": 8,
+      "con": 8,
+      "int": 8,
+      "wis": 8,
+      "cha": 8
+    },
+    "skillPicks": {
+      "class": [
+        "Insight",
+        "Investigation"
+      ],
+      "species": [
+        "Perception"
+      ]
+    },
+    "expertise": {
+      "scholar": [
+        "Arcana"
+      ]
+    },
+    "hpMode": "average",
+    "hpRolls": [],
+    "equipChoice": "A",
+    "armor": "None",
+    "shield": false,
+    "extraWeapons": [],
+    "cantrips": [
+      "Fire Bolt",
+      "True Strike",
+      "Mage Hand"
+    ],
+    "prepared": [
+      "Magic Missile",
+      "Tasha's Hideous Laughter",
+      "Scorching Ray",
+      "Misty Step",
+      "Comprehend Languages",
+      "Disguise Self"
+    ],
+    "spellbook": [
+      "Comprehend Languages",
+      "Disguise Self",
+      "Protection from Evil and Good",
+      "Web",
+      "Shield",
+      "Detect Magic",
+      "Tasha's Hideous Laughter",
+      "Find Familiar",
+      "Fog Cloud",
+      "Misty Step"
+    ],
+    "savant": [
+      "Scorching Ray",
+      "Magic Missile"
+    ],
+    "discoveries": [],
+    "phbSpells": "",
+    "mi": {
+      "Wizard": {
+        "c": [
+          "Dancing Lights",
+          "Friends"
+        ],
+        "s": "Burning Hands",
+        "a": "int"
+      }
+    },
+    "asiMode": "",
+    "asiBumpA": "",
+    "asiBumpB": "",
+    "asiFeat": "",
+    "asi2Mode": "",
+    "asi2BumpA": "",
+    "asi2BumpB": "",
+    "asi2Feat": "",
+    "name": "Eldrad",
+    "pronouns": "",
+    "alignment": "Chaotic Good",
+    "appearance": "Big red wizard hat -",
+    "trait": "A MEGA elf. - Make Elves Great Again",
+    "ideal": "Knowledge. What is written down cannot be taken away.",
+    "bond": "My mentor disappeared and left their work unfinished...",
+    "flaw": "Thinks women should stay in the kitchen."
+  },
+  "printed": {
+    "ac": 11,
+    "hp": 20,
+    "initiative": 1,
+    "speed": 30,
+    "pb": 2,
+    "passivePerception": 12,
+    "hitDice": "3d6",
+    "scores": {
+      "str": 8,
+      "dex": 13,
+      "con": 15,
+      "int": 17,
+      "wis": 10,
+      "cha": 12
+    },
+    "saves": {
+      "str": -1,
+      "dex": 1,
+      "con": 2,
+      "int": 5,
+      "wis": 2,
+      "cha": 1
+    },
+    "skills": {
+      "Acrobatics": 1,
+      "Animal Handling": 0,
+      "Arcana": 7,
+      "Athletics": -1,
+      "Deception": 1,
+      "History": 5,
+      "Insight": 2,
+      "Intimidation": 1,
+      "Investigation": 5,
+      "Medicine": 0,
+      "Nature": 3,
+      "Perception": 2,
+      "Performance": 1,
+      "Persuasion": 1,
+      "Religion": 3,
+      "Sleight of Hand": 1,
+      "Stealth": 1,
+      "Survival": 0
+    },
+    "expertise": [
+      "Arcana"
+    ],
+    "attacks": [
+      [
+        "Dagger",
+        3,
+        "1d4 +1 Piercing"
+      ],
+      [
+        "Quarterstaff",
+        1,
+        "1d6 -1 Bludgeoning"
+      ]
+    ],
+    "caster": {
+      "ability": "int",
+      "dc": 13,
+      "attack": 5,
+      "slots": "4 x L1, 2 x L2"
+    },
+    "innate": [
+      [
+        "Magic Initiate (Wizard)",
+        13,
+        5
+      ],
+      [
+        "Elf magic",
+        13,
+        5
+      ]
+    ],
+    "cantrips": [
+      "Fire Bolt",
+      "True Strike",
+      "Mage Hand",
+      "Prestidigitation",
+      "Dancing Lights",
+      "Friends"
+    ],
+    "spells": [
+      "Magic Missile",
+      "Tasha's Hideous Laughter",
+      "Scorching Ray",
+      "Misty Step",
+      "Comprehend Languages",
+      "Disguise Self",
+      "Detect Magic",
+      "Burning Hands"
+    ],
+    "spellbook": [
+      "Comprehend Languages",
+      "Disguise Self",
+      "Protection from Evil and Good",
+      "Web",
+      "Shield",
+      "Detect Magic",
+      "Tasha's Hideous Laughter",
+      "Find Familiar",
+      "Fog Cloud",
+      "Misty Step",
+      "Scorching Ray",
+      "Magic Missile"
+    ],
+    "features": [
+      "Spellcasting",
+      "Ritual Adept",
+      "Arcane Recovery",
+      "Scholar",
+      "Evocation Savant",
+      "Potent Cantrip"
+    ],
+    "feats": [
+      "Magic Initiate (Wizard)"
+    ],
+    "coin": 13,
+    "armorWorn": "None"
+  },
+  "inferred": [
+    {
+      "field": "abilityMethod",
+      "note": "'array' chosen. The base scores (8/13/14/15/10/12) are both the Standard Array and a legal 27-point buy; the sheet does not say which method was used. No effect on any number."
+    },
+    {
+      "field": "spellbook order / savant split",
+      "note": "The sheet prints the spellbook with the two Evocation Savant picks appended. Scorching Ray and Magic Missile are the only Evocation spells in the book, so they are the Savant picks; the order of the other ten is as printed. No effect on numbers."
+    },
+    {
+      "field": "equipChoice / bgEquip",
+      "note": "Package A and background equipment A, deduced from the item lists and 13 GP (5 + 8)."
+    }
+  ],
+  "verification": {
+    "allMatch": true,
+    "mismatches": [],
+    "stepIssues": {},
+    "unknownSpellNames": []
+  }
+}

@@ -325,12 +325,13 @@ select{cursor:pointer}
   .masthead .sub{margin-top:14px; font-size:1rem}
   .masthead-meta{margin:12px 0 0; white-space:normal}
   .toolbar{
-    position:static; display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+    position:static; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); grid-auto-flow:row dense;
     gap:8px; padding:10px 0;
   }
   .toolbar .spacer{display:none}
   .toolbar .levelpick{grid-column:span 2}
   .toolbar button{min-width:0; padding:9px 7px; font-size:.78rem}
+  .toolbar #btn-export, .toolbar #btn-import{grid-column:span 2}
   .progress{grid-template-columns:repeat(4,minmax(0,1fr)); row-gap:4px; padding-top:18px; margin-bottom:26px}
   .pstep{min-height:58px; padding:7px 4px 8px; font-size:.72rem}
   .pstep.active{padding-top:6px}
@@ -432,6 +433,9 @@ footer.foot{color:var(--ink-3); font-size:.78rem; padding:28px 0 0; border-top:1
     <button type="button" id="btn-review">Review</button>
     <button type="button" id="btn-print" class="primary">Save PDF</button>
     <button type="button" id="btn-copy">Copy text</button>
+    <button type="button" id="btn-export" title="Save this character as a file you can import in another browser">Export JSON</button>
+    <button type="button" id="btn-import" title="Load a character from an exported file">Import JSON</button>
+    <input type="file" id="file-import" accept=".json,application/json" hidden>
     <button type="button" id="btn-reset" class="ghost">Reset</button>
   </nav>
 
@@ -512,6 +516,7 @@ var RF_DATA = (function () {
   };
 
   var SHIELD_BONUS = 2;
+  var SHIELD_COST = 10;
 
   /* Cantrips that deal damage, with the properties the Warlock invocation
      prerequisites ask about (2024 PHB, ch. 7 spell descriptions).
@@ -553,49 +558,57 @@ var RF_DATA = (function () {
      that rule on its own. */
   var REPEATABLE_ORIGIN_FEATS = ['Skilled'];
 
-  /* ---------- WEAPONS (2024 PHB, ch. 6) ---------- */
+  /* ---------- WEAPONS (2024 PHB, ch. 6) ----------
+     cost is in GP, as in the SRD 5.2.1 weapon table: 1 SP is 0.1 GP and
+     1 CP is 0.01 GP. */
 
   var WEAPONS = {
     /* Simple Melee */
-    'Club':          { cat: 'simple',  melee: true,  dmg: '1d4',  type: 'Bludgeoning', props: ['Light'], mastery: 'Slow' },
-    'Dagger':        { cat: 'simple',  melee: true,  dmg: '1d4',  type: 'Piercing',    props: ['Finesse', 'Light', 'Thrown (20/60)'], mastery: 'Nick' },
-    'Greatclub':     { cat: 'simple',  melee: true,  dmg: '1d8',  type: 'Bludgeoning', props: ['Two-Handed'], mastery: 'Push' },
-    'Handaxe':       { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Slashing',    props: ['Light', 'Thrown (20/60)'], mastery: 'Vex' },
-    'Javelin':       { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Piercing',    props: ['Thrown (30/120)'], mastery: 'Slow' },
-    'Light Hammer':  { cat: 'simple',  melee: true,  dmg: '1d4',  type: 'Bludgeoning', props: ['Light', 'Thrown (20/60)'], mastery: 'Nick' },
-    'Mace':          { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Bludgeoning', props: [], mastery: 'Sap' },
-    'Quarterstaff':  { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Bludgeoning', props: ['Versatile (1d8)'], mastery: 'Topple' },
-    'Sickle':        { cat: 'simple',  melee: true,  dmg: '1d4',  type: 'Slashing',    props: ['Light'], mastery: 'Nick' },
-    'Spear':         { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Piercing',    props: ['Thrown (20/60)', 'Versatile (1d8)'], mastery: 'Sap' },
+    'Club':          { cat: 'simple',  melee: true,  dmg: '1d4',  type: 'Bludgeoning', props: ['Light'], mastery: 'Slow', cost: 0.1 },
+    'Dagger':        { cat: 'simple',  melee: true,  dmg: '1d4',  type: 'Piercing',    props: ['Finesse', 'Light', 'Thrown (20/60)'], mastery: 'Nick', cost: 2 },
+    'Greatclub':     { cat: 'simple',  melee: true,  dmg: '1d8',  type: 'Bludgeoning', props: ['Two-Handed'], mastery: 'Push', cost: 0.2 },
+    'Handaxe':       { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Slashing',    props: ['Light', 'Thrown (20/60)'], mastery: 'Vex', cost: 5 },
+    'Javelin':       { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Piercing',    props: ['Thrown (30/120)'], mastery: 'Slow', cost: 0.5 },
+    'Light Hammer':  { cat: 'simple',  melee: true,  dmg: '1d4',  type: 'Bludgeoning', props: ['Light', 'Thrown (20/60)'], mastery: 'Nick', cost: 2 },
+    'Mace':          { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Bludgeoning', props: [], mastery: 'Sap', cost: 5 },
+    'Quarterstaff':  { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Bludgeoning', props: ['Versatile (1d8)'], mastery: 'Topple', cost: 0.2 },
+    'Sickle':        { cat: 'simple',  melee: true,  dmg: '1d4',  type: 'Slashing',    props: ['Light'], mastery: 'Nick', cost: 1 },
+    'Spear':         { cat: 'simple',  melee: true,  dmg: '1d6',  type: 'Piercing',    props: ['Thrown (20/60)', 'Versatile (1d8)'], mastery: 'Sap', cost: 1 },
     /* Simple Ranged */
-    'Dart':          { cat: 'simple',  melee: false, dmg: '1d4',  type: 'Piercing',    props: ['Finesse', 'Thrown (20/60)'], mastery: 'Vex' },
-    'Light Crossbow':{ cat: 'simple',  melee: false, dmg: '1d8',  type: 'Piercing',    props: ['Ammunition (80/320)', 'Loading', 'Two-Handed'], mastery: 'Slow' },
-    'Shortbow':      { cat: 'simple',  melee: false, dmg: '1d6',  type: 'Piercing',    props: ['Ammunition (80/320)', 'Two-Handed'], mastery: 'Vex' },
-    'Sling':         { cat: 'simple',  melee: false, dmg: '1d4',  type: 'Bludgeoning', props: ['Ammunition (30/120)'], mastery: 'Slow' },
+    'Dart':          { cat: 'simple',  melee: false, dmg: '1d4',  type: 'Piercing',    props: ['Finesse', 'Thrown (20/60)'], mastery: 'Vex', cost: 0.05 },
+    'Light Crossbow':{ cat: 'simple',  melee: false, dmg: '1d8',  type: 'Piercing',    props: ['Ammunition (80/320)', 'Loading', 'Two-Handed'], mastery: 'Slow', cost: 25 },
+    'Shortbow':      { cat: 'simple',  melee: false, dmg: '1d6',  type: 'Piercing',    props: ['Ammunition (80/320)', 'Two-Handed'], mastery: 'Vex', cost: 25 },
+    'Sling':         { cat: 'simple',  melee: false, dmg: '1d4',  type: 'Bludgeoning', props: ['Ammunition (30/120)'], mastery: 'Slow', cost: 0.1 },
     /* Martial Melee */
-    'Battleaxe':     { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Slashing',    props: ['Versatile (1d10)'], mastery: 'Topple' },
-    'Flail':         { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Bludgeoning', props: [], mastery: 'Sap' },
-    'Glaive':        { cat: 'martial', melee: true,  dmg: '1d10', type: 'Slashing',    props: ['Heavy', 'Reach', 'Two-Handed'], mastery: 'Graze' },
-    'Greataxe':      { cat: 'martial', melee: true,  dmg: '1d12', type: 'Slashing',    props: ['Heavy', 'Two-Handed'], mastery: 'Cleave' },
-    'Greatsword':    { cat: 'martial', melee: true,  dmg: '2d6',  type: 'Slashing',    props: ['Heavy', 'Two-Handed'], mastery: 'Graze' },
-    'Halberd':       { cat: 'martial', melee: true,  dmg: '1d10', type: 'Slashing',    props: ['Heavy', 'Reach', 'Two-Handed'], mastery: 'Cleave' },
-    'Lance':         { cat: 'martial', melee: true,  dmg: '1d10', type: 'Piercing',    props: ['Heavy', 'Reach', 'Two-Handed (unless mounted)'], mastery: 'Topple' },
-    'Longsword':     { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Slashing',    props: ['Versatile (1d10)'], mastery: 'Sap' },
-    'Maul':          { cat: 'martial', melee: true,  dmg: '2d6',  type: 'Bludgeoning', props: ['Heavy', 'Two-Handed'], mastery: 'Topple' },
-    'Morningstar':   { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Piercing',    props: [], mastery: 'Sap' },
-    'Pike':          { cat: 'martial', melee: true,  dmg: '1d10', type: 'Piercing',    props: ['Heavy', 'Reach', 'Two-Handed'], mastery: 'Push' },
-    'Rapier':        { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Piercing',    props: ['Finesse'], mastery: 'Vex' },
-    'Scimitar':      { cat: 'martial', melee: true,  dmg: '1d6',  type: 'Slashing',    props: ['Finesse', 'Light'], mastery: 'Nick' },
-    'Shortsword':    { cat: 'martial', melee: true,  dmg: '1d6',  type: 'Piercing',    props: ['Finesse', 'Light'], mastery: 'Vex' },
-    'Trident':       { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Piercing',    props: ['Thrown (20/60)', 'Versatile (1d10)'], mastery: 'Topple' },
-    'Warhammer':     { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Bludgeoning', props: ['Versatile (1d10)'], mastery: 'Push' },
-    'War Pick':      { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Piercing',    props: ['Versatile (1d10)'], mastery: 'Sap' },
-    'Whip':          { cat: 'martial', melee: true,  dmg: '1d4',  type: 'Slashing',    props: ['Finesse', 'Reach'], mastery: 'Slow' },
+    'Battleaxe':     { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Slashing',    props: ['Versatile (1d10)'], mastery: 'Topple', cost: 10 },
+    'Flail':         { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Bludgeoning', props: [], mastery: 'Sap', cost: 10 },
+    'Glaive':        { cat: 'martial', melee: true,  dmg: '1d10', type: 'Slashing',    props: ['Heavy', 'Reach', 'Two-Handed'], mastery: 'Graze', cost: 20 },
+    'Greataxe':      { cat: 'martial', melee: true,  dmg: '1d12', type: 'Slashing',    props: ['Heavy', 'Two-Handed'], mastery: 'Cleave', cost: 30 },
+    'Greatsword':    { cat: 'martial', melee: true,  dmg: '2d6',  type: 'Slashing',    props: ['Heavy', 'Two-Handed'], mastery: 'Graze', cost: 50 },
+    'Halberd':       { cat: 'martial', melee: true,  dmg: '1d10', type: 'Slashing',    props: ['Heavy', 'Reach', 'Two-Handed'], mastery: 'Cleave', cost: 20 },
+    'Lance':         { cat: 'martial', melee: true,  dmg: '1d10', type: 'Piercing',    props: ['Heavy', 'Reach', 'Two-Handed (unless mounted)'], mastery: 'Topple', cost: 10 },
+    'Longsword':     { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Slashing',    props: ['Versatile (1d10)'], mastery: 'Sap', cost: 15 },
+    'Maul':          { cat: 'martial', melee: true,  dmg: '2d6',  type: 'Bludgeoning', props: ['Heavy', 'Two-Handed'], mastery: 'Topple', cost: 10 },
+    'Morningstar':   { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Piercing',    props: [], mastery: 'Sap', cost: 15 },
+    'Pike':          { cat: 'martial', melee: true,  dmg: '1d10', type: 'Piercing',    props: ['Heavy', 'Reach', 'Two-Handed'], mastery: 'Push', cost: 5 },
+    'Rapier':        { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Piercing',    props: ['Finesse'], mastery: 'Vex', cost: 25 },
+    'Scimitar':      { cat: 'martial', melee: true,  dmg: '1d6',  type: 'Slashing',    props: ['Finesse', 'Light'], mastery: 'Nick', cost: 25 },
+    'Shortsword':    { cat: 'martial', melee: true,  dmg: '1d6',  type: 'Piercing',    props: ['Finesse', 'Light'], mastery: 'Vex', cost: 10 },
+    'Trident':       { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Piercing',    props: ['Thrown (20/60)', 'Versatile (1d10)'], mastery: 'Topple', cost: 5 },
+    'Warhammer':     { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Bludgeoning', props: ['Versatile (1d10)'], mastery: 'Push', cost: 15 },
+    'War Pick':      { cat: 'martial', melee: true,  dmg: '1d8',  type: 'Piercing',    props: ['Versatile (1d10)'], mastery: 'Sap', cost: 5 },
+    'Whip':          { cat: 'martial', melee: true,  dmg: '1d4',  type: 'Slashing',    props: ['Finesse', 'Reach'], mastery: 'Slow', cost: 2 },
     /* Martial Ranged */
-    'Blowgun':       { cat: 'martial', melee: false, dmg: '1',    type: 'Piercing',    props: ['Ammunition (25/100)', 'Loading'], mastery: 'Vex' },
-    'Hand Crossbow': { cat: 'martial', melee: false, dmg: '1d6',  type: 'Piercing',    props: ['Ammunition (30/120)', 'Light', 'Loading'], mastery: 'Vex' },
-    'Heavy Crossbow':{ cat: 'martial', melee: false, dmg: '1d10', type: 'Piercing',    props: ['Ammunition (100/400)', 'Heavy', 'Loading', 'Two-Handed'], mastery: 'Push' },
-    'Longbow':       { cat: 'martial', melee: false, dmg: '1d8',  type: 'Piercing',    props: ['Ammunition (150/600)', 'Heavy', 'Two-Handed'], mastery: 'Slow' }
+    'Blowgun':       { cat: 'martial', melee: false, dmg: '1',    type: 'Piercing',    props: ['Ammunition (25/100)', 'Loading'], mastery: 'Vex', cost: 10 },
+    'Hand Crossbow': { cat: 'martial', melee: false, dmg: '1d6',  type: 'Piercing',    props: ['Ammunition (30/120)', 'Light', 'Loading'], mastery: 'Vex', cost: 75 },
+    'Heavy Crossbow':{ cat: 'martial', melee: false, dmg: '1d10', type: 'Piercing',    props: ['Ammunition (100/400)', 'Heavy', 'Loading', 'Two-Handed'], mastery: 'Push', cost: 50 },
+    'Longbow':       { cat: 'martial', melee: false, dmg: '1d8',  type: 'Piercing',    props: ['Ammunition (150/600)', 'Heavy', 'Two-Handed'], mastery: 'Slow', cost: 50 }
+  };
+
+  /* Spell names that changed, old name to current. A saved character that
+     still carries an old name is brought forward when it loads. */
+  var SPELL_ALIASES = {
+    "Tasha's Hideous Laughter": 'Hideous Laughter'
   };
 
   /* ---------- ORIGIN FEATS (2024 PHB, ch. 5) ---------- */
@@ -613,6 +626,118 @@ var RF_DATA = (function () {
     'Skilled': 'You gain proficiency in any combination of three skills or tools of your choice. Repeatable: you can take this feat more than once.',
     'Tavern Brawler': 'Enhanced Unarmed Strike: deal 1d4 plus your Strength modifier Bludgeoning damage instead of the normal Unarmed Strike damage. Damage Rerolls: reroll a 1 on your Unarmed Strike damage die. Improvised Weaponry: you have proficiency with improvised weapons. Push: once per turn, an Unarmed Strike on the Attack action can also push the target 5 feet.',
     'Tough': 'Your Hit Point maximum increases by an amount equal to twice your character level when you gain this feat ({lvx2} Hit Points at level {lv}). Whenever you gain a level thereafter, your Hit Point maximum increases by an additional 2.'
+  };
+
+  /* ---------- GENERAL FEATS (2024 PHB, ch. 5) ----------
+     Every General feat needs level 4 and grants +1 to one of the abilities
+     in "asi" (max 20). "req" is checked against the character before this
+     improvement: scores lists abilities of which any one must be at least
+     13, training names an armor training, and spellcasting asks for the
+     Spellcasting or Pact Magic feature. The other fields are the effects the
+     engine computes; everything else is carried in the text.
+
+       save       gain the saving throw of the ability increased (Resilient)
+       skillPick  { from, mode } a skill: 'profOrExp' gives proficiency, or
+                  Expertise if already proficient; 'expert' gives one new
+                  proficiency plus Expertise in one proficient skill
+       armor      armor trainings gained; martial gives Martial weapons
+       tool       tool proficiency gained
+       speed      Speed bonus in feet
+       spells     spells always prepared, cast with the feat's ability
+       spellPick  { schools } one more level 1 spell from those schools
+       rituals    true: a number of level 1 Ritual spells equal to PB
+       cantrip    a cantrip learned (Telekinetic); one already known is not
+                  learned twice
+       damage     choose a damage type (Elemental Adept)
+       weapon     choose a weapon kind for its mastery (Weapon Master)
+       heavyDamage  add PB to Heavy weapon damage on the Attack action
+       mediumDex  Medium armor Dexterity cap becomes 3 with Dexterity 16+ */
+
+  var GENERAL_FEATS = {
+    'Actor': { req: { scores: ['cha'] }, asi: ['cha'],
+      text: 'Impersonation: while disguised as a real or fictional person, you have Advantage on Charisma (Deception or Performance) checks to convince others that you are that person. Mimicry: you can mimic the sounds of other creatures, including speech; a creature that hears it must succeed on a Wisdom (Insight) check (DC {featDC}) to tell it is fake.' },
+    'Athlete': { req: { scores: ['str', 'dex'] }, asi: ['str', 'dex'],
+      text: 'Climb Speed: you gain a Climb Speed equal to your Speed. Hop Up: when you have the Prone condition, you can right yourself with only 5 feet of movement. Jumping: you can make a running Long or High Jump after moving only 5 feet.' },
+    'Charger': { req: { scores: ['str', 'dex'] }, asi: ['str', 'dex'],
+      text: 'Improved Dash: when you take the Dash action, your Speed increases by 10 feet for that action. Charge Attack: if you move at least 10 feet in a straight line toward a target immediately before hitting it with a melee attack roll as part of the Attack action, either deal an extra 1d8 damage or push the target up to 10 feet away if it is no more than one size larger than you. Once per turn.' },
+    'Chef': { asi: ['con', 'wis'], tool: "Cook's Utensils",
+      text: "Cook's Utensils: you gain proficiency with them. Replenishing Meal: during a Short Rest you can cook food for up to {chefDiners} creatures; each who spends Hit Point Dice regains an extra 1d8 Hit Points. Bolstering Treats: with an hour of work, or when you finish a Long Rest, you make {pb} treats that last 8 hours; a creature can eat one as a Bonus Action to gain {pb} Temporary Hit Points." },
+    'Crossbow Expert': { req: { scores: ['dex'] }, asi: ['dex'],
+      text: 'Ignore Loading: you ignore the Loading property of Hand Crossbows, Heavy Crossbows, and Light Crossbows. Firing in Melee: being within 5 feet of an enemy does not impose Disadvantage on your attack rolls with crossbows. Dual Wielding: when you make the extra attack of the Light property, you can add your ability modifier to its damage if the attack uses a crossbow with the Light property.' },
+    'Crusher': { asi: ['str', 'con'],
+      text: 'Push: once per turn, when you hit a creature with an attack that deals Bludgeoning damage, you can move it 5 feet to an unoccupied space if it is no more than one size larger than you. Enhanced Critical: when you score a Critical Hit that deals Bludgeoning damage, attack rolls against that creature have Advantage until the start of your next turn.' },
+    'Defensive Duelist': { req: { scores: ['dex'] }, asi: ['dex'],
+      text: 'Parry: if you are holding a Finesse weapon and another creature hits you with a melee attack, you can take a Reaction to add your Proficiency Bonus ({pb}) to your Armor Class, potentially causing the attack to miss. The bonus lasts until the start of your next turn.' },
+    'Dual Wielder': { req: { scores: ['str', 'dex'] }, asi: ['str', 'dex'],
+      text: 'Enhanced Dual Wielding: when you take the Attack action with a Light weapon, you can make one extra attack as a Bonus Action later that turn with a different Melee weapon that lacks the Two-Handed property. You do not add your ability modifier to that damage unless it is negative. Quick Draw: you can draw or stow two weapons that lack the Two-Handed property when you would normally draw or stow only one.' },
+    'Durable': { asi: ['con'],
+      text: 'Defy Death: you have Advantage on Death Saving Throws. Speedy Recovery: as a Bonus Action, you can expend one of your Hit Point Dice, roll it, and regain that many Hit Points.' },
+    'Elemental Adept': { req: { spellcasting: true }, asi: ['int', 'wis', 'cha'], damage: ['Acid', 'Cold', 'Fire', 'Lightning', 'Thunder'], repeatable: true,
+      text: 'Energy Mastery: spells you cast ignore Resistance to your chosen damage type. When you roll damage for a spell that deals that type, you can treat any 1 on a damage die as a 2. Repeatable, with a different damage type each time.' },
+    'Fey Touched': { asi: ['int', 'wis', 'cha'], spells: ['Misty Step'], spellPick: { schools: ['Divination', 'Enchantment'] },
+      text: 'Fey Magic: you always have Misty Step and one level 1 Divination or Enchantment spell of your choice prepared. You can cast each of them once without a spell slot, regaining that use on a Long Rest, and you can also cast them with any spell slots you have. The ability increased by this feat is their spellcasting ability.' },
+    'Grappler': { req: { scores: ['str', 'dex'] }, asi: ['str', 'dex'],
+      text: 'Punch and Grab: when you hit a creature with an Unarmed Strike as part of the Attack action, you can use both the Damage and the Grapple option. Once per turn. Attack Advantage: you have Advantage on attack rolls against a creature Grappled by you. Fast Wrestler: moving a creature Grappled by you costs no extra movement if it is your size or smaller.' },
+    'Great Weapon Master': { req: { scores: ['str'] }, asi: ['str'], heavyDamage: true,
+      text: 'Heavy Weapon Mastery: when you hit a creature with a Heavy weapon as part of the Attack action on your turn, you can deal extra damage equal to your Proficiency Bonus ({pb}). Hew: immediately after you score a Critical Hit with a melee weapon or reduce a creature to 0 Hit Points with one, you can make one attack with the same weapon as a Bonus Action.' },
+    'Heavily Armored': { req: { training: 'medium' }, asi: ['str', 'con'], armor: ['heavy'],
+      text: 'Armor Training: you gain training with Heavy armor.' },
+    'Heavy Armor Master': { req: { training: 'heavy' }, asi: ['str', 'con'],
+      text: 'Damage Reduction: while you are wearing Heavy armor, Bludgeoning, Piercing, and Slashing damage you take from attacks is reduced by your Proficiency Bonus ({pb}).' },
+    'Inspiring Leader': { req: { scores: ['wis', 'cha'] }, asi: ['wis', 'cha'],
+      text: 'Bolstering Performance: when you finish a Short or Long Rest, you can give an inspiring performance. Up to six allies within 30 feet who can see or hear you, which can include you, each gain {leaderTemp} Temporary Hit Points (your level plus the modifier of the ability increased by this feat).' },
+    'Keen Mind': { req: { scores: ['int'] }, asi: ['int'], skillPick: { from: ['Arcana', 'History', 'Investigation', 'Nature', 'Religion'], mode: 'profOrExp' },
+      text: 'Lore Knowledge: you gain proficiency in one of Arcana, History, Investigation, Nature, or Religion, or Expertise in it if you are already proficient. Quick Study: you can take the Study action as a Bonus Action.' },
+    'Lightly Armored': { asi: ['str', 'dex'], armor: ['light', 'shield'],
+      text: 'Armor Training: you gain training with Light armor and Shields.' },
+    'Mage Slayer': { asi: ['str', 'dex'],
+      text: 'Concentration Breaker: when you damage a creature that is Concentrating, it has Disadvantage on the saving throw it makes to maintain Concentration. Guarded Mind: if you fail an Intelligence, Wisdom, or Charisma saving throw, you can cause yourself to succeed instead. Once per Short or Long Rest.' },
+    'Martial Weapon Training': { asi: ['str', 'dex'], martial: true,
+      text: 'Weapon Proficiency: you gain proficiency with Martial weapons.' },
+    'Medium Armor Master': { req: { training: 'medium' }, asi: ['str', 'dex'], mediumDex: true,
+      text: 'Dexterous Wearer: while you are wearing Medium armor, you can add 3, rather than 2, to your Armor Class if you have a Dexterity of 16 or higher.' },
+    'Moderately Armored': { req: { training: 'light' }, asi: ['str', 'dex'], armor: ['medium', 'shield'],
+      text: 'Armor Training: you gain training with Medium armor and Shields.' },
+    'Mounted Combatant': { asi: ['str', 'dex', 'wis'],
+      text: 'Mounted Strike: while mounted, you have Advantage on attack rolls against any unmounted creature within 5 feet of your mount that is at least one size smaller than the mount. Leap Aside: if your mount is subjected to an effect that allows a Dexterity save for half damage, it takes no damage on a success and half on a failure, while you ride it and neither of you is Incapacitated. Veer: while mounted, you can force an attack that hits your mount to hit you instead.' },
+    'Observant': { req: { scores: ['int', 'wis'] }, asi: ['int', 'wis'], skillPick: { from: ['Insight', 'Investigation', 'Perception'], mode: 'profOrExp' },
+      text: 'Keen Observer: you gain proficiency in one of Insight, Investigation, or Perception, or Expertise in it if you are already proficient. Quick Search: you can take the Search action as a Bonus Action.' },
+    'Piercer': { asi: ['str', 'dex'],
+      text: 'Puncture: once per turn, when you hit a creature with an attack that deals Piercing damage, you can reroll one of the damage dice and must use the new roll. Enhanced Critical: when you score a Critical Hit that deals Piercing damage, you roll one additional damage die.' },
+    'Poisoner': { asi: ['dex', 'int'], tool: "Poisoner's Kit",
+      text: "Potent Poison: your damage rolls ignore Resistance to Poison damage. Brew Poison: you gain proficiency with the Poisoner's Kit. With 1 hour of work and 50 GP of materials you create {pb} poison doses. As a Bonus Action you coat a weapon or piece of ammunition for 1 minute or until it deals damage; a creature damaged by it must succeed on a Constitution save (DC {featDC}) or take 2d8 Poison damage and have the Poisoned condition until the end of your next turn." },
+    'Polearm Master': { req: { scores: ['str', 'dex'] }, asi: ['str', 'dex'],
+      text: 'Pole Strike: immediately after you take the Attack action with a Quarterstaff, a Spear, or a weapon that has the Heavy and Reach properties, you can make a Bonus Action attack with the opposite end, dealing 1d4 Bludgeoning damage. Reactive Strike: while holding such a weapon, you can take a Reaction to make one melee attack against a creature that enters your reach.' },
+    'Resilient': { asi: 'unprofSave', save: true,
+      text: 'Choose one ability in which you lack saving throw proficiency. You gain +1 to it and proficiency in saving throws using it.' },
+    'Ritual Caster': { req: { scores: ['int', 'wis', 'cha'] }, asi: ['int', 'wis', 'cha'], rituals: true,
+      text: 'Ritual Spells: you always have {pb} level 1 Ritual spells of your choice prepared, one more whenever your Proficiency Bonus increases, and you can cast them with any spell slots you have. The ability increased by this feat is their spellcasting ability. Quick Ritual: once per Long Rest, you can cast one of your prepared Ritual spells with its regular casting time, without a spell slot.' },
+    'Sentinel': { req: { scores: ['str', 'dex'] }, asi: ['str', 'dex'],
+      text: 'Guardian: immediately after a creature within 5 feet of you takes the Disengage action or hits a target other than you with an attack, you can make an Opportunity Attack against it. Halt: when you hit a creature with an Opportunity Attack, its Speed becomes 0 for the rest of the current turn.' },
+    'Shadow Touched': { asi: ['int', 'wis', 'cha'], spells: ['Invisibility'], spellPick: { schools: ['Illusion', 'Necromancy'] },
+      text: 'Shadow Magic: you always have Invisibility and one level 1 Illusion or Necromancy spell of your choice prepared. You can cast each of them once without a spell slot, regaining that use on a Long Rest, and you can also cast them with any spell slots you have. The ability increased by this feat is their spellcasting ability.' },
+    'Sharpshooter': { req: { scores: ['dex'] }, asi: ['dex'],
+      text: 'Bypass Cover: your ranged weapon attacks ignore Half Cover and Three-Quarters Cover. Firing in Melee: being within 5 feet of an enemy does not impose Disadvantage on your attack rolls with Ranged weapons. Long Shots: attacking at long range does not impose Disadvantage on your Ranged weapon attack rolls.' },
+    'Shield Master': { req: { training: 'shield' }, asi: ['str'],
+      text: 'Shield Bash: if you attack a creature within 5 feet as part of the Attack action and hit it with a Melee weapon, you can bash it with your Shield: it must succeed on a Strength save (DC {featDC}) or be pushed 5 feet or knocked Prone, your choice. Once per turn. Interpose Shield: if you are subjected to an effect that allows a Dexterity save for half damage, you can take a Reaction to take no damage on a success while holding a Shield.' },
+    'Skill Expert': { asi: ['str', 'dex', 'con', 'int', 'wis', 'cha'], skillPick: { mode: 'expert' },
+      text: 'Skill Proficiency: you gain proficiency in one skill of your choice. Expertise: choose one skill in which you have proficiency but lack Expertise; you gain Expertise in it.' },
+    'Skulker': { req: { scores: ['dex'] }, asi: ['dex'],
+      text: 'Blindsight: you have Blindsight with a range of 10 feet. Fog of War: you have Advantage on Dexterity (Stealth) checks you make as part of the Hide action during combat. Sniper: if you make an attack roll while hidden and it misses, the attack does not reveal your location.' },
+    'Slasher': { asi: ['str', 'dex'],
+      text: 'Hamstring: once per turn, when you hit a creature with an attack that deals Slashing damage, you can reduce its Speed by 10 feet until the start of your next turn. Enhanced Critical: when you score a Critical Hit that deals Slashing damage, the target has Disadvantage on attack rolls until the start of your next turn.' },
+    'Speedy': { req: { scores: ['dex', 'con'] }, asi: ['dex', 'con'], speed: 10,
+      text: 'Speed Increase: your Speed increases by 10 feet. Dash over Difficult Terrain: when you take the Dash action, Difficult Terrain does not cost you extra movement for the rest of that turn. Agile Movement: Opportunity Attacks against you have Disadvantage.' },
+    'Spell Sniper': { req: { spellcasting: true }, asi: ['int', 'wis', 'cha'],
+      text: 'Bypass Cover: your attack rolls for spells ignore Half Cover and Three-Quarters Cover. Casting in Melee: being within 5 feet of an enemy does not impose Disadvantage on your attack rolls with spells. Increased Range: a spell with a range of at least 10 feet that requires an attack roll gains 60 feet of range.' },
+    'Telekinetic': { asi: ['int', 'wis', 'cha'], cantrip: 'Mage Hand',
+      text: 'Minor Telekinesis: you learn Mage Hand. You can cast it without Verbal or Somatic components, you can make the spectral hand Invisible, and its range and the distance the hand can be from you both increase by 30 feet. The ability increased by this feat is its spellcasting ability. Telekinetic Shove: as a Bonus Action, you can try to move one creature you can see within 30 feet; it must succeed on a Strength save (DC {featDC}) or be moved 5 feet toward or away from you.' },
+    'Telepathic': { asi: ['int', 'wis', 'cha'], spells: ['Detect Thoughts'],
+      text: 'Telepathic Utterance: you can speak telepathically to any creature you can see within 60 feet, in a language you know; it understands you only if it knows that language. Detect Thoughts: you always have Detect Thoughts prepared. You can cast it once without a spell slot or components, regaining that use on a Long Rest, and you can also cast it with spell slots of level 2 or higher. The ability increased by this feat is its spellcasting ability.' },
+    'War Caster': { req: { spellcasting: true }, asi: ['int', 'wis', 'cha'],
+      text: 'Concentration: you have Advantage on Constitution saves to maintain Concentration. Reactive Spell: when a creature provokes an Opportunity Attack from you, you can cast a spell at it instead; the spell must take an action and target only that creature. Somatic Components: you can perform Somatic components even with weapons or a Shield in one or both hands.' },
+    'Weapon Master': { asi: ['str', 'dex'], weapon: true,
+      text: 'Mastery Property: you can use the mastery property of one kind of Simple or Martial weapon of your choice with which you have proficiency. You can change the kind whenever you finish a Long Rest.' }
   };
 
   /* ---------- FIGHTING STYLE FEATS (2024 PHB, ch. 5) ---------- */
@@ -1031,7 +1156,7 @@ var RF_DATA = (function () {
       features: [
         [1, 'Rage', 'Bonus Action while not in Heavy armor. Resistance to Bludgeoning, Piercing, and Slashing damage; +{rageDmg} bonus to damage on Strength-based attacks; Advantage on Strength checks and Strength saves. No Concentration and no spells. Lasts until the end of your next turn and can be extended. {rageUses} uses at level {lv}, one regained on a Short Rest.'],
         [1, 'Unarmored Defense', 'While you are not wearing armor, your base Armor Class equals 10 plus your Dexterity and Constitution modifiers. You can use a Shield and still gain this benefit.'],
-        [1, 'Weapon Mastery', 'You can use the mastery properties of two kinds of Simple or Martial Melee weapons of your choice. You can change one choice on a Long Rest.'],
+        [1, 'Weapon Mastery', 'You can use the mastery properties of {masteries} kinds of Simple or Martial Melee weapons of your choice (two at level 1, three from level 4). You can change one choice on a Long Rest.'],
         [2, 'Danger Sense', 'You have Advantage on Dexterity saving throws unless you have the Incapacitated condition.'],
         [2, 'Reckless Attack', 'On your first attack roll of your turn you can attack recklessly, gaining Advantage on Strength-based attack rolls until the start of your next turn. Attack rolls against you also have Advantage during that time.'],
         [3, 'Primal Knowledge', 'You gain proficiency in another skill from the Barbarian list. While your Rage is active, you can make Acrobatics, Intimidation, Perception, Stealth, or Survival checks as Strength checks.'],
@@ -1039,7 +1164,8 @@ var RF_DATA = (function () {
         [5, 'Fast Movement', 'Your Speed increases by 10 feet while you are not wearing Heavy armor.']
       ],
       extraSkillFromList: 1, extraSkillLevel: 3,
-      weaponMastery: 2,
+      /* Weapon Mastery kinds by level, and whether they must be melee weapons. */
+      weaponMastery: [2, 2, 2, 3, 3, 3], masteryMelee: true,
       subclasses: {
         'Path of the Berserker': { blurb: 'Channel Rage into violent fury.', features: [
           [3, 'Frenzy', 'If you use Reckless Attack while your Rage is active, you deal extra damage to the first target you hit on your turn with a Strength-based attack: roll a number of d6s equal to your Rage Damage bonus ({rageDmg}).'],
@@ -1268,7 +1394,7 @@ var RF_DATA = (function () {
       features: [
         [1, 'Fighting Style', 'You gain a Fighting Style feat of your choice. Defense is recommended.'],
         [1, 'Second Wind', 'As a Bonus Action, regain 1d10 plus your Fighter level ({lv}) Hit Points. 2 uses, one regained on a Short Rest and all on a Long Rest.'],
-        [1, 'Weapon Mastery', 'You can use the mastery properties of three kinds of Simple or Martial weapons of your choice. You can change one choice on a Long Rest.'],
+        [1, 'Weapon Mastery', 'You can use the mastery properties of {masteries} kinds of Simple or Martial weapons of your choice (three at level 1, four from level 4). You can change one choice on a Long Rest.'],
         [2, 'Action Surge', 'On your turn, take one additional action (not the Magic action). Once per Short or Long Rest.'],
         [2, 'Tactical Mind', 'When you fail an ability check, you can expend a use of Second Wind to roll 1d10 and add it to the check. If it still fails, the use is not expended.'],
         [5, 'Extra Attack', 'You can attack twice, instead of once, whenever you take the Attack action on your turn.'],
@@ -1277,7 +1403,7 @@ var RF_DATA = (function () {
       ],
       fightingStyle: true, fightingStyleLevel: 1,
       extraASI: 6,
-      weaponMastery: 3,
+      weaponMastery: [3, 3, 3, 4, 4, 4],
       subclasses: {
         'Battle Master': { blurb: 'Master sophisticated battle maneuvers.', features: [
           [3, 'Combat Superiority', 'You learn three maneuvers of your choice and have four Superiority Dice (d8), regained on a Short or Long Rest. Maneuver save DC equals 8 plus your Strength or Dexterity modifier (your choice) and Proficiency Bonus.'],
@@ -1629,10 +1755,10 @@ var RF_DATA = (function () {
           [3, 'Fiend Spells', 'You always have Burning Hands, Command, Scorching Ray, and Suggestion prepared. They do not count against your prepared spells.'],
           [6, "Dark One's Own Luck", 'When you make a D20 Test, you can add 1d10 to the roll. You can do so after seeing the d20 roll but before any of its effects occur. Uses equal to your Charisma modifier (minimum 1) per Long Rest.']
         ] },
-        'Great Old One Patron': { blurb: 'Unearth forbidden lore of ineffable beings.', alwaysPrepared: ['Detect Thoughts', 'Dissonant Whispers', 'Phantasmal Force', "Tasha's Hideous Laughter"],
+        'Great Old One Patron': { blurb: 'Unearth forbidden lore of ineffable beings.', alwaysPrepared: ['Detect Thoughts', 'Dissonant Whispers', 'Phantasmal Force', 'Hideous Laughter'],
           alwaysPreparedAt: { 5: ['Clairvoyance', 'Hunger of Hadar'] }, features: [
           [3, 'Awakened Mind', 'As a Bonus Action, form a telepathic connection with a creature within 30 feet. It lasts a number of minutes equal to your Warlock level ({lv}) and works within a number of miles equal to your Charisma modifier (minimum 1).'],
-          [3, 'Great Old One Spells', "You always have Detect Thoughts, Dissonant Whispers, Phantasmal Force, and Tasha's Hideous Laughter prepared. They do not count against your prepared spells."],
+          [3, 'Great Old One Spells', "You always have Detect Thoughts, Dissonant Whispers, Phantasmal Force, and Hideous Laughter prepared. They do not count against your prepared spells."],
           [3, 'Psychic Spells', 'When you cast a Warlock spell that deals damage, you can change its damage type to Psychic. Warlock Enchantment and Illusion spells can be cast without Verbal or Somatic components.'],
           [6, 'Clairvoyant Combatant', 'When you form a telepathic bond with a creature using Awakened Mind, you can force it to make a Wisdom saving throw against your spell save DC. On a failure, for the duration of the bond you have Advantage on attack rolls against it and it has Disadvantage on attack rolls against you. Once per Short or Long Rest.']
         ] }
@@ -1778,7 +1904,7 @@ var RF_DATA = (function () {
     { n:"Silent Image", l:1, s:"Illusion", c:1, r:0, cl:["Ba", "So", "Wi"], d:"You create the image of an object, a creature, or some other visible phenomenon that is no larger than a 15-foot Cube. The image appears at a spot within range and lasts for the duration. The image is purely visual; it isn't accompanied by sound, smell, or other sensory effects." },
     { n:"Sleep", l:1, s:"Enchantment", c:1, r:0, cl:["Ba", "So", "Wi"], d:"Each creature of your choice in a 5-foot-radius Sphere centered on a point within range must succeed on a Wisdom saving throw or have the Incapacitated condition until the end of its next turn, at which point it must repeat the save." },
     { n:"Speak with Animals", l:1, s:"Divination", c:0, r:1, cl:["Ba", "Dr", "Ra", "Wa"], d:"For the duration, you can comprehend and verbally communicate with Beasts, and you can use any of the Influence action's skill options with them." },
-    { n:"Tasha's Hideous Laughter", l:1, s:"Enchantment", c:1, r:0, cl:["Ba", "Wa", "Wi"], d:"One creature of your choice that you can see within range makes a Wisdom saving throw. On a failed save, it has the Prone and Incapacitated conditions for the duration. During that time, it laughs uncontrollably if it's capable of laughter, and it can't end the Prone condition on itself." },
+    { n:"Hideous Laughter", l:1, s:"Enchantment", c:1, r:0, cl:["Ba", "Wa", "Wi"], d:"One creature of your choice that you can see within range makes a Wisdom saving throw. On a failed save, it has the Prone and Incapacitated conditions for the duration. During that time, it laughs uncontrollably if it's capable of laughter, and it can't end the Prone condition on itself." },
     { n:"Tenser's Floating Disk", l:1, s:"Conjuration", c:0, r:1, cl:["Wi"], d:"This spell creates a circular, horizontal plane of force, 3 feet in diameter and 1 inch thick, that floats 3 feet above the ground in an unoccupied space of your choice that you can see within range. The disk remains for the duration and can hold up to 500 pounds." },
     { n:"Thunderous Smite", l:1, s:"Evocation", c:0, r:0, cl:["Pa"], d:"Cast as a Bonus Action right after you hit with a Melee weapon or Unarmed Strike: your strike rings with thunder audible within 300 feet, dealing an extra 2d6 Thunder damage. The target must succeed on a Strength saving throw or be pushed 10 feet away and knocked Prone." },
     { n:"Thunderwave", l:1, s:"Evocation", c:0, r:0, cl:["Ba", "Dr", "So", "Wi"], d:"You unleash a wave of thunderous energy. Each creature in a 15-foot Cube originating from you makes a Constitution saving throw. On a failed save, a creature takes 2d8 Thunder damage and is pushed 10 feet away from you. On a successful save, a creature takes half as much damage only." },
@@ -1918,10 +2044,13 @@ var RF_DATA = (function () {
     MAX_SCORE: MAX_SCORE,
     ARMOR: ARMOR,
     SHIELD_BONUS: SHIELD_BONUS,
+    SHIELD_COST: SHIELD_COST,
     DAMAGE_CANTRIPS: DAMAGE_CANTRIPS,
     REPEATABLE_ORIGIN_FEATS: REPEATABLE_ORIGIN_FEATS,
     WEAPONS: WEAPONS,
     ORIGIN_FEATS: ORIGIN_FEATS,
+    SPELL_ALIASES: SPELL_ALIASES,
+    GENERAL_FEATS: GENERAL_FEATS,
     FIGHTING_STYLES: FIGHTING_STYLES,
     SPECIES: SPECIES,
     BACKGROUNDS: BACKGROUNDS,
@@ -2039,7 +2168,11 @@ var RF_APP = (function (D) {
       pointBuy: { str: 8, dex: 8, con: 8, int: 8, wis: 8, cha: 8 },
       skillPicks: {}, expertise: {},
       hpMode: 'average', hpRolls: [],
-      equipChoice: 'A', armor: '', shield: false, extraWeapons: [],
+      /* bought lists gear paid for out of starting coin; anything worn or
+         wielded must be in the package, the background kit, or here. */
+      equipChoice: 'A', armor: '', shield: false, extraWeapons: [], bought: [],
+      /* Weapon kinds chosen for the class Weapon Mastery feature. */
+      masteries: [],
       cantrips: [], prepared: [], spellbook: [], savant: [], discoveries: [],
       /* Spells above the level this builder's spell list covers, typed in by
          hand. They count toward the prepared total. */
@@ -2049,6 +2182,9 @@ var RF_APP = (function (D) {
          is the extra one a Fighter gains at level 6. */
       asiMode: '', asiBumpA: '', asiBumpB: '', asiFeat: '',
       asi2Mode: '', asi2BumpA: '', asi2BumpB: '', asi2Feat: '',
+      /* A General feat's own choices: ability (its +1), skill, expertise,
+         spell, spells (rituals), damage, weapon. */
+      asiFeatOpts: {}, asi2FeatOpts: {},
       name: '', pronouns: '', alignment: '', appearance: '',
       trait: '', ideal: '', bond: '', flaw: ''
     };
@@ -2063,12 +2199,55 @@ var RF_APP = (function (D) {
     try {
       var raw = localStorage.getItem(STORE_KEY);
       if (!raw) return false;
-      var o = JSON.parse(raw);
-      if (!o || o.v !== 3) return false;
-      var b = BLANK();
-      for (var k in b) { if (o[k] !== undefined) b[k] = o[k]; }
+      var b = hydrate(JSON.parse(raw));
+      if (!b) return false;
       S = b; return true;
     } catch (e) { return false; }
+  }
+  /* A stored v3 object becomes a full state: fields added since it was saved
+     take their blank defaults, and older encodings are brought forward. */
+  function hydrate(o) {
+    if (!o || o.v !== 3) return null;
+    var b = BLANK();
+    for (var k in b) { if (o[k] !== undefined) b[k] = o[k]; }
+    migrateSkilledKeys(b);
+    migrateSpellNames(b);
+    return b;
+  }
+  function currentSpellName(n) { return D.SPELL_ALIASES[n] || n; }
+  function migrateSpellNames(st) {
+    function list(a) { return Array.isArray(a) ? a.map(currentSpellName) : a; }
+    ['cantrips', 'prepared', 'spellbook', 'savant', 'discoveries', 'blessedWarrior', 'druidicWarrior'].forEach(function (k) { st[k] = list(st[k]); });
+    Object.keys(st.mi || {}).forEach(function (k) {
+      var e = st.mi[k];
+      if (!e) return;
+      e.c = list(e.c);
+      if (e.s) e.s = currentSpellName(e.s);
+    });
+    (st.invocations || []).forEach(function (e) { if (e) { e.c = list(e.c); e.s = list(e.s); } });
+    ['asiFeatOpts', 'asi2FeatOpts'].forEach(function (k) {
+      var o = st[k];
+      if (!o) return;
+      if (o.spell) o.spell = currentSpellName(o.spell);
+      o.spells = list(o.spells);
+    });
+    if (typeof st.phbSpells === 'string') {
+      Object.keys(D.SPELL_ALIASES).forEach(function (old) { st.phbSpells = st.phbSpells.split(old).join(D.SPELL_ALIASES[old]); });
+    }
+  }
+  /* Skilled picks used to be keyed by the feat's position in featList
+     ("skilled0"), which shifts whenever an earlier feat comes or goes. They
+     are now keyed by the slot that grants the feat. */
+  function migrateSkilledKeys(st) {
+    var feats = featList(st);
+    Object.keys(st.skillPicks || {}).forEach(function (k) {
+      var m = /^skilled(\d+)$/.exec(k);
+      if (!m) return;
+      var f = feats[parseInt(m[1], 10)];
+      var picks = st.skillPicks[k];
+      delete st.skillPicks[k];
+      if (f && f.name === 'Skilled' && !st.skillPicks[skilledKey(f.slot)]) st.skillPicks[skilledKey(f.slot)] = picks;
+    });
   }
 
   /* ============================================================
@@ -2190,20 +2369,23 @@ var RF_APP = (function (D) {
     return out;
   }
 
-  /* Feats the character actually holds. */
+  /* Feats the character actually holds. "slot" names the choice that grants
+     each one, so anything picked for a feat can be keyed to where it came
+     from rather than to its position in this list. */
   function featList(st) {
     var out = [];
     var bg = BGD(st);
-    if (bg) out.push({ name: bg.feat, source: st.background });
+    if (bg) out.push({ name: bg.feat, source: st.background, slot: 'background' });
     var sp = SPC(st);
-    if (sp && sp.bonusOriginFeat && st.humanFeat) out.push({ name: st.humanFeat, source: 'Human (Versatile)' });
+    if (sp && sp.bonusOriginFeat && st.humanFeat) out.push({ name: st.humanFeat, source: 'Human (Versatile)', slot: 'human' });
     invList(st).forEach(function (e) {
-      if (e.n === 'Lessons of the First Ones' && e.t) out.push({ name: e.t, source: 'Lessons of the First Ones' });
+      if (e.n === 'Lessons of the First Ones' && e.t) out.push({ name: e.t, source: 'Lessons of the First Ones', slot: 'lessons' });
     });
-    if (levelOf(st) >= 4 && st.asiFeat) out.push({ name: st.asiFeat, source: 'Level 4 feat' });
-    if (extraASILevel(st) && st.asi2Feat) out.push({ name: st.asi2Feat, source: 'Level ' + extraASILevel(st) + ' feat' });
+    if (levelOf(st) >= 4 && st.asiMode === 'feat' && st.asiFeat) out.push({ name: st.asiFeat, source: 'Level 4 feat', slot: 'asi' });
+    if (extraASILevel(st) && st.asi2Mode === 'feat' && st.asi2Feat) out.push({ name: st.asi2Feat, source: 'Level ' + extraASILevel(st) + ' feat', slot: 'asi2' });
     return out;
   }
+  function skilledKey(slot) { return 'skilled:' + slot; }
   function hasFeat(st, name) {
     return featList(st).some(function (f) { return f.name === name; });
   }
@@ -2212,7 +2394,209 @@ var RF_APP = (function (D) {
      list, which its feat name already encodes, so comparing names covers both
      rules. "slot" is the picker asking, so it does not block itself. */
   function featRepeatable(name) {
-    return has(D.REPEATABLE_ORIGIN_FEATS, name);
+    return has(D.REPEATABLE_ORIGIN_FEATS, name) || !!(generalFeat(name) || {}).repeatable;
+  }
+
+  /* ---- Improvement feats ----
+     The level 4 Ability Score Improvement (slot "asi") and a Fighter's
+     level 6 one (slot "asi2") can each be spent on a feat. A General feat
+     carries its own choices in asiFeatOpts / asi2FeatOpts. */
+  var IMPROVEMENT_SLOTS = ['asi', 'asi2'];
+  var TRAINING_LABEL = { light: 'Light armor', medium: 'Medium armor', heavy: 'Heavy armor', shield: 'Shield' };
+  function generalFeat(name) { return D.GENERAL_FEATS[name] || null; }
+  function isFeat(name) { return !!(D.ORIGIN_FEATS[name] || generalFeat(name)); }
+  function featText(name) { return D.ORIGIN_FEATS[name] || (generalFeat(name) || {}).text || ''; }
+  function slotPrefix(slot) { return slot === 'asi2' ? 'asi2' : 'asi'; }
+  function slotActive(st, slot) { return slot === 'asi' ? levelOf(st) >= 4 : !!extraASILevel(st); }
+  function slotOpts(st, slot) {
+    var k = slotPrefix(slot) + 'FeatOpts';
+    if (!st[k] || typeof st[k] !== 'object') st[k] = {};
+    return st[k];
+  }
+  /* General feats held from improvements, in the order they were gained. */
+  function heldGeneralFeats(st) {
+    var out = [];
+    IMPROVEMENT_SLOTS.forEach(function (slot) {
+      if (!slotActive(st, slot) || st[slotPrefix(slot) + 'Mode'] !== 'feat') return;
+      var name = st[slotPrefix(slot) + 'Feat'], spec = generalFeat(name);
+      if (spec) out.push({ slot: slot, name: name, spec: spec, opts: slotOpts(st, slot) });
+    });
+    return out;
+  }
+  function featAbilityChoices(st, g) {
+    if (g.spec.asi === 'unprofSave') {
+      var c = CLS(st);
+      return D.ABILITIES.map(function (a) { return a.key; }).filter(function (k) { return !(c && has(c.saves, k)); });
+    }
+    return g.spec.asi || [];
+  }
+  function featAbility(st, g) {
+    return has(featAbilityChoices(st, g), g.opts.ability) ? g.opts.ability : '';
+  }
+  /* Ability increases from improvements, stopping before "uptoSlot" so a
+     prerequisite is judged on the scores the character had when taking it. */
+  function asiIncreases(st, uptoSlot) {
+    var out = {};
+    function bump(k, n) { if (k) out[k] = (out[k] || 0) + n; }
+    for (var i = 0; i < IMPROVEMENT_SLOTS.length; i++) {
+      var slot = IMPROVEMENT_SLOTS[i], p = slotPrefix(slot);
+      if (slot === uptoSlot) break;
+      if (!slotActive(st, slot)) continue;
+      var mode = st[p + 'Mode'];
+      if (mode === 'plus2') bump(st[p + 'BumpA'], 2);
+      else if (mode === 'plus1plus1') { bump(st[p + 'BumpA'], 1); if (st[p + 'BumpB'] !== st[p + 'BumpA']) bump(st[p + 'BumpB'], 1); }
+    }
+    heldGeneralFeats(st).forEach(function (g) {
+      if (uptoSlot && IMPROVEMENT_SLOTS.indexOf(g.slot) >= IMPROVEMENT_SLOTS.indexOf(uptoSlot)) return;
+      bump(featAbility(st, g), 1);
+    });
+    return out;
+  }
+  function scoresBefore(st, slot) {
+    var base = baseScores(st), bonus = bgBonuses(st), inc = asiIncreases(st, slot), out = {};
+    D.ABILITIES.forEach(function (a) {
+      out[a.key] = Math.min(D.MAX_SCORE, (base[a.key] || 0) + (bonus[a.key] || 0) + (inc[a.key] || 0));
+    });
+    return out;
+  }
+  /* Why a character cannot take a feat in this slot, or '' if it can. Every
+     improvement arrives at level 4 or later, which covers the Level 4+
+     prerequisite that all General feats share. */
+  function featPrereq(st, slot, name) {
+    var spec = generalFeat(name);
+    if (!spec || !spec.req) return '';
+    var r = spec.req;
+    if (r.scores) {
+      var sc = scoresBefore(st, slot);
+      if (!r.scores.some(function (k) { return sc[k] >= 13; })) {
+        return 'needs ' + r.scores.map(abName).join(' or ') + ' 13 or higher';
+      }
+    }
+    if (r.training && !armorFlags(st, slot)[r.training]) return 'needs ' + TRAINING_LABEL[r.training] + ' training';
+    if (r.spellcasting && !casterInfo(st)) return 'needs the Spellcasting or Pact Magic feature';
+    return '';
+  }
+  /* Skill proficiency and Expertise from every source except the General
+     feats in "uptoSlot" and later. */
+  function skillProfs(st, uptoSlot) {
+    var prof = {}, exp = {};
+    fixedSkills(st).forEach(function (f) { prof[f.skill] = f.source; });
+    skillGroups(st).forEach(function (g) {
+      (st.skillPicks[g.id] || []).forEach(function (s) { if (!prof[s]) prof[s] = g.label; });
+    });
+    expertiseGroups(st).forEach(function (g) {
+      (st.expertise[g.id] || []).forEach(function (s) { exp[s] = g.label; });
+    });
+    heldGeneralFeats(st).some(function (g) {
+      if (g.slot === uptoSlot) return true;
+      var pick = g.spec.skillPick, o = g.opts;
+      if (!pick) return false;
+      if (pick.mode === 'profOrExp' && has(pick.from, o.skill)) {
+        if (!prof[o.skill]) prof[o.skill] = g.name;
+        else if (!exp[o.skill]) exp[o.skill] = g.name;
+      } else if (pick.mode === 'expert') {
+        if (has(ALL_SKILLS, o.skill) && !prof[o.skill]) prof[o.skill] = g.name;
+        if (o.expertise && prof[o.expertise] && !exp[o.expertise]) exp[o.expertise] = g.name;
+      }
+      return false;
+    });
+    return { prof: prof, exp: exp };
+  }
+  /* Skills a General feat makes the character proficient in, so Expertise
+     from a class can be spent on them. */
+  function featSkillProfs(st) {
+    var all = skillProfs(st).prof;
+    return Object.keys(all).filter(function (s) { return !!generalFeat(all[s]); });
+  }
+  /* Spells a General feat grants. A cantrip the character already knows is
+     not learned a second time. */
+  function featSpellNames(st, g, known) {
+    var o = g.opts, spec = g.spec, out = (spec.spells || []).slice();
+    if (spec.spellPick && featSpellOk(spec, o.spell)) out.push(o.spell);
+    if (spec.rituals) (o.spells || []).forEach(function (n) { var sx = spellByName(n); if (sx && sx.l === 1 && sx.r) out.push(n); });
+    if (spec.cantrip && !has(known || [], spec.cantrip)) out.push(spec.cantrip);
+    return uniq(out);
+  }
+  function featSpellOk(spec, name) {
+    var sx = spellByName(name);
+    return !!sx && sx.l === 1 && has(spec.spellPick.schools, sx.s);
+  }
+  function featWeaponOk(st, name) { return !!D.WEAPONS[name] && weaponProficient(st, name); }
+  /* Everything still owed or illegal in one General feat's choices. */
+  function featChoiceIssues(st, g) {
+    var out = [], o = g.opts, spec = g.spec;
+    var choices = featAbilityChoices(st, g);
+    if (!o.ability) out.push('choose which ability gets +1 (' + choices.map(abName).join(', ') + ').');
+    else if (!has(choices, o.ability)) {
+      out.push(abName(o.ability) + ' is not an option for its +1' + (spec.save ? ' (you already have that saving throw)' : '') + '.');
+    }
+    if (spec.skillPick) {
+      var sk = skillProfs(st, g.slot);
+      if (spec.skillPick.mode === 'profOrExp') {
+        if (!o.skill) out.push('choose ' + spec.skillPick.from.join(', ') + '.');
+        else if (!has(spec.skillPick.from, o.skill)) out.push(o.skill + ' is not one of its skills.');
+        else if (sk.exp[o.skill]) out.push('you already have Expertise in ' + o.skill + '. Choose another skill.');
+      } else {
+        if (!o.skill) out.push('choose the skill it makes you proficient in.');
+        else if (sk.prof[o.skill]) out.push('you are already proficient in ' + o.skill + '. Choose a skill you lack.');
+        if (!o.expertise) out.push('choose a proficient skill to gain Expertise in.');
+        else {
+          var profAfter = !!sk.prof[o.expertise] || o.expertise === o.skill;
+          if (!profAfter) out.push('Expertise needs a skill you are proficient in, and you are not proficient in ' + o.expertise + '.');
+          else if (sk.exp[o.expertise]) out.push('you already have Expertise in ' + o.expertise + '.');
+        }
+      }
+    }
+    if (spec.spellPick) {
+      if (!o.spell) out.push('choose a level 1 ' + spec.spellPick.schools.join(' or ') + ' spell.');
+      else if (!featSpellOk(spec, o.spell)) out.push(o.spell + ' is not a level 1 ' + spec.spellPick.schools.join(' or ') + ' spell.');
+    }
+    if (spec.rituals) {
+      var want = pbOf(st), picks = uniq(o.spells || []);
+      if (picks.length !== want) out.push('choose ' + want + ' level 1 Ritual spells (you have ' + picks.length + ').');
+      picks.forEach(function (n) {
+        var sx = spellByName(n);
+        if (!sx || sx.l !== 1 || !sx.r) out.push(n + ' is not a level 1 Ritual spell.');
+      });
+    }
+    if (spec.damage) {
+      if (!o.damage) out.push('choose a damage type (' + spec.damage.join(', ') + ').');
+      else if (!has(spec.damage, o.damage)) out.push(o.damage + ' is not one of its damage types.');
+      else {
+        var same = heldGeneralFeats(st).filter(function (h) { return h.name === g.name && h.opts.damage === o.damage; });
+        if (same.length > 1 && same[0].slot !== g.slot) out.push('you already chose ' + o.damage + ' for this feat. Each copy needs a different damage type.');
+      }
+    }
+    if (spec.weapon) {
+      if (!o.weapon) out.push('choose a kind of weapon you are proficient with.');
+      else if (!featWeaponOk(st, o.weapon)) out.push('you are not proficient with the ' + o.weapon + '.');
+      else if (has(classMasteries(st), o.weapon)) out.push('you already use the ' + o.weapon + ' mastery through your class. Choose another kind.');
+    }
+    return out;
+  }
+  /* The feat's text is filled with numbers that depend on the ability its
+     +1 went to. */
+  function featTokens(st, g, mods, tk) {
+    var out = {}, k;
+    for (k in tk) out[k] = tk[k];
+    var ab = g ? featAbility(st, g) : '';
+    var m = ab ? mods[ab] : null;
+    out.featDC = ab ? 8 + m + pbOf(st) : '8 + ability modifier + Proficiency Bonus';
+    out.leaderTemp = ab ? levelOf(st) + m : 'your level plus the modifier';
+    out.chefDiners = 4 + pbOf(st);
+    return out;
+  }
+  function featChoiceSummary(st, g) {
+    var o = g.opts, spec = g.spec, parts = [], ab = featAbility(st, g);
+    if (ab) parts.push('+1 ' + abName(ab) + (spec.save ? ', and proficiency in ' + abName(ab) + ' saving throws' : ''));
+    if (spec.skillPick && o.skill) parts.push((spec.skillPick.mode === 'expert' ? 'Proficiency: ' : 'Skill: ') + o.skill);
+    if (spec.skillPick && spec.skillPick.mode === 'expert' && o.expertise) parts.push('Expertise: ' + o.expertise);
+    if (spec.tool) parts.push('Tool: ' + spec.tool);
+    var spells = featSpellNames(st, g, []);
+    if (spells.length) parts.push('Spells: ' + spells.join(', '));
+    if (spec.damage && o.damage) parts.push('Damage type: ' + o.damage);
+    if (spec.weapon && o.weapon && D.WEAPONS[o.weapon]) parts.push('Weapon: ' + o.weapon + ' (' + D.WEAPONS[o.weapon].mastery + ')');
+    return parts.join('. ');
   }
   function featsHeldElsewhere(st, slot) {
     var out = [], bg = BGD(st), sp = SPC(st);
@@ -2250,10 +2634,13 @@ var RF_APP = (function (D) {
       if (sub.bonusSkillFromList && c) g.push({ id: 'subList', label: 'Student of War (one Fighter skill)', count: sub.bonusSkillFromList, from: c.skills });
       if (sub.skillChoice) g.push({ id: 'subChoiceSkill', label: sub.skillChoice.label, count: sub.skillChoice.count, from: sub.skillChoice.from });
     }
-    featList(st).forEach(function (f, i) {
-      if (f.name === 'Skilled') {
-        g.push({ id: 'skilled' + i, label: 'Skilled feat (' + f.source + '): three skills', count: 3, from: ALL_SKILLS, note: 'The feat allows any combination of three skills or tools. Pick skills here and swap for tools at the table if you prefer.' });
-      }
+    /* Two Lessons of the First Ones cannot both be Skilled (the Class step
+       reports it), so one group per slot is enough. */
+    var seenSlot = {};
+    featList(st).forEach(function (f) {
+      if (f.name !== 'Skilled' || seenSlot[f.slot]) return;
+      seenSlot[f.slot] = 1;
+      g.push({ id: skilledKey(f.slot), label: 'Skilled feat (' + f.source + '): three skills', count: 3, from: ALL_SKILLS, note: 'The feat allows any combination of three skills or tools. Pick skills here and swap for tools at the table if you prefer.' });
     });
     return g;
   }
@@ -2426,7 +2813,9 @@ var RF_APP = (function (D) {
      6. ARMOR AND WEAPON TRAINING
      ============================================================ */
 
-  function armorFlags(st) {
+  /* "uptoSlot" leaves out the General feats from that improvement onward,
+     which is what a later feat's training prerequisite is judged against. */
+  function armorFlags(st, uptoSlot) {
     var c = CLS(st), sub = SUB(st);
     var f = { light: false, medium: false, heavy: false, shield: false, martial: false };
     if (!c) return f;
@@ -2445,6 +2834,11 @@ var RF_APP = (function (D) {
     }
     if (c.choice && c.choice.effects) apply(c.choice.effects[st.classChoice[c.choice.id]]);
     apply(sub);
+    heldGeneralFeats(st).some(function (g) {
+      if (g.slot === uptoSlot) return true;
+      apply({ grantsArmor: g.spec.armor, grantsMartialWeapons: g.spec.martial });
+      return false;
+    });
     return f;
   }
 
@@ -2462,6 +2856,135 @@ var RF_APP = (function (D) {
       return has(w.props, 'Light');
     }
     return false;
+  }
+
+  /* ============================================================
+     6b. GEAR OWNERSHIP
+     A character must own what it wears and wields: the class package, the
+     weapons in its background kit, or gear bought with its starting coin.
+     Money is counted in copper so SP and CP prices stay exact.
+     ============================================================ */
+
+  function equipPkg(st) {
+    var c = CLS(st);
+    if (!c) return null;
+    return c.equipment.filter(function (p) { return p.label === st.equipChoice; })[0] || c.equipment[0];
+  }
+  /* Weapons in the background's equipment kit, read from its item list
+     ("2 Daggers" is a Dagger). */
+  function kitWeapons(st) {
+    var bg = BGD(st);
+    if (!bg || st.bgEquip !== 'A') return [];
+    return uniq(bg.equipA.split(/,\s*/).map(function (item) {
+      var n = item.replace(/^\d+\s+/, '');
+      if (D.WEAPONS[n]) return n;
+      n = n.replace(/s$/, '');
+      return D.WEAPONS[n] ? n : null;
+    }).filter(Boolean));
+  }
+  function carriedWeapons(st) {
+    var pkg = equipPkg(st);
+    return uniq((pkg ? pkg.weapons : []).concat(st.extraWeapons || []));
+  }
+  /* Everything worn or wielded, as buyable item names. */
+  function carriedGear(st) {
+    var out = [];
+    if (st.armor && st.armor !== 'None') out.push(st.armor);
+    if (st.shield) out.push('Shield');
+    return out.concat(carriedWeapons(st));
+  }
+  /* Gear that comes with the character at no cost. */
+  function freeGear(st) {
+    var pkg = equipPkg(st), out = {};
+    out.None = 'nothing to buy';
+    if (pkg) {
+      if (pkg.armor && pkg.armor !== 'None') out[pkg.armor] = 'class package';
+      if (pkg.shield) out.Shield = 'class package';
+      pkg.weapons.forEach(function (w) { out[w] = 'class package'; });
+    }
+    kitWeapons(st).forEach(function (w) { if (!out[w]) out[w] = st.background + ' kit'; });
+    return out;
+  }
+  function itemCostGp(name) {
+    if (name === 'Shield') return D.SHIELD_COST;
+    if (D.ARMOR[name]) return D.ARMOR[name].cost;
+    if (D.WEAPONS[name]) return D.WEAPONS[name].cost;
+    return null;
+  }
+  /* Crafter: a 20 percent discount on every nonmagical item bought. */
+  function priceCp(st, name) {
+    var gp = itemCostGp(name);
+    if (gp == null) return null;
+    var cp = Math.round(gp * 100);
+    return hasFeat(st, 'Crafter') ? Math.round(cp * 0.8) : cp;
+  }
+  function coinText(cp) {
+    var neg = cp < 0, n = Math.abs(cp);
+    var gp = Math.floor(n / 100), sp = Math.floor((n % 100) / 10), c = n % 10;
+    var parts = [];
+    if (gp || (!sp && !c)) parts.push(gp + ' GP');
+    if (sp) parts.push(sp + ' SP');
+    if (c) parts.push(c + ' CP');
+    return (neg ? 'minus ' : '') + parts.join(' ');
+  }
+  function gearLedger(st) {
+    var pkg = equipPkg(st), bg = BGD(st), free = freeGear(st), carried = carriedGear(st);
+    var startCp = ((pkg ? pkg.gp : 0) + (bg ? (st.bgEquip === 'A' ? bg.equipAGold : 50) : 0)) * 100;
+    var bought = [], spent = 0;
+    uniq(st.bought || []).forEach(function (n) {
+      if (free[n] || !has(carried, n) || priceCp(st, n) == null) return;
+      bought.push({ name: n, cp: priceCp(st, n) });
+      spent += priceCp(st, n);
+    });
+    var boughtNames = bought.map(function (b) { return b.name; });
+    var unowned = carried.filter(function (n) { return !free[n] && !has(boughtNames, n); }).map(function (n) {
+      return { name: n, cp: priceCp(st, n), kind: n === 'Shield' ? 'shield' : (D.ARMOR[n] ? 'armor' : 'weapon') };
+    });
+    return { startCp: startCp, spentCp: spent, leftCp: startCp - spent, bought: bought, unowned: unowned, free: free };
+  }
+  /* Coin free to spend on "name" if it replaced what is worn in its place:
+     swapping one bought armor for another refunds the first. */
+  function spendableFor(st, name) {
+    var L = gearLedger(st), back = 0;
+    if (D.ARMOR[name] && name !== 'Shield') {
+      L.bought.forEach(function (b) { if (b.name === st.armor) back = b.cp; });
+    }
+    return L.leftCp + back;
+  }
+  function canAfford(st, name) {
+    var cp = priceCp(st, name);
+    return cp != null && cp <= spendableFor(st, name);
+  }
+
+  /* ---- Weapon Mastery ----
+     Barbarian, Fighter, Paladin, Ranger, and Rogue use the mastery property
+     of a number of weapon kinds they choose; no other class does. */
+  function masteryCount(st) {
+    var c = CLS(st);
+    if (!c || !c.weaponMastery) return 0;
+    return Array.isArray(c.weaponMastery) ? c.weaponMastery[levelOf(st) - 1] : c.weaponMastery;
+  }
+  function masteryEligible(st, name) {
+    var c = CLS(st), w = D.WEAPONS[name];
+    if (!c || !w || !c.weaponMastery) return false;
+    if (c.masteryMelee && !w.melee) return false;
+    return weaponProficient(st, name);
+  }
+  /* The class picks that are legal, in order, up to the count. */
+  function classMasteries(st) {
+    var n = masteryCount(st), out = [];
+    uniq(st.masteries || []).forEach(function (w) { if (out.length < n && masteryEligible(st, w)) out.push(w); });
+    return out;
+  }
+  /* Every weapon kind whose mastery the character can use: the class picks
+     plus the kind a Weapon Master feat adds. */
+  function masteryKinds(st) {
+    var out = classMasteries(st).map(function (w) { return { name: w, source: st.cls }; });
+    heldGeneralFeats(st).forEach(function (g) {
+      var w = g.opts.weapon;
+      if (g.spec.weapon && featWeaponOk(st, w) && !out.some(function (x) { return x.name === w; })) out.push({ name: w, source: g.name });
+    });
+    return out;
   }
 
   /* ============================================================
@@ -2624,6 +3147,11 @@ var RF_APP = (function (D) {
       e.c.forEach(function (n) { add(n, 'Pact of the Tome', 'invocation'); });
       e.s.forEach(function (n) { add(n, 'Pact of the Tome', 'invocation'); });
     });
+
+    heldGeneralFeats(st).forEach(function (g) {
+      var known = st.cantrips.concat(out.map(function (x) { return x.name; }));
+      featSpellNames(st, g, known).forEach(function (n) { add(n, g.name, 'feat'); });
+    });
     return out;
   }
   function spellLevelOf(name) { var s = spellByName(name); return s ? s.l : null; }
@@ -2678,6 +3206,13 @@ var RF_APP = (function (D) {
     if (sub && sub.cantripAbility && sub.grantsCantrip) {
       add(st.subclass, sub.cantripAbility, [sub.grantsCantrip]);
     }
+    var fromFeats = {};
+    grantedRaw(st).forEach(function (g) {
+      if (g.origin === 'feat') (fromFeats[g.source] = fromFeats[g.source] || []).push(g.name);
+    });
+    heldGeneralFeats(st).forEach(function (g) {
+      if (fromFeats[g.name]) add(g.name, featAbility(st, g), fromFeats[g.name]);
+    });
     /* Blessed Warrior and Druidic Warrior cantrips use the class spellcasting
        ability, so they need no block of their own. */
     return out;
@@ -2722,6 +3257,7 @@ var RF_APP = (function (D) {
       if (c.sneakAttackDice) tk.sneak = Math.ceil(lv / 2) + 'd6';
       if (c.martialArts) tk.maDie = martialArtsDie(c, lv);
       if (c.invocations) tk.invocations = invocationCount(st);
+      if (c.weaponMastery) tk.masteries = masteryCount(st);
     }
     if (ci) {
       tk.cantrips = cantripCount(st);
@@ -2751,18 +3287,12 @@ var RF_APP = (function (D) {
     /* --- abilities --- */
     var base = baseScores(st), bonus = bgBonuses(st);
     R.base = base; R.bonus = bonus;
-    /* Ability Score Improvements: +2 to one, or +1 to two, or a feat (a feat
-       is handled in featList). Every class gets one at level 4; a Fighter gets
-       a second at level 6. */
-    var asiExtra = {};
-    function applyASI(mode, a, b) {
-      function bump(k, n) { if (k) asiExtra[k] = (asiExtra[k] || 0) + n; }
-      if (mode === 'plus2') bump(a, 2);
-      else if (mode === 'plus1plus1') { bump(a, 1); bump(b, 1); }
-    }
-    if (lv >= 4) applyASI(st.asiMode, st.asiBumpA, st.asiBumpB);
+    /* Ability Score Improvements: +2 to one, or +1 to two, or a feat, where
+       a General feat adds +1 of its own. Every class gets one at level 4; a
+       Fighter gets a second at level 6. */
+    var asiExtra = asiIncreases(st);
     var extraASI = extraASILevel(st);
-    if (extraASI) applyASI(st.asi2Mode, st.asi2BumpA, st.asi2BumpB);
+    var generalFeats = heldGeneralFeats(st);
     R.asiSlots = [];
     if (lv >= 4) R.asiSlots.push({ level: 4, mode: st.asiMode, a: st.asiBumpA, b: st.asiBumpB, feat: st.asiFeat, key: '' });
     if (extraASI) R.asiSlots.push({ level: extraASI, mode: st.asi2Mode, a: st.asi2BumpA, b: st.asi2BumpB, feat: st.asi2Feat, key: '2' });
@@ -2777,21 +3307,16 @@ var RF_APP = (function (D) {
        A level 6 Paladin adds Aura of Protection to every save. */
     var auraBonus = (c && c.auraOfProtection && lv >= c.auraOfProtection) ? Math.max(1, R.mods.cha) : 0;
     R.auraOfProtection = auraBonus ? { label: 'Aura of Protection', amount: auraBonus } : null;
+    var featSaves = {};
+    generalFeats.forEach(function (g) { if (g.spec.save && featAbility(st, g)) featSaves[featAbility(st, g)] = g.name; });
     R.saves = {};
     D.ABILITIES.forEach(function (a) {
-      var prof = !!(c && has(c.saves, a.key));
+      var prof = !!(c && has(c.saves, a.key)) || !!featSaves[a.key];
       R.saves[a.key] = { prof: prof, value: R.mods[a.key] + (prof ? PB : 0) + auraBonus };
     });
 
     /* --- skills --- */
-    var profSkills = {}, expSkills = {};
-    fixedSkills(st).forEach(function (f) { profSkills[f.skill] = f.source; });
-    skillGroups(st).forEach(function (g) {
-      (st.skillPicks[g.id] || []).forEach(function (s) { if (!profSkills[s]) profSkills[s] = g.label; });
-    });
-    expertiseGroups(st).forEach(function (g) {
-      (st.expertise[g.id] || []).forEach(function (s) { expSkills[s] = g.label; });
-    });
+    var sk = skillProfs(st), profSkills = sk.prof, expSkills = sk.exp;
     /* Feature bonuses that apply to named checks rather than to proficiency:
        Thaumaturge, Magician, and Otherworldly Clamour. */
     var checkBonuses = [];
@@ -2897,9 +3422,13 @@ var RF_APP = (function (D) {
       acParts.push(best.label);
       shieldCounted = best.shield;
     } else {
-      var dexPart = A.dexCap === 0 ? 0 : (A.dexCap == null ? R.mods.dex : Math.min(R.mods.dex, A.dexCap));
+      var dexCap = A.dexCap, capNote = '';
+      if (A.cat === 'medium' && R.scores.dex >= 16 && generalFeats.some(function (g) { return g.spec.mediumDex; })) {
+        dexCap = 3; capNote = ', Medium Armor Master';
+      }
+      var dexPart = dexCap === 0 ? 0 : (dexCap == null ? R.mods.dex : Math.min(R.mods.dex, dexCap));
       ac = A.base + dexPart;
-      acParts.push(armorKey + ': ' + A.base + (A.dexCap === 0 ? ' (Dexterity does not apply)' : ' + Dex' + (A.dexCap != null ? ' (max ' + A.dexCap + ')' : '')));
+      acParts.push(armorKey + ': ' + A.base + (dexCap === 0 ? ' (Dexterity does not apply)' : ' + Dex' + (dexCap != null ? ' (max ' + dexCap + capNote + ')' : '')));
       if (shieldUseful) { ac += D.SHIELD_BONUS; shieldCounted = true; }
     }
     if (shieldCounted) acParts.push('Shield +2');
@@ -2928,6 +3457,9 @@ var RF_APP = (function (D) {
     }
     if (c && c.fastMovement && lv >= c.fastMovement && A.cat !== 'heavy') { speed += 10; speedNotes.push('Fast Movement +10'); }
     if (c && c.roving && lv >= c.roving && A.cat !== 'heavy') { speed += 10; speedNotes.push('Roving +10'); }
+    generalFeats.forEach(function (g) {
+      if (g.spec.speed) { speed += g.spec.speed; speedNotes.push(g.name + ' +' + g.spec.speed); }
+    });
     if (A.str && R.scores.str < A.str) { speed -= 10; speedNotes.push('-10 from armor Strength requirement'); }
     R.speed = { value: speed, notes: speedNotes };
     var initParts = ['Dexterity modifier'];
@@ -2940,11 +3472,8 @@ var RF_APP = (function (D) {
     R.initiativeNote = initParts.join(' plus ');
 
     /* --- weapons and attacks --- */
-    var pkg = null;
-    if (c) {
-      pkg = c.equipment.filter(function (p) { return p.label === st.equipChoice; })[0] || c.equipment[0];
-    }
-    var wlist = uniq((pkg ? pkg.weapons : []).concat(st.extraWeapons || []));
+    var pkg = equipPkg(st);
+    var wlist = carriedWeapons(st);
     /* Martial Arts only works while unarmored, without a Shield, and with a
        Monk weapon: a Simple Melee weapon, or a Martial Melee weapon that has
        the Light property. */
@@ -2958,6 +3487,10 @@ var RF_APP = (function (D) {
       note: maActive ? 'Martial Arts is active: Monk weapons and Unarmed Strikes use ' + maDie + ' and may use Dexterity.'
         : 'Martial Arts is inactive while you wear armor or hold a Shield.' } : null;
 
+    var masteries = masteryKinds(st), masteryNames = masteries.map(function (m) { return m.name; });
+    R.masteryCount = masteryCount(st);
+    R.masteries = masteries.map(function (m) { return { name: m.name, mastery: D.WEAPONS[m.name].mastery, source: m.source }; });
+    R.showMastery = R.masteryCount > 0 || R.masteries.length > 0;
     R.attacks = wlist.map(function (wn) {
       var w = D.WEAPONS[wn];
       if (!w) return null;
@@ -2974,10 +3507,14 @@ var RF_APP = (function (D) {
       var prof = weaponProficient(st, wn);
       var atk = R.mods[abKey] + (prof ? PB : 0);
       if (st.fightingStyle === 'Archery' && !w.melee) atk += 2;
+      var notes = [];
+      generalFeats.forEach(function (g) {
+        if (g.spec.heavyDamage && has(w.props, 'Heavy')) notes.push('+' + PB + ' damage on a hit as part of the Attack action (' + g.name + ')');
+      });
       return {
         name: wn + (monkWeapon && dmg !== w.dmg ? ' (Martial Arts die)' : ''),
         dmg: dmg, type: w.type, ability: abKey, prof: prof,
-        attack: atk, damageBonus: R.mods[abKey], mastery: w.mastery,
+        attack: atk, damageBonus: R.mods[abKey], mastery: has(masteryNames, wn) ? w.mastery : '', notes: notes,
         props: w.props.join(', ') || 'None',
         line: dmg + (R.mods[abKey] ? ' ' + sgn(R.mods[abKey]) : '') + ' ' + w.type
       };
@@ -2992,7 +3529,7 @@ var RF_APP = (function (D) {
       R.attacks.push({
         name: maActive ? 'Unarmed Strike (Martial Arts)' : 'Unarmed Strike',
         dmg: uaDmg, type: 'Bludgeoning', ability: uaAbility, prof: true,
-        attack: R.mods[uaAbility] + PB, damageBonus: R.mods[uaAbility], mastery: 'None',
+        attack: R.mods[uaAbility] + PB, damageBonus: R.mods[uaAbility], mastery: '', notes: [],
         props: maActive ? 'Bonus Action strike' : 'No armor or Shield needed for Martial Arts',
         line: uaDmg + (R.mods[uaAbility] ? ' ' + sgn(R.mods[uaAbility]) : '') + ' Bludgeoning'
       });
@@ -3074,17 +3611,37 @@ var RF_APP = (function (D) {
       if (eff && eff.grantsMartialWeapons) R.proficiencies.weapons += ', plus Martial weapons';
       if (eff && eff.grantsArmor) R.proficiencies.armor += ', plus ' + eff.grantsArmor.join(' and ') + ' armor';
     }
+    var featTools = [];
+    generalFeats.forEach(function (g) {
+      if (g.spec.armor) R.proficiencies.armor += ', plus ' + g.spec.armor.map(function (k) { return TRAINING_LABEL[k]; }).join(' and ') + ' (' + g.name + ')';
+      if (g.spec.martial) R.proficiencies.weapons += ', plus Martial weapons (' + g.name + ')';
+      if (g.spec.tool) featTools.push(g.spec.tool);
+    });
+    if (featTools.length) {
+      R.proficiencies.tools = (R.proficiencies.tools === 'None' ? [] : [R.proficiencies.tools]).concat(featTools).join(', ');
+    }
+    R.proficiencies.saves += Object.keys(featSaves).map(function (k) { return ', plus ' + abName(k) + ' (' + featSaves[k] + ')'; }).join('');
 
-    /* --- equipment and money --- */
-    var gp = (pkg ? pkg.gp : 0) + (bg ? (st.bgEquip === 'A' ? bg.equipAGold : 50) : 0);
+    /* --- equipment and money ---
+       gp is the coin left after purchases, in GP (it can carry SP and CP). */
+    var L = gearLedger(st);
     R.equipment = {
       pkg: pkg, items: pkg ? pkg.items.slice() : [],
       bgItems: bg ? (st.bgEquip === 'A' ? bg.equipA.split(/,\s*/) : ['50 GP']) : [],
-      gp: gp
+      gp: L.leftCp / 100, startGp: L.startCp / 100, spentGp: L.spentCp / 100, coin: coinText(L.leftCp),
+      bought: L.bought.map(function (b) { return { name: b.name, gp: b.cp / 100, price: coinText(b.cp) }; }),
+      unowned: L.unowned.map(function (u) { return u.name; })
     };
 
     /* --- feats and invocations --- */
-    R.feats = featList(st).map(function (f) { return { name: f.name, source: f.source, text: fillText(D.ORIGIN_FEATS[f.name] || '', tk) }; });
+    R.feats = featList(st).map(function (f) {
+      var g = generalFeats.filter(function (x) { return x.slot === f.slot; })[0] || null;
+      return {
+        name: f.name, source: f.source, general: !!g,
+        text: fillText(featText(f.name), g ? featTokens(st, g, R.mods, tk) : tk),
+        choices: g ? featChoiceSummary(st, g) : ''
+      };
+    });
     R.invocations = invList(st).map(function (e) {
       var spec = invSpec(st, e.n) || {};
       var target = '';
@@ -3119,21 +3676,30 @@ var RF_APP = (function (D) {
     if (id === 'asi') {
       /* One improvement at level 4, and a second at level 6 for a Fighter. */
       var slots = [];
-      if (lv >= 4) slots.push({ level: 4, mode: st.asiMode, a: st.asiBumpA, b: st.asiBumpB, feat: st.asiFeat });
-      if (extraASILevel(st)) slots.push({ level: extraASILevel(st), mode: st.asi2Mode, a: st.asi2BumpA, b: st.asi2BumpB, feat: st.asi2Feat });
+      if (lv >= 4) slots.push({ slot: 'asi', level: 4, mode: st.asiMode, a: st.asiBumpA, b: st.asiBumpB, feat: st.asiFeat });
+      if (extraASILevel(st)) slots.push({ slot: 'asi2', level: extraASILevel(st), mode: st.asi2Mode, a: st.asi2BumpA, b: st.asi2BumpB, feat: st.asi2Feat });
+      var held = heldGeneralFeats(st);
       slots.forEach(function (sl) {
         var tag = 'Level ' + sl.level + ' improvement: ';
         if (!sl.mode) out.push(tag + 'choose how to spend it.');
         else if (sl.mode === 'plus2' && !sl.a) out.push(tag + 'choose which ability gets +2.');
         else if (sl.mode === 'plus1plus1' && (!sl.a || !sl.b || sl.a === sl.b)) out.push(tag + 'choose two different abilities for +1 each.');
         else if (sl.mode === 'feat' && !sl.feat) out.push(tag + 'choose a feat.');
+        else if (sl.mode === 'feat' && !isFeat(sl.feat)) out.push(tag + sl.feat + ' is not a feat this builder offers. Choose another.');
+        else if (sl.mode === 'feat') {
+          var why = featPrereq(st, sl.slot, sl.feat);
+          if (why) out.push(tag + sl.feat + ' ' + why + ' before this improvement, so you cannot take it. Choose another feat.');
+          held.filter(function (g) { return g.slot === sl.slot; }).forEach(function (g) {
+            featChoiceIssues(st, g).forEach(function (t) { out.push(tag + g.name + ': ' + t); });
+          });
+        }
       });
       /* Only duplicates that involve an improvement feat belong on this step;
          the Class step already reports the invocation ones. */
       duplicateFeats(st).filter(function (d) {
         return /^Level \d+ feat$/.test(d.first) || /^Level \d+ feat$/.test(d.second);
       }).forEach(function (d) {
-        out.push('You hold the ' + d.name + ' feat twice (' + d.first + ' and ' + d.second + '). An Origin feat can only be taken once.');
+        out.push('You hold the ' + d.name + ' feat twice (' + d.first + ' and ' + d.second + '). It can only be taken once.');
       });
     }
     if (id === 'class') {
@@ -3234,6 +3800,28 @@ var RF_APP = (function (D) {
     }
     if (id === 'equipment') {
       if (!st.equipChoice) out.push('Choose a starting equipment package.');
+      var ledger = gearLedger(st), pkgNow = equipPkg(st);
+      ledger.unowned.forEach(function (u) {
+        var price = u.cp == null ? 'an unknown price' : coinText(u.cp);
+        var afford = u.cp != null && u.cp <= ledger.leftCp;
+        var verb = u.kind === 'weapon' ? 'carry the ' : 'wear ';
+        var instead = u.kind === 'armor'
+          ? (pkgNow && pkgNow.armor && pkgNow.armor !== 'None' ? 'wear your package ' + pkgNow.armor + ' instead' : 'take it off')
+          : (u.kind === 'shield' ? 'set the Shield down' : 'remove it');
+        out.push('You ' + verb + u.name + ' but do not own it: it is not in your class package or background kit. ' +
+          (afford ? 'Buy it for ' + price + ' (you have ' + coinText(ledger.leftCp) + ') or ' + instead + '.'
+                  : 'It costs ' + price + ' and you have ' + coinText(ledger.leftCp) + ', so you cannot buy it. ' + instead.charAt(0).toUpperCase() + instead.slice(1) + '.'));
+      });
+      var mNeed = masteryCount(st), mHave = classMasteries(st);
+      if (mNeed && mHave.length !== mNeed) {
+        out.push('Weapon Mastery: choose ' + mNeed + ' kinds of weapons (you have ' + mHave.length + ').');
+      }
+      uniq(st.masteries || []).forEach(function (w) {
+        if (!has(mHave, w) && !masteryEligible(st, w)) out.push('Weapon Mastery: ' + w + ' is not a weapon your ' + (st.cls || 'class') + ' Weapon Mastery can use.');
+      });
+      if (ledger.leftCp < 0) {
+        out.push('Your purchases cost ' + coinText(ledger.spentCp) + ' but you only have ' + coinText(ledger.startCp) + '. Return something or take more coin.');
+      }
       if (lv > 1 && st.hpMode === 'roll' && st.hpRolls.length !== lv - 1) {
         out.push('Roll your hit points for levels 2 to ' + lv + '.');
       }
@@ -3390,7 +3978,7 @@ var RF_APP = (function (D) {
       '<div><h3>The rules</h3><p class="muted">2024 Player\'s Handbook only. Species grant no ability score increases; your background does. ' +
       'Your proficiency bonus is +' + pb + '.</p></div>' +
       '<div><h3>How this works</h3><p class="muted">' + steps + ' steps, about twenty minutes. Every number is calculated for you. ' +
-      'Your progress is saved in this browser, so a refresh will not lose your work.</p></div>' +
+      'Your progress is saved in this browser, so a refresh will not lose your work. Use <b>Export JSON</b> to move a character to another browser, and <b>Import JSON</b> to bring it back.</p></div>' +
       '</div>' +
       '<div class="note">When you finish, use <b>Save as PDF</b> in the toolbar. Your browser print dialog will produce a two page character sheet. ' +
       'Choose "Save as PDF" as the destination.</div>' +
@@ -3784,7 +4372,7 @@ var RF_APP = (function (D) {
 
     var eg = expertiseGroups(S);
     if (eg.length) {
-      var profNow = Object.keys(taken);
+      var profNow = uniq(Object.keys(taken).concat(featSkillProfs(S)));
       eg.forEach(function (g) {
         var picked = S.expertise[g.id] || [];
         var pool = g.from ? g.from.filter(function (s) { return has(profNow, s); }) : profNow;
@@ -3824,23 +4412,63 @@ var RF_APP = (function (D) {
     });
     h += '</div>';
 
+    var ledger = gearLedger(S), free = ledger.free, pkg = equipPkg(S);
+    var boughtNames = ledger.bought.map(function (b) { return b.name; });
+    /* How an item is held, or what it would cost to buy. */
+    function gearNote(name) {
+      if (free[name]) return free[name] === 'class package' ? 'in your package' : 'in your ' + free[name];
+      if (has(boughtNames, name)) return 'bought, ' + coinText(priceCp(S, name));
+      return coinText(priceCp(S, name));
+    }
     h += '<div class="row" style="margin-top:18px">';
     h += '<div class="field"><label>Armor worn</label><select data-sel="armor">' +
       Object.keys(D.ARMOR).map(function (k) {
-        var a = D.ARMOR[k];
-        var lab = k === 'None' ? 'None' : k + ' (AC ' + a.base + (a.dexCap === 0 ? '' : ' + Dex' + (a.dexCap != null ? ' max ' + a.dexCap : '')) + ')';
-        return '<option value="' + esc(k) + '"' + (S.armor === k ? ' selected' : '') + '>' + esc(lab) + '</option>';
+        var a = D.ARMOR[k], worn = S.armor === k || (!S.armor && k === 'None');
+        var lab = k === 'None' ? 'None' : k + ' (AC ' + a.base + (a.dexCap === 0 ? '' : ' + Dex' + (a.dexCap != null ? ' max ' + a.dexCap : '')) + ') · ' + gearNote(k);
+        var blocked = !worn && !free[k] && !canAfford(S, k);
+        return '<option value="' + esc(k) + '"' + (worn ? ' selected' : '') + (blocked ? ' disabled' : '') + '>' + esc(lab) + (blocked ? ' (cannot afford)' : '') + '</option>';
       }).join('') + '</select></div>';
-    h += '<div class="field"><label>Shield</label><select data-sel="shield"><option value="no"' + (!S.shield ? ' selected' : '') + '>No shield</option><option value="yes"' + (S.shield ? ' selected' : '') + '>Shield (+2 AC)</option></select></div>';
+    var shieldBlocked = !S.shield && !free.Shield && !canAfford(S, 'Shield');
+    h += '<div class="field"><label>Shield</label><select data-sel="shield"><option value="no"' + (!S.shield ? ' selected' : '') + '>No shield</option>' +
+      '<option value="yes"' + (S.shield ? ' selected' : '') + (shieldBlocked ? ' disabled' : '') + '>Shield (+2 AC) · ' + esc(gearNote('Shield')) + (shieldBlocked ? ' (cannot afford)' : '') + '</option></select></div>';
     h += '</div>';
 
-    h += '<h3 style="margin-top:14px">Weapons carried</h3><p class="muted small">Your package weapons are included automatically. Add anything else you want on the sheet.</p><div class="chips">';
+    h += '<h3 style="margin-top:14px">Weapons carried</h3><p class="muted small">Your package weapons are included automatically. ' +
+      'Weapons from your background kit are free to add. Anything else is bought when you add it and refunded when you remove it.</p><div class="chips">';
     Object.keys(D.WEAPONS).forEach(function (w) {
-      var pkg = c.equipment.filter(function (p) { return p.label === S.equipChoice; })[0];
-      var inPkg = pkg && has(pkg.weapons, w);
-      h += chipHTML(w, w + (inPkg ? ' (packed)' : ''), inPkg || has(S.extraWeapons, w), 'extraWeapons', inPkg);
+      var inPkg = pkg && has(pkg.weapons, w), mine = inPkg || has(S.extraWeapons, w);
+      var blocked = inPkg || (!mine && !free[w] && !canAfford(S, w));
+      h += chipHTML(w, w + ' · ' + (inPkg ? 'packed' : gearNote(w)), mine, 'extraWeapons', blocked);
     });
     h += '</div>';
+
+    var mNeed = masteryCount(S);
+    if (mNeed) {
+      var mine = classMasteries(S);
+      h += '<h3 style="margin-top:18px">Weapon Mastery ' + counterHTML(mine.length, mNeed) + '</h3>' +
+        '<p class="muted small">A level ' + levelOf(S) + ' ' + esc(S.cls) + ' uses the mastery property of ' + mNeed + ' kinds of ' +
+        (c.masteryMelee ? 'Simple or Martial Melee weapons' : 'weapons it is proficient with') +
+        '. They need not be weapons you carry, and you can change them on a Long Rest.</p><div class="chips">';
+      Object.keys(D.WEAPONS).filter(function (w) { return masteryEligible(S, w); }).forEach(function (w) {
+        var on = has(mine, w);
+        h += chipHTML(w, w + ' · ' + D.WEAPONS[w].mastery, on, 'mastery', !on && mine.length >= mNeed);
+      });
+      h += '</div>';
+    }
+
+    if (ledger.unowned.length) {
+      h += '<div class="note warn" style="margin-top:14px"><b>Gear you do not own.</b> A character can only wear and wield what it starts with or buys.';
+      ledger.unowned.forEach(function (u) {
+        var afford = u.cp != null && u.cp <= ledger.leftCp;
+        var back = u.kind === 'armor' ? (pkg && pkg.armor && pkg.armor !== 'None' ? 'Wear ' + pkg.armor + ' instead' : 'Take it off')
+          : (u.kind === 'shield' ? 'Set it down' : 'Remove it');
+        h += '<div style="margin-top:8px"><b>' + esc(u.name) + '</b> · ' + esc(u.cp == null ? 'no price' : coinText(u.cp)) + ' ' +
+          '<button type="button" class="tiny" data-group="gearBuy" data-value="' + esc(u.name) + '"' + (afford ? '' : ' disabled') + '>' +
+          (afford ? 'Buy it' : 'Cannot afford') + '</button> ' +
+          '<button type="button" class="tiny" data-group="gearDrop" data-value="' + esc(u.name) + '">' + esc(back) + '</button></div>';
+      });
+      h += '</div>';
+    }
 
     var R2 = compute(S);
     h += '<h3 style="margin-top:20px">Armor Class</h3><div class="statline">' + statBox('AC', R2.ac.value, R2.ac.parts.join(' · ')) + '</div>';
@@ -3855,7 +4483,9 @@ var RF_APP = (function (D) {
         cardHTML('roll', 'Roll for it', 'Roll a d' + c.hd + ' for ' + range.toLowerCase() + '. Level 1 is always the maximum.', S.hpMode === 'roll', 'hpMode') +
         '</div>';
       if (S.hpMode === 'roll') {
-        h += '<div class="rolled"><button type="button" id="btn-hproll">' + (S.hpRolls.length ? 'Reroll' : 'Roll ' + rolls + 'd' + c.hd) + '</button>';
+        var missing = rolls - S.hpRolls.length;
+        h += '<div class="rolled"><button type="button" id="btn-hproll">' +
+          (!S.hpRolls.length ? 'Roll ' + rolls + 'd' + c.hd : (missing > 0 ? 'Roll ' + missing + 'd' + c.hd + ' for the new level' + (missing > 1 ? 's' : '') : 'Reroll')) + '</button>';
         if (S.hpRolls.length) h += '<span class="muted">Rolled ' + S.hpRolls.join(' and ') + '</span>';
         h += '</div>';
       }
@@ -3867,15 +4497,18 @@ var RF_APP = (function (D) {
 
     if (R2.attacks.length) {
       h += '<h3 style="margin-top:20px">Attacks</h3><table style="width:100%;border-collapse:collapse;font-size:.86rem">' +
-        '<tr><th style="text-align:left;padding-bottom:6px">Weapon</th><th style="text-align:left">Attack</th><th style="text-align:left">Damage</th><th style="text-align:left">Mastery</th></tr>';
+        '<tr><th style="text-align:left;padding-bottom:6px">Weapon</th><th style="text-align:left">Attack</th><th style="text-align:left">Damage</th>' +
+        (R2.showMastery ? '<th style="text-align:left">Mastery</th>' : '') + '</tr>';
       R2.attacks.forEach(function (a) {
         h += '<tr><td style="padding:4px 8px 4px 0">' + esc(a.name) + (a.prof ? '' : ' <span class="muted small">(not proficient)</span>') + '</td>' +
-          '<td>' + sgn(a.attack) + '</td><td>' + esc(a.line) + '</td><td class="muted">' + esc(a.mastery) + '</td></tr>';
+          '<td>' + sgn(a.attack) + '</td><td>' + esc(a.line) + (a.notes.length ? '<br><span class="muted small">' + esc(a.notes.join('. ')) + '</span>' : '') +
+          '</td>' + (R2.showMastery ? '<td class="muted">' + esc(a.mastery) + '</td>' : '') + '</tr>';
       });
       h += '</table>';
-      if (c.weaponMastery) h += '<p class="muted small" style="margin-top:8px">Weapon Mastery: you use the mastery property of ' + c.weaponMastery + ' kinds of weapons. Pick from the Mastery column above.</p>';
     }
-    h += '<p class="muted" style="margin-top:14px">Coin in hand: <b>' + R2.equipment.gp + ' GP</b> (class package plus background).</p>';
+    h += '<p class="muted" style="margin-top:14px">Coin in hand: <b>' + esc(R2.equipment.coin) + '</b> (' + esc(coinText(ledger.startCp)) + ' from your class package and background' +
+      (R2.equipment.bought.length ? ', less ' + esc(coinText(ledger.spentCp)) + ' spent on ' + esc(R2.equipment.bought.map(function (b) { return b.name + ' (' + b.price + ')'; }).join(', ')) : '') +
+      (hasFeat(S, 'Crafter') ? '. Crafter takes 20 percent off every purchase' : '') + ').</p>';
     h += issuesHTML('equipment') + '</div></div>';
     return h;
   };
@@ -4068,6 +4701,7 @@ var RF_APP = (function (D) {
     return Object.keys(cast.slots).map(function (k) { return cast.slots[k] + ' x L' + k; }).join(', ');
   }
   function spellByName(n) {
+    n = currentSpellName(n);
     for (var i = 0; i < D.SPELLS.length; i++) { if (D.SPELLS[i].n === n) return D.SPELLS[i]; }
     return null;
   }
@@ -4091,9 +4725,9 @@ var RF_APP = (function (D) {
     var group = 'asi' + key;
     var h = '<h3 style="margin-top:' + (key ? '28px' : '0') + '">Level ' + level + ' improvement</h3>';
     h += '<div class="grid" style="margin:10px 0 12px">' +
-      cardHTML('plus2', '+2 to one ability', 'Increase one ability score by 2.', mode === 'plus2', group) +
-      cardHTML('plus1plus1', '+1 to two abilities', 'Increase two different ability scores by 1 each.', mode === 'plus1plus1', group) +
-      cardHTML('feat', 'Take a feat', 'Gain a feat instead of an ability increase.', mode === 'feat', group) +
+      cardHTML('plus2', '+2 to one ability', 'The Ability Score Improvement feat: increase one ability score by 2.', mode === 'plus2', group) +
+      cardHTML('plus1plus1', '+1 to two abilities', 'The Ability Score Improvement feat: increase two different ability scores by 1 each.', mode === 'plus1plus1', group) +
+      cardHTML('feat', 'Take another feat', 'A General feat you qualify for, which also raises one ability by 1, or an Origin feat.', mode === 'feat', group) +
       '</div>';
     if (mode === 'plus2') {
       h += '<div class="row"><div class="field"><label>+2 to</label><select data-sel="asi' + key + 'BumpA">' +
@@ -4105,14 +4739,69 @@ var RF_APP = (function (D) {
         optionList(D.ABILITIES.filter(function (a) { return a.key !== bumpA; }).map(function (a) { return a.key; }), bumpB) + '</select></div>' +
         '</div>';
     } else if (mode === 'feat') {
-      var tag = 'Level ' + level + ' feat';
-      var held = featList(S).filter(function (f) { return f.source !== tag; }).map(function (f) { return f.name; });
-      var feats = Object.keys(D.ORIGIN_FEATS).filter(function (f) { return held.indexOf(f) === -1 || featRepeatable(f); });
+      var slot = key ? 'asi2' : 'asi';
+      var held = featList(S).filter(function (f) { return f.slot !== slot; }).map(function (f) { return f.name; });
+      function featOption(f, why) {
+        var taken = has(held, f) && !featRepeatable(f);
+        var note = taken ? 'already held' : why;
+        return '<option value="' + esc(f) + '"' + (feat === f ? ' selected' : '') + (note && feat !== f ? ' disabled' : '') + '>' +
+          esc(f) + (note ? ' (' + esc(note) + ')' : '') + '</option>';
+      }
       h += '<div class="field"><label>Feat</label><select data-sel="asi' + key + 'Feat">' +
         '<option value="">Choose a feat</option>' +
-        feats.map(function (f) { return '<option value="' + esc(f) + '"' + (feat === f ? ' selected' : '') + '>' + esc(f) + '</option>'; }).join('') +
-        '</select></div>';
-      if (feat) h += '<p class="trait">' + esc(fillText(D.ORIGIN_FEATS[feat], tk)) + '</p>';
+        '<optgroup label="General feats">' +
+        Object.keys(D.GENERAL_FEATS).map(function (f) { return featOption(f, featPrereq(S, slot, f)); }).join('') +
+        '</optgroup><optgroup label="Origin feats">' +
+        Object.keys(D.ORIGIN_FEATS).map(function (f) { return featOption(f, ''); }).join('') +
+        '</optgroup></select></div>';
+      h += '<p class="muted small">Unavailable feats show the prerequisite you do not meet. Prerequisites are judged on your scores and training before this improvement.</p>';
+      var g = heldGeneralFeats(S).filter(function (x) { return x.slot === slot; })[0];
+      if (feat) h += '<p class="trait">' + esc(fillText(featText(feat), g ? featTokens(S, g, compute(S).mods, tk) : tk)) + '</p>';
+      if (g) h += featChoicesHTML(g, 'asi' + key + 'FeatOpts');
+    }
+    return h;
+  }
+
+  /* The extra choices a General feat asks for. Each select writes into the
+     improvement's FeatOpts object through the data-sel "a.b" path. */
+  function featChoicesHTML(g, optsKey) {
+    var o = g.opts, spec = g.spec, h = '<div class="row">';
+    function select(label, field, values, labelOf) {
+      return '<div class="field"><label>' + esc(label) + '</label><select data-sel="' + optsKey + '.' + field + '">' +
+        '<option value="">Choose</option>' +
+        values.map(function (v) {
+          return '<option value="' + esc(v) + '"' + (o[field] === v ? ' selected' : '') + '>' + esc(labelOf ? labelOf(v) : v) + '</option>';
+        }).join('') + '</select></div>';
+    }
+    h += select(spec.save ? '+1 and saving throw proficiency' : '+1 to', 'ability', featAbilityChoices(S, g), abName);
+    if (spec.skillPick) {
+      var sk = skillProfs(S, g.slot);
+      if (spec.skillPick.mode === 'profOrExp') {
+        h += select('Skill', 'skill', spec.skillPick.from, function (s) { return s + (sk.prof[s] ? ' (Expertise)' : ''); });
+      } else {
+        h += select('Proficiency in', 'skill', ALL_SKILLS.filter(function (s) { return !sk.prof[s]; }));
+        h += select('Expertise in', 'expertise', ALL_SKILLS.filter(function (s) { return (sk.prof[s] || s === o.skill) && !sk.exp[s]; }));
+      }
+    }
+    if (spec.spellPick) {
+      h += select('Level 1 ' + spec.spellPick.schools.join(' or ') + ' spell', 'spell',
+        allSpellsAtLevel(1).filter(function (sx) { return has(spec.spellPick.schools, sx.s); }).map(function (sx) { return sx.n; }),
+        function (n) { return n + ' (' + spellByName(n).s + ')'; });
+    }
+    if (spec.damage) h += select('Damage type', 'damage', spec.damage);
+    if (spec.weapon) {
+      h += select('Weapon kind', 'weapon', Object.keys(D.WEAPONS).filter(function (w) { return featWeaponOk(S, w); }),
+        function (w) { return w + ' (' + D.WEAPONS[w].mastery + ')'; });
+    }
+    h += '</div>';
+    if (spec.rituals) {
+      var want = pbOf(S), picks = o.spells || [];
+      h += '<h4 style="margin-top:12px">Ritual spells ' + counterHTML(picks.length, want) + '</h4><div class="spelllist">';
+      allSpellsAtLevel(1).filter(function (sx) { return sx.r; }).forEach(function (sx) {
+        var mine = has(picks, sx.n);
+        h += spellCardHTML(sx, mine, 'featRitual:' + g.slot, !mine && picks.length >= want);
+      });
+      h += '</div>';
     }
     return h;
   }
@@ -4219,13 +4908,19 @@ var RF_APP = (function (D) {
 
     /* attacks */
     if (R2.attacks.length) {
-      h += '<div class="sec"><h3>Attacks</h3><table><tr><th>Weapon</th><th>Attack</th><th>Damage</th><th>Mastery</th><th>Properties</th></tr>';
+      h += '<div class="sec"><h3>Attacks</h3><table><tr><th>Weapon</th><th>Attack</th><th>Damage</th>' + (R2.showMastery ? '<th>Mastery</th>' : '') + '<th>Properties</th></tr>';
       R2.attacks.forEach(function (a) {
-        h += '<tr><td>' + esc(a.name) + '</td><td>' + sgn(a.attack) + '</td><td>' + esc(a.line) + '</td><td>' + esc(a.mastery) + '</td><td>' + esc(a.props) + '</td></tr>';
+        h += '<tr><td>' + esc(a.name) + '</td><td>' + sgn(a.attack) + '</td><td>' + esc(a.line) + '</td>' + (R2.showMastery ? '<td>' + esc(a.mastery) + '</td>' : '') + '<td>' + esc(a.props) +
+          (a.notes.length ? '. ' + esc(a.notes.join('. ')) : '') + '</td></tr>';
       });
       h += '</table>';
       if (R2.extraAttack) h += '<p class="item" style="margin-top:8px"><b>Extra Attack.</b> You make two attacks whenever you take the Attack action.</p>';
-      if (c && c.weaponMastery) h += '<p class="item"><b>Weapon Mastery.</b> You use the mastery property of ' + c.weaponMastery + ' kinds of weapons, changeable on a Long Rest.</p>';
+      if (R2.showMastery) {
+        h += '<p class="item"><b>Weapon Mastery.</b> ' + (R2.masteries.length
+          ? esc(R2.masteries.map(function (m) { return m.name + ' (' + m.mastery + (m.source !== S.cls ? ', ' + m.source : '') + ')'; }).join(', ')) + '.'
+          : 'No weapon kinds chosen yet.') +
+          (R2.masteryCount ? ' ' + R2.masteryCount + ' kinds from your class, changeable on a Long Rest.' : '') + '</p>';
+      }
       if (R2.sneakAttack) h += '<p class="item"><b>Sneak Attack.</b> ' + esc(R2.sneakAttack) + ' extra damage, once per turn.</p>';
       h += '</div>';
     }
@@ -4309,7 +5004,8 @@ var RF_APP = (function (D) {
     /* feats and background */
     h += '<div class="sec flow"><h3>Origin and proficiencies</h3>';
     R2.feats.forEach(function (f) {
-      h += '<p class="item"><b>' + esc(f.name) + '</b> <span style="color:#7d7563">(' + esc(f.source) + ')</span><br>' + esc(f.text) + '</p>';
+      h += '<p class="item"><b>' + esc(f.name) + '</b> <span style="color:#7d7563">(' + esc(f.source) + ')</span><br>' + esc(f.text) +
+        (f.choices ? '<br><b>Chosen.</b> ' + esc(f.choices) + '.' : '') + '</p>';
     });
     h += '<div class="kv" style="margin-top:8px">' +
       '<div><b>Armor training</b>' + esc(R2.proficiencies.armor) + '</div>' +
@@ -4322,7 +5018,8 @@ var RF_APP = (function (D) {
       '<div><b>Class package</b>' + esc(R2.equipment.items.join(', ') || 'None') + '</div>' +
       '<div><b>Background</b>' + esc(R2.equipment.bgItems.join(', ') || 'None') + '</div>' +
       '<div><b>Armor worn</b>' + esc(R2.ac.armor) + (R2.ac.shield ? ' and a Shield' : '') + '</div>' +
-      '<div><b>Coin</b>' + R2.equipment.gp + ' GP</div>' +
+      (R2.equipment.bought.length ? '<div><b>Bought</b>' + esc(R2.equipment.bought.map(function (b) { return b.name + ' (' + b.price + ')'; }).join(', ')) + '</div>' : '') +
+      '<div><b>Coin</b>' + esc(R2.equipment.coin) + '</div>' +
       '</div></div>';
 
     /* details */
@@ -4383,7 +5080,8 @@ var RF_APP = (function (D) {
     out.push('  Others: ' + R2.skills.filter(function (s) { return !s.prof && !s.exp; }).map(function (s) { return s.name + ' ' + sgn(s.value); }).join(', '));
     if (R2.attacks.length) {
       h2('Attacks');
-      R2.attacks.forEach(function (a) { out.push('  ' + a.name + '  ' + sgn(a.attack) + ' to hit, ' + a.line + '  [' + a.mastery + ']'); });
+      R2.attacks.forEach(function (a) { out.push('  ' + a.name + '  ' + sgn(a.attack) + ' to hit, ' + a.line + (a.mastery ? '  [' + a.mastery + ']' : '') + (a.notes.length ? '  ' + a.notes.join('; ') : '')); });
+      if (R2.masteries.length) out.push('  Weapon Mastery: ' + R2.masteries.map(function (m) { return m.name + ' (' + m.mastery + ')'; }).join(', '));
     }
     if (R2.caster) {
       h2('Spellcasting');
@@ -4424,14 +5122,15 @@ var RF_APP = (function (D) {
     if (R2.sneakAttack) out.push('  Sneak Attack: ' + R2.sneakAttack + ' once per turn.');
     if (sp) { h2('Species traits'); R2.speciesTraits.forEach(function (t) { out.push('  ' + t[0] + ': ' + t[1]); }); }
     h2('Origin');
-    R2.feats.forEach(function (f) { out.push('  ' + f.name + ' (' + f.source + '): ' + f.text); });
+    R2.feats.forEach(function (f) { out.push('  ' + f.name + ' (' + f.source + '): ' + f.text + (f.choices ? ' Chosen: ' + f.choices + '.' : '')); });
     out.push('  Armor: ' + R2.proficiencies.armor);
     out.push('  Weapons: ' + R2.proficiencies.weapons);
     out.push('  Tools: ' + R2.proficiencies.tools);
     h2('Equipment');
     out.push('  ' + R2.equipment.items.join(', '));
     out.push('  ' + R2.equipment.bgItems.join(', '));
-    out.push('  Wearing: ' + R2.ac.armor + (R2.ac.shield ? ' and a Shield' : '') + '.  Coin: ' + R2.equipment.gp + ' GP');
+    if (R2.equipment.bought.length) out.push('  Bought: ' + R2.equipment.bought.map(function (b) { return b.name + ' (' + b.price + ')'; }).join(', '));
+    out.push('  Wearing: ' + R2.ac.armor + (R2.ac.shield ? ' and a Shield' : '') + '.  Coin: ' + R2.equipment.coin);
     h2('Character');
     if (S.alignment) out.push('  Alignment: ' + S.alignment);
     if (S.appearance) out.push('  Appearance: ' + S.appearance);
@@ -4440,6 +5139,59 @@ var RF_APP = (function (D) {
     if (S.bond) out.push('  Bond: ' + S.bond);
     if (S.flaw) out.push('  Flaw: ' + S.flaw);
     return out.join('\n');
+  }
+
+  /* ============================================================
+     14b. JSON EXPORT AND IMPORT
+     The file wraps the exact state in a versioned envelope, so another
+     browser, or a later tool, can tell what it is reading. "version" is the
+     file format; the state inside carries its own v.
+     ============================================================ */
+
+  var EXPORT_FORMAT = 'character-forge';
+  var EXPORT_VERSION = 1;
+
+  function exportJSON(st) {
+    return JSON.stringify({
+      format: EXPORT_FORMAT, version: EXPORT_VERSION,
+      exportedAt: new Date().toISOString(),
+      character: st
+    }, null, 2) + '\n';
+  }
+  function exportFileName(st) {
+    var slug = String(st.name || 'character').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'character';
+    return slug + '-level-' + levelOf(st) + '.json';
+  }
+  /* Accepts an exported file, a bare v3 state, or a verification fixture
+     ({ fixtureFormat, sheet }). Returns { ok, state } or { ok, error }. */
+  function parseImport(text) {
+    var o;
+    try { o = JSON.parse(text); } catch (e) { return { ok: false, error: 'The file is not valid JSON.' }; }
+    if (!o || typeof o !== 'object') return { ok: false, error: 'The file does not hold a character.' };
+    var st;
+    if (o.format === EXPORT_FORMAT) {
+      if (typeof o.version !== 'number' || o.version < 1) return { ok: false, error: 'The file has no format version.' };
+      if (o.version > EXPORT_VERSION) {
+        return { ok: false, error: 'The file was saved by a newer Character Forge (format ' + o.version + '). Reload the page to update it, then import again.' };
+      }
+      st = o.character;
+    } else if (o.fixtureFormat && o.sheet) {
+      st = o.sheet;
+    } else if (o.v !== undefined) {
+      st = o;
+    } else {
+      return { ok: false, error: 'This is not a Character Forge file.' };
+    }
+    if (!st || typeof st !== 'object' || st.v !== 3) {
+      return { ok: false, error: 'The character uses state version ' + (st && st.v) + ', which this page cannot read.' };
+    }
+    var unknown = [['species', D.SPECIES], ['background', D.BACKGROUNDS], ['cls', D.CLASSES]].filter(function (p) {
+      return st[p[0]] && !p[1][st[p[0]]];
+    });
+    if (unknown.length) {
+      return { ok: false, error: 'The file names a ' + unknown.map(function (p) { return (p[0] === 'cls' ? 'class' : p[0]) + ' (' + st[p[0]] + ')'; }).join(' and a ') + ' this page does not know.' };
+    }
+    return { ok: true, state: hydrate(st) };
   }
 
   /* ============================================================
@@ -4452,6 +5204,9 @@ var RF_APP = (function (D) {
   }
 
   function render() {
+    /* Outside a browser (the node tests) state changes still apply; there is
+       just nothing to draw. */
+    if (typeof document === 'undefined') return;
     var list = activeSteps();
     if (S.step >= list.length) S.step = list.length - 1;
     var step = list[S.step];
@@ -4499,8 +5254,12 @@ var RF_APP = (function (D) {
     var lv = levelOf(S), c = CLS(S);
 
     if (lv < 3) { S.subclass = ''; S.subChoice = {}; S.maneuvers = []; S.savant = []; }
-    if (lv < 4) { S.asiMode = ''; S.asiBumpA = ''; S.asiBumpB = ''; S.asiFeat = ''; }
-    if (!extraASILevel(S)) { S.asi2Mode = ''; S.asi2BumpA = ''; S.asi2BumpB = ''; S.asi2Feat = ''; }
+    if (lv < 4) { S.asiMode = ''; S.asiBumpA = ''; S.asiBumpB = ''; S.asiFeat = ''; S.asiFeatOpts = {}; }
+    if (!extraASILevel(S)) { S.asi2Mode = ''; S.asi2BumpA = ''; S.asi2BumpB = ''; S.asi2Feat = ''; S.asi2FeatOpts = {}; }
+    /* Ritual Caster holds as many rituals as the Proficiency Bonus. */
+    heldGeneralFeats(S).forEach(function (g) {
+      if (g.spec.rituals && g.opts.spells && g.opts.spells.length > pbOf(S)) g.opts.spells = g.opts.spells.slice(0, pbOf(S));
+    });
 
     if (!fightingStyleDue(S)) { S.fightingStyle = ''; S.blessedWarrior = []; S.druidicWarrior = []; }
     if (!metamagicDue(S)) S.metamagic = [];
@@ -4551,14 +5310,19 @@ var RF_APP = (function (D) {
       if (!beyondSpellData(S)) S.phbSpells = '';
     }
 
+    /* Rolls for levels already reached are kept on a level up; the
+       Equipment step asks only for the new level's roll. */
     if (lv < 2) S.hpRolls = [];
     else if (S.hpRolls.length > lv - 1) S.hpRolls = S.hpRolls.slice(0, lv - 1);
-    if (S.hpMode === 'roll' && S.hpRolls.length && S.hpRolls.length < lv - 1) S.hpRolls = [];
 
+    /* Feat picks are only dropped here when the feat granting them is gone.
+       A change of species, background, or feat clears its own picks in
+       setGroup. */
     pruneSkillPicks();
     pruneExpertise();
     pruneSpellPicks();
-    clearFeatPicks();
+    pruneFeatPicks();
+    pruneGear();
   }
 
   function setGroup(group, value) {
@@ -4571,23 +5335,27 @@ var RF_APP = (function (D) {
            the spellcasting ability that choice used, and the extra Origin feat
            only Human grants. */
         S.species = value; S.speciesChoice = {}; S.speciesAbility = ''; S.humanFeat = '';
-        clearPick('species'); clearFeatPicks();
+        clearPick('species'); clearPick(skilledKey('human'));
       }
     } else if (kind === 'speciesChoice') {
       S.speciesChoice[sub] = value;
     } else if (kind === 'humanFeat') {
       S.humanFeat = S.humanFeat === value ? '' : value;
-      clearFeatPicks();
+      clearPick(skilledKey('human'));
     } else if (kind === 'background') {
-      if (S.background !== value) { S.background = value; S.bgAssign = { two: '', one: '' }; clearFeatPicks(); S.trait = S.ideal = S.bond = S.flaw = ''; }
+      if (S.background !== value) { S.background = value; S.bgAssign = { two: '', one: '' }; clearPick(skilledKey('background')); S.trait = S.ideal = S.bond = S.flaw = ''; }
     } else if (kind === 'bgMode') {
       S.bgMode = value;
     } else if (kind === 'bgEquip') {
       S.bgEquip = value;
     } else if (kind === 'asi') {
-      S.asiMode = value; S.asiBumpA = ''; S.asiBumpB = ''; S.asiFeat = '';
+      S.asiMode = value; S.asiBumpA = ''; S.asiBumpB = ''; S.asiFeat = ''; S.asiFeatOpts = {};
     } else if (kind === 'asi2') {
-      S.asi2Mode = value; S.asi2BumpA = ''; S.asi2BumpB = ''; S.asi2Feat = '';
+      S.asi2Mode = value; S.asi2BumpA = ''; S.asi2BumpB = ''; S.asi2Feat = ''; S.asi2FeatOpts = {};
+    } else if (kind === 'featRitual') {
+      var ro = slotOpts(S, sub);
+      ro.spells = ro.spells || [];
+      toggle(ro.spells, value, pbOf(S));
     } else if (kind === 'cls') {
       if (S.cls !== value) {
         S.cls = value; S.subclass = ''; S.classChoice = {}; S.subChoice = {};
@@ -4595,10 +5363,10 @@ var RF_APP = (function (D) {
         S.metamagic = []; S.invocations = []; S.maneuvers = [];
         S.cantrips = []; S.prepared = []; S.spellbook = []; S.savant = []; S.discoveries = []; S.phbSpells = '';
         S.expertise = {}; clearPick('class'); clearPick('classExtra'); clearPick('subSkills'); clearPick('subList'); clearPick('subChoiceSkill');
-        S.asi2Mode = ''; S.asi2BumpA = ''; S.asi2BumpB = ''; S.asi2Feat = '';
+        S.asi2Mode = ''; S.asi2BumpA = ''; S.asi2BumpB = ''; S.asi2Feat = ''; S.asi2FeatOpts = {};
         var cc = D.CLASSES[value];
         S.equipChoice = cc.equipment[0].label;
-        S.armor = cc.equipment[0].armor; S.shield = cc.equipment[0].shield; S.extraWeapons = [];
+        S.armor = cc.equipment[0].armor; S.shield = cc.equipment[0].shield; S.extraWeapons = []; S.bought = []; S.masteries = [];
         S.hpRolls = [];
       }
     } else if (kind === 'classChoice') {
@@ -4617,15 +5385,16 @@ var RF_APP = (function (D) {
       } else if (ispec && !ispec.repeatable && hasInv(S, value)) {
         S.invocations = invList(S).filter(function (e) { return e.n !== value; });
       }
-      clearFeatPicks();
     } else if (kind === 'invRemove') {
       S.invocations = invList(S).filter(function (e, i) { return i !== parseInt(value, 10); });
-      clearFeatPicks();
     } else if (kind === 'invTarget') {
       var tparts = value.split('|'), ti = parseInt(tparts[0], 10), tv = tparts.slice(1).join('|');
       var te = invList(S)[ti];
-      if (te) { invEntry(te); te.t = te.t === tv ? '' : tv; }
-      clearFeatPicks();
+      if (te) {
+        invEntry(te);
+        if (te.n === 'Lessons of the First Ones' && (te.t === 'Skilled' || tv === 'Skilled')) clearPick(skilledKey('lessons'));
+        te.t = te.t === tv ? '' : tv;
+      }
     } else if (kind === 'invTomeCantrip') {
       var tc = invList(S)[parseInt(sub, 10)];
       if (tc) toggle(invEntry(tc).c, value, CLS(S).invocations.tome.cantrips);
@@ -4667,7 +5436,38 @@ var RF_APP = (function (D) {
       var pkg = CLS(S).equipment.filter(function (p) { return p.label === value; })[0];
       if (pkg) { S.armor = pkg.armor; S.shield = pkg.shield; }
     } else if (kind === 'extraWeapons') {
-      toggle(S.extraWeapons, value);
+      /* Adding a weapon the character does not already own buys it, and only
+         if the coin covers it. Removing one returns the coin (pruneGear). */
+      if (has(S.extraWeapons, value)) toggle(S.extraWeapons, value);
+      else if (freeGear(S)[value]) S.extraWeapons.push(value);
+      else if (canAfford(S, value)) { S.extraWeapons.push(value); S.bought.push(value); }
+    } else if (kind === 'armor') {
+      if (value !== S.armor && D.ARMOR[value]) {
+        var affordArmor = !!freeGear(S)[value] || canAfford(S, value);
+        if (affordArmor) {
+          S.armor = value;
+          pruneGear();
+          if (!freeGear(S)[value]) S.bought.push(value);
+        }
+      }
+    } else if (kind === 'shield') {
+      var wantShield = value === 'yes';
+      if (wantShield && !S.shield) {
+        if (freeGear(S).Shield) S.shield = true;
+        else if (canAfford(S, 'Shield')) { S.shield = true; S.bought.push('Shield'); }
+      } else if (!wantShield) S.shield = false;
+    } else if (kind === 'mastery') {
+      S.masteries = classMasteries(S);
+      if (has(S.masteries, value)) toggle(S.masteries, value);
+      else if (masteryEligible(S, value)) toggle(S.masteries, value, masteryCount(S));
+    } else if (kind === 'gearBuy') {
+      var gl = gearLedger(S);
+      var ug = gl.unowned.filter(function (u) { return u.name === value; })[0];
+      if (ug && ug.cp != null && ug.cp <= gl.leftCp) S.bought.push(value);
+    } else if (kind === 'gearDrop') {
+      if (value === S.armor) { var dp = equipPkg(S); S.armor = dp ? dp.armor : 'None'; }
+      else if (value === 'Shield') S.shield = false;
+      else S.extraWeapons = S.extraWeapons.filter(function (w) { return w !== value; });
     } else if (kind === 'hpMode') {
       S.hpMode = value;
       if (value === 'average') S.hpRolls = [];
@@ -4704,14 +5504,24 @@ var RF_APP = (function (D) {
     pruneSkillPicks();
     pruneExpertise();
     pruneSpellPicks();
+    pruneFeatPicks();
+    pruneGear();
     render();
   }
 
   function clearPick(id) { delete S.skillPicks[id]; }
-  function clearFeatPicks() {
-    Object.keys(S.skillPicks).forEach(function (k) { if (k.indexOf('skilled') === 0) delete S.skillPicks[k]; });
+  /* Skilled groups that lost their feat are pruned with the other skill
+     groups; Magic Initiate choices go when no feat holds that list any more. */
+  function pruneFeatPicks() {
     var live = magicInitiateLists(S);
     Object.keys(S.mi).forEach(function (k) { if (live.indexOf(k) === -1) delete S.mi[k]; });
+  }
+  /* A purchase only stands while the item is carried and not already free:
+     taking gear off, or switching to a package that includes it, refunds it. */
+  function pruneGear() {
+    var free = freeGear(S), carried = carriedGear(S);
+    S.bought = uniq(S.bought || []).filter(function (n) { return has(carried, n) && !free[n]; });
+    S.masteries = classMasteries(S);
   }
   /* A spell granted by another source never uses up a chosen slot, so a pick
      that a later choice turns into a grant is released rather than wasted.
@@ -4719,7 +5529,7 @@ var RF_APP = (function (D) {
   function pruneSpellPicks() {
     var given = {};
     grantedRaw(S).forEach(function (g) {
-      if ((g.origin || '').indexOf('mi:') === 0 || g.origin === 'style' || g.origin === 'invocation') return;
+      if ((g.origin || '').indexOf('mi:') === 0 || g.origin === 'style' || g.origin === 'invocation' || g.origin === 'feat') return;
       given[g.name] = 1;
     });
     S.cantrips = S.cantrips.filter(function (n) { return !given[n]; });
@@ -4757,6 +5567,7 @@ var RF_APP = (function (D) {
     var prof = {};
     fixedSkills(S).forEach(function (f) { prof[f.skill] = 1; });
     Object.keys(S.skillPicks).forEach(function (k) { (S.skillPicks[k] || []).forEach(function (s) { prof[s] = 1; }); });
+    featSkillProfs(S).forEach(function (s) { prof[s] = 1; });
     var live = {};
     expertiseGroups(S).forEach(function (g) { live[g.id] = g.count; });
     Object.keys(S.expertise).forEach(function (k) {
@@ -4778,8 +5589,8 @@ var RF_APP = (function (D) {
       }
       if (e.target.id === 'btn-hproll') {
         var hd = CLS(S).hd, rolls = levelOf(S) - 1;
-        S.hpRolls = [];
-        for (var ri = 0; ri < rolls; ri++) S.hpRolls.push(roll(hd));
+        if (S.hpRolls.length >= rolls) S.hpRolls = [];
+        while (S.hpRolls.length < rolls) S.hpRolls.push(roll(hd));
         render(); return;
       }
     });
@@ -4791,18 +5602,24 @@ var RF_APP = (function (D) {
       if (el.hasAttribute && el.hasAttribute('data-sel')) {
         var key = el.getAttribute('data-sel');
         var val = el.value;
-        if (key === 'shield') { S.shield = (val === 'yes'); }
-        else if (key.indexOf('.') !== -1) {
+        if (key === 'shield' || key === 'armor') { setGroup(key, val); return; }
+        if (key.indexOf('.') !== -1) {
           var p = key.split('.');
           S[p[0]][p[1]] = val;
           if (p[0] === 'bgAssign' && p[1] === 'two' && S.bgAssign.one === val) S.bgAssign.one = '';
         } else {
+          var before = S[key];
           S[key] = val;
           /* Both halves of a +1/+1 must hit different abilities, for the
              level 4 improvement and the Fighter's level 6 one alike. */
           if (key === 'asiBumpA' && val && S.asiBumpB === val) S.asiBumpB = '';
           if (key === 'asi2BumpA' && val && S.asi2BumpB === val) S.asi2BumpB = '';
+          if ((key === 'asiFeat' || key === 'asi2Feat') && before !== val) {
+            clearPick(skilledKey(key === 'asiFeat' ? 'asi' : 'asi2'));
+            S[key + 'Opts'] = {};
+          }
         }
+        pruneSkillPicks(); pruneExpertise(); pruneSpellPicks(); pruneFeatPicks(); pruneGear();
         render(); return;
       }
       if (el.hasAttribute && el.hasAttribute('data-mi')) {
@@ -4853,6 +5670,32 @@ var RF_APP = (function (D) {
         document.body.removeChild(ta); done(ok);
       }
     });
+    $('#btn-export').addEventListener('click', function () {
+      var url = URL.createObjectURL(new Blob([exportJSON(S)], { type: 'application/json' }));
+      var a = document.createElement('a');
+      a.href = url; a.download = exportFileName(S);
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    });
+    $('#btn-import').addEventListener('click', function () { $('#file-import').click(); });
+    $('#file-import').addEventListener('change', function (e) {
+      var input = e.target, file = input.files && input.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        input.value = '';
+        var r = parseImport(String(reader.result));
+        if (!r.ok) { window.alert('Import failed. ' + r.error); return; }
+        var started = S.species || S.background || S.cls || S.name;
+        if (started && !window.confirm('Replace ' + (S.name || 'the current character') + ' with ' + (r.state.name || 'the imported character') +
+            '? Export the current one first if you want to keep it.')) return;
+        S = r.state;
+        normalize();
+        render();
+      };
+      reader.onerror = function () { input.value = ''; window.alert('Import failed. The file could not be read.'); };
+      reader.readAsText(file);
+    });
     $('#btn-reset').addEventListener('click', function () {
       if (!window.confirm('Clear every choice and start again?')) return;
       var keepLevel = levelOf(S);
@@ -4887,9 +5730,14 @@ var RF_APP = (function (D) {
     spellbookCapAtOrAbove: spellbookCapAtOrAbove, spellbookRoomFor: spellbookRoomFor, phbSpellAudit: phbSpellAudit,
     phbSpellList: phbSpellList, pruneExpertise: pruneExpertise, grantedRaw: grantedRaw,
     magicInitiateLists: magicInitiateLists, miEntry: miEntry, featList: featList,
+    gearLedger: gearLedger, kitWeapons: kitWeapons, coinText: coinText,
+    masteryCount: masteryCount, masteryEligible: masteryEligible, masteryKinds: masteryKinds,
+    heldGeneralFeats: heldGeneralFeats, featPrereq: featPrereq, featChoiceIssues: featChoiceIssues, scoresBefore: scoresBefore,
     grantedSpells: grantedSpells, grantedCantrips: grantedCantrips, grantedNames: grantedNames,
     invList: invList, invSpec: invSpec, invTargetPool: invTargetPool, duplicateFeats: duplicateFeats,
     sheetHTML: sheetHTML, render: render, goto: goto, setGroup: setGroup,
+    hydrate: hydrate, skilledKey: skilledKey, exportJSON: exportJSON, parseImport: parseImport, exportFileName: exportFileName,
+    EXPORT_FORMAT: EXPORT_FORMAT, EXPORT_VERSION: EXPORT_VERSION,
     setState: function (o) { S = o; }, getState: function () { return S; }, boot: boot
   };
   if (typeof document !== 'undefined' && document.getElementById('steps')) {

@@ -1,0 +1,231 @@
+{
+  "fixtureFormat": "forge-v3-fixture/1",
+  "slug": "mortimer-vale",
+  "character": "Mortimer Vale",
+  "player": null,
+  "source": {
+    "pdf": "638866df2cbc62d0eaac70015f2b7b20c4e026bf9dd32caceee5275bef586f65.pdf",
+    "printedAt": "9/27/26, 9:05 AM (browser header)",
+    "forgeCommit": "2bcbcbb7bc2dd4c45a3962df830d3b81274bed6b",
+    "printedLevel": 3
+  },
+  "summary": {
+    "level": 3,
+    "species": "Tiefling (Infernal)",
+    "class": "Rogue",
+    "subclass": "Soulknife",
+    "background": "Charlatan"
+  },
+  "sheet": {
+    "v": 3,
+    "step": 0,
+    "level": 3,
+    "species": "Tiefling",
+    "speciesChoice": {
+      "legacy": "Infernal"
+    },
+    "speciesAbility": "int",
+    "humanFeat": "",
+    "background": "Charlatan",
+    "bgMode": "2-1",
+    "bgAssign": {
+      "two": "dex",
+      "one": "con"
+    },
+    "bgEquip": "A",
+    "cls": "Rogue",
+    "classChoice": {},
+    "subclass": "Soulknife",
+    "subChoice": {},
+    "fightingStyle": "",
+    "blessedWarrior": [],
+    "druidicWarrior": [],
+    "metamagic": [],
+    "invocations": [],
+    "maneuvers": [],
+    "abilityMethod": "array",
+    "rolls": [],
+    "assign": {
+      "str": 5,
+      "dex": 0,
+      "con": 1,
+      "int": 2,
+      "wis": 3,
+      "cha": 4
+    },
+    "pointBuy": {
+      "str": 8,
+      "dex": 8,
+      "con": 8,
+      "int": 8,
+      "wis": 8,
+      "cha": 8
+    },
+    "skillPicks": {
+      "class": [
+        "Acrobatics",
+        "Insight",
+        "Investigation",
+        "Stealth"
+      ],
+      "skilled0": [
+        "History",
+        "Religion",
+        "Perception"
+      ]
+    },
+    "expertise": {
+      "class": [
+        "Investigation",
+        "Stealth"
+      ]
+    },
+    "hpMode": "average",
+    "hpRolls": [],
+    "equipChoice": "A",
+    "armor": "Leather Armor",
+    "shield": false,
+    "extraWeapons": [],
+    "cantrips": [],
+    "prepared": [],
+    "spellbook": [],
+    "savant": [],
+    "discoveries": [],
+    "phbSpells": "",
+    "mi": {},
+    "asiMode": "",
+    "asiBumpA": "",
+    "asiBumpB": "",
+    "asiFeat": "",
+    "asi2Mode": "",
+    "asi2BumpA": "",
+    "asi2BumpB": "",
+    "asi2Feat": "",
+    "name": "Mortimer Vale",
+    "pronouns": "he/him",
+    "alignment": "Lawful Neutral",
+    "appearance": "A pressed grey suit gone shabby at the cuffs, reading glasses perched on his horns, and ink-stained fingers. His tail twitches whenever he spots a typo. A leather satchel is handcuffed to his left wrist. His psychic blades manifest as glowing letter openers that drip ink.",
+    "trait": "Unfailingly polite and extremely precise. I read every word of everything, including contracts, wanted posters, and menus.",
+    "ideal": "Fair terms. Everyone deserves to know exactly what they're agreeing to.",
+    "bond": "A whole town is sitting in escrow because of one paragraph I didn't write. I'm going to write it.",
+    "flaw": "Everything is a transaction. I've never done anything for anyone without terms, except cook, and I don't understand why I make that exception."
+  },
+  "printed": {
+    "ac": 14,
+    "hp": 24,
+    "initiative": 3,
+    "speed": 30,
+    "pb": 2,
+    "passivePerception": 13,
+    "hitDice": "3d8",
+    "scores": {
+      "str": 8,
+      "dex": 17,
+      "con": 15,
+      "int": 13,
+      "wis": 12,
+      "cha": 10
+    },
+    "saves": {
+      "str": -1,
+      "dex": 5,
+      "con": 2,
+      "int": 3,
+      "wis": 1,
+      "cha": 0
+    },
+    "skills": {
+      "Acrobatics": 5,
+      "Animal Handling": 1,
+      "Arcana": 1,
+      "Athletics": -1,
+      "Deception": 2,
+      "History": 3,
+      "Insight": 3,
+      "Intimidation": 0,
+      "Investigation": 5,
+      "Medicine": 1,
+      "Nature": 1,
+      "Perception": 3,
+      "Performance": 0,
+      "Persuasion": 0,
+      "Religion": 3,
+      "Sleight of Hand": 5,
+      "Stealth": 7,
+      "Survival": 1
+    },
+    "expertise": [
+      "Investigation",
+      "Stealth"
+    ],
+    "attacks": [
+      [
+        "Dagger",
+        5,
+        "1d4 +3 Piercing"
+      ],
+      [
+        "Shortsword",
+        5,
+        "1d6 +3 Piercing"
+      ],
+      [
+        "Shortbow",
+        5,
+        "1d6 +3 Piercing"
+      ]
+    ],
+    "caster": null,
+    "innate": [
+      [
+        "Tiefling magic",
+        11,
+        3
+      ]
+    ],
+    "cantrips": [
+      "Thaumaturgy",
+      "Fire Bolt"
+    ],
+    "spells": [
+      "Hellish Rebuke"
+    ],
+    "spellbook": [],
+    "features": [
+      "Expertise",
+      "Sneak Attack",
+      "Thieves' Cant",
+      "Weapon Mastery",
+      "Cunning Action",
+      "Steady Aim",
+      "Psionic Power",
+      "Psychic Blades"
+    ],
+    "feats": [
+      "Skilled"
+    ],
+    "coin": 23,
+    "armorWorn": "Leather Armor",
+    "sneakAttack": "2d6"
+  },
+  "inferred": [
+    {
+      "field": "abilityMethod",
+      "note": "'array' chosen. Base scores 8/15/14/13/12/10 are both the Standard Array and a legal 27-point buy. No effect on numbers."
+    },
+    {
+      "field": "skillPicks (class vs Skilled)",
+      "note": "History and Religion are not Rogue skills, so they came from the Skilled feat. The third Skilled pick is one of Acrobatics / Insight / Investigation / Perception / Stealth, and the other four are the Rogue picks; the sheet does not say which. Recorded Skilled = History, Religion, Perception. No effect on numbers."
+    },
+    {
+      "field": "Thieves' Cant language, weapon mastery picks",
+      "note": "Not recorded by the Forge. Ask the player."
+    }
+  ],
+  "verification": {
+    "allMatch": true,
+    "mismatches": [],
+    "stepIssues": {},
+    "unknownSpellNames": []
+  }
+}

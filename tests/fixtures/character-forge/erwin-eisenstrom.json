@@ -1,0 +1,223 @@
+{
+  "fixtureFormat": "forge-v3-fixture/1",
+  "slug": "erwin-eisenstrom",
+  "character": "Erwin Eisenstrom",
+  "player": null,
+  "source": {
+    "pdf": "ca8e9e261142eb7184ac76c435a5b7e4e941cc89a1ce90c30a74f091453d9323.pdf",
+    "printedAt": "not shown",
+    "forgeCommit": "2bcbcbb7bc2dd4c45a3962df830d3b81274bed6b",
+    "printedLevel": 3
+  },
+  "summary": {
+    "level": 3,
+    "species": "Human",
+    "class": "Paladin",
+    "subclass": "Oath of Vengeance",
+    "background": "Guard"
+  },
+  "sheet": {
+    "v": 3,
+    "step": 0,
+    "level": 3,
+    "species": "Human",
+    "speciesChoice": {},
+    "speciesAbility": "",
+    "humanFeat": "Savage Attacker",
+    "background": "Guard",
+    "bgMode": "2-1",
+    "bgAssign": {
+      "two": "str",
+      "one": "wis"
+    },
+    "bgEquip": "A",
+    "cls": "Paladin",
+    "classChoice": {},
+    "subclass": "Oath of Vengeance",
+    "subChoice": {},
+    "fightingStyle": "Great Weapon Fighting",
+    "blessedWarrior": [],
+    "druidicWarrior": [],
+    "metamagic": [],
+    "invocations": [],
+    "maneuvers": [],
+    "abilityMethod": "array",
+    "rolls": [],
+    "assign": {
+      "str": 0,
+      "dex": 3,
+      "con": 1,
+      "int": 5,
+      "wis": 4,
+      "cha": 2
+    },
+    "pointBuy": {
+      "str": 8,
+      "dex": 8,
+      "con": 8,
+      "int": 8,
+      "wis": 8,
+      "cha": 8
+    },
+    "skillPicks": {
+      "class": [
+        "Insight",
+        "Medicine"
+      ],
+      "species": [
+        "Investigation"
+      ]
+    },
+    "expertise": {},
+    "hpMode": "average",
+    "hpRolls": [],
+    "equipChoice": "A",
+    "armor": "Breastplate",
+    "shield": false,
+    "extraWeapons": [
+      "Maul"
+    ],
+    "cantrips": [],
+    "prepared": [
+      "Compelled Duel",
+      "Bless",
+      "Cure Wounds",
+      "Command"
+    ],
+    "spellbook": [],
+    "savant": [],
+    "discoveries": [],
+    "phbSpells": "",
+    "mi": {},
+    "asiMode": "",
+    "asiBumpA": "",
+    "asiBumpB": "",
+    "asiFeat": "",
+    "asi2Mode": "",
+    "asi2BumpA": "",
+    "asi2BumpB": "",
+    "asi2Feat": "",
+    "name": "Erwin Eisenstrom",
+    "pronouns": "He/Him",
+    "alignment": "Lawful Good",
+    "appearance": "Significantly less hair compared to his brother.",
+    "trait": "I follow procedure and I resent people who do not.",
+    "ideal": "Order. Rules exist because somebody died learning why.",
+    "bond": "My old unit is still on the wall. I write to them.",
+    "flaw": "I am suspicious of anyone who will not tell me their business."
+  },
+  "printed": {
+    "ac": 15,
+    "hp": 28,
+    "initiative": 3,
+    "speed": 30,
+    "pb": 2,
+    "passivePerception": 12,
+    "hitDice": "3d10",
+    "scores": {
+      "str": 17,
+      "dex": 12,
+      "con": 14,
+      "int": 8,
+      "wis": 11,
+      "cha": 13
+    },
+    "saves": {
+      "str": 3,
+      "dex": 1,
+      "con": 2,
+      "int": -1,
+      "wis": 2,
+      "cha": 3
+    },
+    "skills": {
+      "Acrobatics": 1,
+      "Animal Handling": 0,
+      "Arcana": -1,
+      "Athletics": 5,
+      "Deception": 1,
+      "History": -1,
+      "Insight": 2,
+      "Intimidation": 1,
+      "Investigation": 1,
+      "Medicine": 2,
+      "Nature": -1,
+      "Perception": 2,
+      "Performance": 1,
+      "Persuasion": 1,
+      "Religion": -1,
+      "Sleight of Hand": 1,
+      "Stealth": 1,
+      "Survival": 0
+    },
+    "expertise": [],
+    "attacks": [
+      [
+        "Longsword",
+        5,
+        "1d8 +3 Slashing"
+      ],
+      [
+        "Javelin",
+        5,
+        "1d6 +3 Piercing"
+      ],
+      [
+        "Maul",
+        5,
+        "2d6 +3 Bludgeoning"
+      ]
+    ],
+    "caster": {
+      "ability": "cha",
+      "dc": 11,
+      "attack": 3,
+      "slots": "3 x L1"
+    },
+    "innate": [],
+    "cantrips": [],
+    "spells": [
+      "Compelled Duel",
+      "Bless",
+      "Cure Wounds",
+      "Command",
+      "Divine Smite",
+      "Bane",
+      "Hunter's Mark"
+    ],
+    "spellbook": [],
+    "features": [
+      "Lay On Hands",
+      "Spellcasting",
+      "Weapon Mastery",
+      "Fighting Style",
+      "Paladin's Smite",
+      "Fighting Style: Great Weapon Fighting",
+      "Channel Divinity",
+      "Oath of Vengeance Spells",
+      "Vow of Enmity"
+    ],
+    "feats": [
+      "Alert",
+      "Savage Attacker"
+    ],
+    "coin": 21,
+    "armorWorn": "Breastplate"
+  },
+  "inferred": [
+    {
+      "field": "abilityMethod",
+      "note": "'array' chosen. Base scores 15/12/14/8/10/13 are both the Standard Array and a legal 27-point buy. No effect on numbers."
+    },
+    {
+      "field": "armor / extraWeapons",
+      "note": "Breastplate worn (not the Chain Mail and Shield from the package) and Maul added, as printed, with no gold spent. Albert ruled that characters must own what they wear and wield, so this gear is flagged at onboarding. Breastplate costs 400 GP (Erwin has 21 GP), so it cannot be bought; the Maul (10 GP) can, leaving 11 GP. Reverting to the package Chain Mail gives AC 16 (18 with the Shield). The fixture keeps the printed gear so the printed numbers still verify."
+    }
+  ],
+  "verification": {
+    "allMatch": true,
+    "mismatches": [],
+    "stepIssues": {},
+    "unknownSpellNames": []
+  }
+}
