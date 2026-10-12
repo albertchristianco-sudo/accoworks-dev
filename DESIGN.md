@@ -1,5 +1,40 @@
 # Design System
 
+## Current system: Sunday edition
+
+A personal Sunday magazine. Used by home, `/field-notes/` and posts,
+`/projects/`, `/about/` and `/contact/` through
+`src/layouts/EditionLayout.astro` and `src/styles/edition.css`.
+
+- Palette: paper `#F5F7F6`, deep sea teal `#0E3B43` (ink and dark
+  surfaces), hibiscus `#D6336C` (rules, underlines, focus, drop caps),
+  hibiscus deep `#C92A62` (surfaces carrying small paper text, e.g. the
+  race roundel), sand `#E6DFD0` (secondary surfaces), shallow `#8FB8B4`
+  (text on sea). Soft ink `#4a6a6f` on paper, `#3f5f64` on sand. All text
+  pairs meet WCAG AA; tests check the tokens.
+- Type: Gloock for display (masthead, headlines, drop caps, pull quote),
+  Schibsted Grotesk for text and UI. Both self-hosted from `public/fonts/`.
+- Home: magazine cover with a giant "Ac" masthead over a duotone photo,
+  real post titles as cover lines (newest first, from the content
+  collection), and a "Next race" roundel from `src/data/races.json`. The
+  name line gets a solid sea plate on phones so it stays legible.
+- Signature motion: the cover turns like a page on scroll to reveal the
+  Field Notes spread. Supporting motion: hero depth layers, pull quote
+  lines printing in, the power pole drawing itself, rules drawing across.
+  CSS scroll-driven animations first, `html.fx` fallback script second,
+  both only under `prefers-reduced-motion: no-preference`. Reduced motion
+  shows the final composed state. Transform, opacity, clip-path and
+  stroke-dashoffset only. Content is fully readable with JS off.
+- Field Notes list: Training / Building / Operating filter built from radio
+  inputs and `:has()`; without `:has()` the filter hides and every note
+  shows.
+- Copy: sentence case for UI text and headings (published post titles stay
+  as written). No em or en dashes, arrow glyphs, middle dots or emoji.
+
+The sections below describe the legacy system that still styles
+`/coaching/`, `/links/`, `/power/` and `/power/update/` through
+`BaseLayout.astro` and `global.css`.
+
 ## Direction
 
 Operator's field manual. The site should resemble well-made workshop documentation and a personal field record: structured, useful, specific, and visibly handled by a human. Photography, rules, annotations, and evidence carry the identity. Decorative software motifs remain secondary.
