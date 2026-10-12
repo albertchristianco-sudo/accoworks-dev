@@ -19,15 +19,18 @@ A personal Sunday magazine. Used by home, `/field-notes/` and posts,
   - `--on-ink-soft` `#A7B2B6`: secondary text and hairlines on the ink
     plate.
   - `--accent` `#7FC8F8`: the light blue, for fills only. The Next race
-    roundel (with ink text and an ink ring), the selected filter chip, text
-    selection, the progress bar, the scrollbar thumb, the blockquote rule,
-    the liked heart, and on the ink plate the cover-line rules, link
-    underlines, the profile drop cap and focus rings. Never text or a ring
-    on the light pages: it is 1.67:1 on bg.
+    roundel (with ink text and an ink ring), the selected filter chip (which
+    also gets a doubled ink border and heavier type, so selected and hover
+    differ in greyscale), text selection, the progress bar, the liked heart
+    (inside a deep blue stroke), and on the ink plate the cover-line rules,
+    link underlines, the profile drop cap and focus rings. Never text, a
+    rule or a ring on the light pages: it is 1.67:1 on bg. The filled side
+    box inside the profile is a light panel, so links and rings there use
+    the deep blue.
   - `--accent-ink` `#1A6393`: the deep blue of the same hue (about 204
     degrees). Link underlines, the active nav underline, drop caps, quote
-    marks, list markers, the pole wires, the liked state and focus rings on
-    the light pages.
+    marks, list markers, the blockquote rule, the pole wires, the liked
+    state, the scrollbar thumb and focus rings on the light pages.
   - `--on-accent` `#1C2326`: text on a light blue fill (ink; white is only
     1.82:1 there).
   - `--photo-tint` `#6E8084`, `--shade` `#0B0F11`, `--error` `#B3261E`: cover
@@ -47,12 +50,23 @@ A personal Sunday magazine. Used by home, `/field-notes/` and posts,
   body, the contact list and the footer address start at `--content-start`
   (column 5; 6 at 1080px and below), so they share one edge on every page.
   Two-column lists (note dates, contact labels) use `--label-col`, two of
-  their grid columns. Article copy is capped at `--measure`. Pull-quote
-  steps are whole grid columns. The "Ac" marks are moved right by
-  `--mark-bearing` (Gloock's "A" overhangs by .03125em) so their ink sits
-  on the gutter. Right-set cover lines, the nav and the footer links share
-  the right gutter. At 760px and below everything is one column on the
-  gutter. Check with the alignment audit before changing any of these.
+  their grid columns; `--content-cols` is derived from `--content-start`.
+  The briefs and the footer links sit on `--rail` (the last four columns,
+  five at 1080px and below), the profile side boxes on `--rail-narrow` (the
+  last three). The article dek, body, reactions and sign-off run from the
+  content edge and stop at `--measure` (37rem, about 68 characters a line),
+  so they share both edges. Pull-quote steps are whole grid columns. The
+  "Ac" marks are moved right by `--mark-bearing` (Gloock's "A" overhangs by
+  .03125em) so their ink sits on the gutter. Right-set cover lines and the
+  cover nav share the right gutter; above 1080px the footer links do too,
+  and at 1080px and below they drop under the address on the content edge.
+  At 1080px and below a post (head, body and the More list) is one column
+  on the gutter, capped at `--measure`, so it reads at the same measure on
+  tablets as on phones. At 760px and below the content grids are one
+  column on the gutter. The cover always keeps its twelve columns (the
+  roundel and the cover lines are placed on them); `npm run check:cover`
+  checks that in Chrome. Check with the alignment audit before changing any
+  of these.
 - Type: Gloock for display (masthead, headlines, drop caps, pull quote),
   Schibsted Grotesk for text and UI. Both self-hosted from `public/fonts/`.
 - Home: magazine cover with a giant "Ac" masthead over a duotone photo,

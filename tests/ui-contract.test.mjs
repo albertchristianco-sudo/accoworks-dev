@@ -688,6 +688,20 @@ test('puts every edition section on one shared grid (Albert, Oct 12: text in lin
   for (const selector of ['.contents__page', '.archive__list', '.more .toc', '.colophon__list', '.back__copy']) {
     assert.ok(css.includes(`${selector} { grid-column: var(--content-start) / -1;`), selector);
   }
+  // --content-cols follows --content-start instead of being kept in step by hand.
+  assert.match(css, /--content-cols: calc\(13 - var\(--content-start\)\);/);
+  assert.equal(css.match(/--content-cols:/g).length, 1);
+  // Right rails are tokens, counted from the right edge; no hard-coded start columns.
+  assert.match(css, /--rail: span 4 \/ -1;/);
+  assert.match(css, /--rail-narrow: span 3 \/ -1;/);
+  assert.ok(css.includes('.briefs {\n  grid-column: var(--rail);'));
+  assert.ok(css.includes('.back > nav { grid-column: var(--rail);'));
+  assert.ok(css.includes('.profile__side { grid-column: var(--rail-narrow);'));
+  // No page-grid rule starts at a numbered column. Exceptions: the cover's placements
+  // (its own twelve tracks) and the lead project text, which sits on the lead
+  // project's inner seven-column grid after the two-column pole.
+  const placed = [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{[^{}]*grid-column: (?:[2-9]|1[0-2]) \/ -1/g)].map((m) => m[1].trim());
+  assert.deepEqual(placed.filter((selector) => !/^\.(coverlines|flash|lead-project__text)$/.test(selector)), []);
   // Notes and contact rows share one label column.
   assert.equal(css.match(/grid-template-columns: var\(--label-col\) minmax\(0, 1fr\);/g)?.length, 2);
   // The "Ac" marks put their ink, not their box, on the gutter.
@@ -744,4 +758,11 @@ test('sets post copy at one measure from phones to desktop (round 4)', () => {
   assert.match(tablet, /:is\(\.article, \.article__head, \.more__inner\) \{ --cols: minmax\(0, 1fr\); \}/);
   assert.match(tablet, /:is\(\.article, \.article__head, \.more__inner\) > \* \{ grid-column: 1 \/ -1 !important; grid-row: auto !important; \}/);
   assert.match(tablet, /\.more \.toc, \.more__all \{ max-width: var\(--measure\); \}/);
+});
+
+test('keeps animated boxes inside the viewport', () => {
+  // The side boxes used to slide in from translateX(2rem), past the right edge on
+  // the about page at 768 and 360px. Nothing animates sideways now.
+  assert.doesNotMatch(css, /translateX\(/);
+  assert.match(css, /\.sidebox \{ animation: settle /);
 });

@@ -59,8 +59,14 @@
   --cols: repeat(12, minmax(0, 1fr));
   --aside: 1 / span 4;
   --content-start: 5;
-  /* How many columns the content side spans (from --content-start to the edge). */
-  --content-cols: 8;
+  /* How many columns the content side spans (from --content-start to the edge).
+     Derived, so it follows --content-start wherever that is redefined on :root. */
+  --content-cols: calc(13 - var(--content-start));
+  /* Right rails, counted from the right edge: the briefs and the footer links
+     take the last four columns (five at 1080px and below), the profile's side
+     boxes the last three. */
+  --rail: span 4 / -1;
+  --rail-narrow: span 3 / -1;
   /* One grid step (a column plus a gap) as a share of a full-width box. */
   --step: calc((100% + var(--gap)) / 12);
   /* Reading measure for article body copy: about 68 characters a line of the
@@ -508,7 +514,7 @@ main { display: block; }
 .lead-project__dek { max-width: 40ch; font-size: 1.1875rem; line-height: 1.5; }
 
 .briefs {
-  grid-column: 9 / -1;
+  grid-column: var(--rail);
   grid-row: 1 / span 3;
   display: grid;
   align-content: start;
@@ -575,7 +581,7 @@ main { display: block; }
 .profile .sidebox:not(.sidebox--plain) a { text-decoration-color: var(--accent-ink); }
 .profile .sidebox:not(.sidebox--plain) :focus-visible { outline-color: var(--accent-ink); }
 
-.profile__side { grid-column: 10 / -1; display: grid; gap: 1.5rem; align-content: start; padding-top: .5rem; }
+.profile__side { grid-column: var(--rail-narrow); display: grid; gap: 1.5rem; align-content: start; padding-top: .5rem; }
 .sidebox { padding: 1.25rem 1.35rem 1.4rem; background: var(--surface); color: var(--ink); }
 .sidebox__title { margin-bottom: .6rem; font-family: var(--display); font-size: 1.4rem; }
 .sidebox li { padding: .45rem 0; border-top: 1px solid var(--line); font-weight: 500; }
@@ -628,7 +634,7 @@ main { display: block; }
   letter-spacing: -.045em;
 }
 .back__where { grid-column: var(--content-start) / span 4; grid-row: 1; font-weight: 600; }
-.back > nav { grid-column: 9 / -1; grid-row: 1; }
+.back > nav { grid-column: var(--rail); grid-row: 1; }
 .back__links { display: flex; flex-wrap: wrap; gap: 0 1.25rem; justify-content: end; }
 .back__links a { display: inline-flex; align-items: center; min-height: 44px; }
 .back__copy { grid-column: var(--content-start) / -1; grid-row: 2; color: var(--ink-soft); }
@@ -867,7 +873,7 @@ main { display: block; }
 
 @media (max-width: 1080px) {
   /* The aside widens to five columns, so every content edge moves to column 6. */
-  :root { --aside: 1 / span 5; --content-start: 6; --content-cols: 7; }
+  :root { --aside: 1 / span 5; --content-start: 6; --rail: span 5 / -1; }
   .toc__item a { grid-template-columns: 1fr; }
   .toc__meta { grid-row: auto; display: flex; gap: .75rem; padding: 0 0 .3rem; }
   /* The briefs take column 8 here, so the title must stop at 7 or it is pushed below them. */
@@ -875,7 +881,6 @@ main { display: block; }
   .lead-project { grid-template-columns: 1fr; }
   .pole, .lead-project__text { grid-column: 1 / -1; }
   .pole { max-width: 9rem; }
-  .briefs { grid-column: 8 / -1; }
   .feature { background-size: calc(41.666% - var(--gap) / 2 + var(--gutter)) 100%; }
   .profile__body { grid-column: var(--content-start) / -1; }
   .profile__side { grid-column: var(--content-start) / -1; grid-template-columns: 1fr 1fr; margin-top: 2.5rem; }
@@ -1072,7 +1077,8 @@ main { display: block; }
 
     /* Profile: the photo is uncovered from the bottom like a print sliding out */
     .profile__photo { animation: print-up var(--ease-out) both; animation-timeline: view(); animation-range: entry 5% cover 45%; }
-    .sidebox { animation: slide-in var(--ease-out) both; animation-timeline: view(); animation-range: entry 15% cover 35%; }
+    /* Rises like the briefs; a sideways slide pushed the boxes past the viewport edge. */
+    .sidebox { animation: settle var(--ease-out) both; animation-timeline: view(); animation-range: entry 15% cover 35%; }
 
     /* Colophon rows rule in one after another */
     .colophon__list > div { animation: rule-in var(--ease-out) both; animation-timeline: view(); animation-range: entry 0% cover 25%; }
@@ -1109,7 +1115,6 @@ main { display: block; }
   @keyframes rule-draw { from { transform: scaleX(0); } }
   @keyframes settle { from { opacity: 0; transform: translateY(.75rem); } }
   @keyframes print-up { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0); } }
-  @keyframes slide-in { from { opacity: 0; transform: translateX(2rem); } }
   @keyframes rule-in { from { opacity: 0; clip-path: inset(0 100% 0 0); } to { opacity: 1; clip-path: inset(0); } }
   @keyframes rise { from { transform: translateY(45%); } }
   @keyframes progress { to { transform: scaleX(1); } }
