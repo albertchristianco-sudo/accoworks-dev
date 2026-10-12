@@ -59,9 +59,13 @@ landing-page --branch main`. So:
     still used by `/coaching/`, `/links/`, `/power/`, `/power/update/`.
 - **Fonts**: Gloock (display) and Schibsted Grotesk (text), self-hosted from
   `public/fonts/`. No Google Fonts or CDNs.
-- **Next race roundel** on the home cover reads `src/data/races.json` and
-  hides itself when no race is on or after build time. Edit the data, not
-  the markup.
+- **Next race roundel** on the home cover reads `src/data/races.json`. The
+  race is picked at **build time** (earliest race on or after the build date,
+  Asia/Manila), so the deployed page does not update itself: after race day
+  the site needs a rebuild (any push to `main`) to drop or advance the
+  roundel. Until then a tiny inline script removes it once the Manila date is
+  past its `data-until`; with JS off it stays visible. No scheduled deploy
+  exists yet (pending workflow change). Edit the data, not the markup.
 - **Like button**: `src/components/LikeButton.astro` + Cloudflare Pages
   Function `functions/api/reactions.js`, backed by Workers KV
   (binding `REACTIONS`, see `wrangler.toml`).

@@ -296,6 +296,25 @@ test('builds the cover from real data: newest notes as cover lines and the race 
   assert.equal(raceDay(races[0]), 'Nov 28');
 });
 
+test('removes a stale race roundel in the browser once the Cebu date is past race day', () => {
+  assert.match(nextRaceComponent, /<p class="flash" data-until=\{race\.date\}>/);
+  const inline = nextRaceComponent.match(/<script is:inline>([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(inline, 'roundel carries a tiny inline script');
+  assert.match(inline, /timeZone:'Asia\/Manila'/);
+
+  const run = (isoNow) => {
+    let removed = false;
+    const flash = { dataset: { until: '2026-11-28' }, remove: () => { removed = true; } };
+    const RealDate = Date;
+    const FakeDate = class extends RealDate { constructor(...args) { super(...(args.length ? args : [isoNow])); } };
+    new Function('document', 'Date', inline)({ currentScript: { previousElementSibling: flash } }, FakeDate);
+    return removed;
+  };
+  assert.equal(run('2026-10-12T04:00:00Z'), false);
+  assert.equal(run('2026-11-28T15:59:00Z'), false, 'still race day in Cebu (23:59)');
+  assert.equal(run('2026-11-28T16:00:00Z'), true, 'Nov 29 00:00 in Cebu');
+});
+
 test('filters Field Notes by label without JavaScript', () => {
   assert.doesNotMatch(notes, /<script/);
   for (const id of ['f-all', 'f-training', 'f-building', 'f-operating']) assert.match(notes, new RegExp(`id: '${id}'`));
