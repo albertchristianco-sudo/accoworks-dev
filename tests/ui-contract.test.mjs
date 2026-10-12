@@ -215,25 +215,63 @@ test('keeps head essentials and drops the concept preview robots tag', () => {
   }
 });
 
+// Splits a stylesheet into its top-level blocks ({ prelude, body }), comments removed.
+function topLevelBlocks(source) {
+  const text = source.replace(/\/\*[\s\S]*?\*\//g, '');
+  const blocks = [];
+  let depth = 0;
+  let start = 0;
+  let open = 0;
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === '{') {
+      if (depth === 0) open = i;
+      depth++;
+    } else if (text[i] === '}') {
+      depth--;
+      if (depth === 0) {
+        blocks.push({ prelude: text.slice(start, open).trim(), body: text.slice(open + 1, i) });
+        start = i + 1;
+      }
+    }
+  }
+  assert.equal(depth, 0, 'stylesheet braces must balance');
+  return blocks;
+}
+
 test('keeps content visible without JavaScript and honours reduced motion', () => {
   assert.doesNotMatch(legacyLayout + layout, /IntersectionObserver|querySelectorAll\('\.reveal/);
   assert.doesNotMatch(legacyCss, /\.reveal\s*\{[^}]*opacity:\s*0/s);
   for (const source of [css, legacyCss]) assert.doesNotMatch(source, /will-change/);
 
-  // Every animation and every hidden reveal state lives inside the motion block.
-  const motionStart = css.indexOf('@media (prefers-reduced-motion: no-preference) {\n\n');
-  assert.ok(motionStart > 0, 'motion block must exist');
-  const base = css.slice(0, motionStart).replace(/\/\*[\s\S]*?\*\//g, '');
-  assert.doesNotMatch(base, /animation(-name|-timeline)?:/);
-  assert.doesNotMatch(base, /html\.fx|\.rv\b/);
-  const motion = css.slice(motionStart);
-  assert.match(motion, /@supports \(animation-timeline: view\(\)\)/);
+  // Every animation and every hidden reveal state lives inside a
+  // prefers-reduced-motion: no-preference block, however the CSS is formatted.
+  const isMotion = (prelude) => /^@media\s*\(\s*prefers-reduced-motion\s*:\s*no-preference\s*\)$/.test(prelude);
+  const blocks = topLevelBlocks(css);
+  const base = blocks.filter((block) => !isMotion(block.prelude)).map((block) => `${block.prelude}{${block.body}}`).join('\n');
+  const motion = blocks.filter((block) => isMotion(block.prelude)).map((block) => block.body).join('\n');
+  assert.ok(motion.length > 1000, 'motion block must exist');
+  assert.doesNotMatch(base, /animation(-name|-timeline|-range)?\s*:/);
+  assert.doesNotMatch(base, /html\.fx|\.rv\b|@keyframes/);
+  assert.match(motion, /@supports\s*\(animation-timeline:\s*view\(\)\)/);
   assert.match(motion, /html\.fx \.rv/);
 
+  // The reveal script hides nothing by itself: it only runs when motion is allowed and
+  // scroll timelines are missing, sets html.fx first, and marks targets .rv only where
+  // IntersectionObserver exists to reveal them again.
   const script = read('src/scripts/edition-motion.js');
-  assert.match(script, /prefers-reduced-motion: reduce/);
-  assert.match(script, /CSS\.supports\('animation-timeline: view\(\)'\)/);
-  assert.match(script, /classList\.add\('fx'\)/);
+  assert.match(script, /const reduce = [^;]*matchMedia\('\(prefers-reduced-motion: reduce\)'\)\.matches;/);
+  assert.match(script, /const native = [^;]*CSS\.supports\('animation-timeline: view\(\)'\);/);
+  const guard = script.indexOf('if (!reduce && !native) {');
+  const fx = script.indexOf("root.classList.add('fx')");
+  const observer = script.indexOf("if ('IntersectionObserver' in window && targets.length) {");
+  const markHidden = script.indexOf("target.classList.add('rv')");
+  const reveal = script.indexOf("entry.target.classList.add('in')");
+  assert.ok(guard > 0 && guard < fx && fx < observer && observer < reveal && reveal < markHidden, 'reveal order in edition-motion.js');
+  assert.equal(script.match(/classList\.add\('rv'\)/g).length, 1);
+  // No source markup starts hidden: .rv is only ever added by the script.
+  for (const file of walk(new URL('src', root).pathname).filter((name) => name.endsWith('.astro'))) {
+    assert.doesNotMatch(readFileSync(file, 'utf8'), /class(:list)?=["{][^"}]*\brv\b/, file);
+  }
   assert.doesNotMatch(script + css, /preventDefault|scroll-snap|wheel|lenis|locomotive/i);
 });
 
@@ -256,10 +294,34 @@ test('uses responsive modern formats for the above-fold cover photo', () => {
     }
   }
   assert.match(cover, /fetchpriority="high"/);
-  assert.match(cover, /sizes="[^"]+"/);
+  // The photo is object-fit: cover over a 100vw x 100svh box (66% of the height at
+  // <=760px), so it renders at max(box width, box height x 2560/3396).
+  const sizes = [...cover.matchAll(/sizes="([^"]+)"/g)].map((match) => match[1]);
+  assert.deepEqual(sizes, Array(2).fill('(max-width: 760px) max(100vw, 49.75vh), max(100vw, 75.38vh)'));
+  assert.equal((0.66 * 2560 / 3396 * 100).toFixed(2), '49.75');
+  assert.equal((2560 / 3396 * 100).toFixed(2), '75.38');
   assert.match(cover, /src="\/cover-1280\.webp"/);
   assert.match(cover, /width="2560"\s+height="3396"/);
   assert.doesNotMatch(cover, /placeholder|photo-\d+/);
+});
+
+test('sizes the profile photo to its measured layout widths', () => {
+  // Measured: about 92vw on phones, 37vw from 761 to 1080px, 29vw above that up to 467px.
+  const profile = read('src/components/edition/Profile.astro');
+  const sizes = [...profile.matchAll(/sizes="([^"]+)"/g)].map((match) => match[1]);
+  assert.deepEqual(sizes, Array(2).fill('(max-width: 760px) 92vw, (max-width: 1080px) 38vw, min(30vw, 470px)'));
+});
+
+test('marks the nav item as the current page only on an exact match', () => {
+  const nav = read('src/components/edition/SiteNav.astro');
+  assert.match(nav, /if \(path === href \|\| path === href\.slice\(0, -1\)\) return 'page';/);
+  assert.match(nav, /if \(path\.startsWith\(href\)\) return 'true';/);
+  assert.doesNotMatch(nav, /startsWith\(href\) \? 'page'/);
+});
+
+test('uses one mobile breakpoint for the nav strip backing and the name plate', () => {
+  assert.doesNotMatch(css, /max-width: 700px/);
+  assert.match(css, /@media \(max-width: 760px\) \{[\s\S]*?\.cover__strip \{[^}]*background: var\(--sea\);[\s\S]*?\.cover__name span \{[^}]*background: var\(--sea\)/);
 });
 
 test('gives every edition image alt text and explicit dimensions', () => {
@@ -341,6 +403,8 @@ test('filters Field Notes by label without JavaScript', () => {
   for (const id of ['f-all', 'f-training', 'f-building', 'f-operating']) assert.match(notes, new RegExp(`id: '${id}'`));
   assert.match(notes, /type="radio" name="label"/);
   assert.match(notes, /<NoteList notes=\{notes\} labelled/);
+  // A count would be wrong under a filter, and the filter has no JS to update it.
+  assert.match(notes, /<p class="filter__note">Newest first\.<\/p>/);
   assert.match(noteList, /data-label=\{labelled \? note\.data\.label : undefined\}/);
   for (const label of ['Training', 'Building', 'Operating']) {
     assert.match(css, new RegExp(`\\.archive:has\\(#f-${label.toLowerCase()}:checked\\) \\.toc__item:not\\(\\[data-label='${label}'\\]\\)`));

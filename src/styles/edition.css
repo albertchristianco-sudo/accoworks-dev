@@ -846,7 +846,15 @@ main { display: block; }
   .cover { min-height: 560px; padding-bottom: 1.5rem; }
   .cover__photo { inset: 0 0 auto; height: 66%; }
   .cover__photo img { object-position: 50% 6%; }
-  .cover__strip { padding-top: .25rem; font-size: .875rem; }
+  /* Same breakpoint as the name plate below: the strip gets a solid backing so nav
+     links keep contrast over the photo. */
+  .cover__strip {
+    z-index: 2;
+    margin-inline: calc(-1 * var(--gutter));
+    padding: .25rem var(--gutter) 0;
+    font-size: .875rem;
+    background: var(--sea);
+  }
   .cover__edition { padding-block: .5rem 0; width: 100%; }
   .nav ul { margin-left: -.75rem; }
   .masthead { font-size: min(44vw, 26svh); margin-top: .1em; }
@@ -905,11 +913,6 @@ main { display: block; }
 
   .archive__head { position: static; margin-bottom: 2.5rem; }
   .byline { margin-top: 2rem; }
-}
-
-/* Mobile: give the cover strip a solid backing so nav links keep contrast over the photo. */
-@media (max-width: 700px) {
-  .cover__strip { z-index: 2; margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); background: var(--sea); }
 }
 
 @media (max-width: 420px) {
