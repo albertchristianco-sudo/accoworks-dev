@@ -644,8 +644,8 @@ test('puts every edition section on one shared grid (Albert, Oct 12: text in lin
   }
   // One container rule and one grid rule; no section restates the twelve columns.
   assert.match(css, /\.runhead, \.contents, \.pull, \.feature, \.profile__inner, \.colophon, \.back, \.archive, \.article, \.more \{\s*max-width: var\(--max\);\s*margin-inline: auto;\s*padding-inline: var\(--gutter\);/);
-  assert.match(css, /grid-template-columns: var\(--cols\);/);
-  assert.doesNotMatch(css, /grid-template-columns: repeat\(12/);
+  assert.match(css, /\.contents, \.feature, \.profile__inner, \.colophon, \.back, \.archive, \.article, \.article__head, \.more__inner \{\s*display: grid;\s*grid-template-columns: var\(--cols\);/);
+  assert.match(css, /:root \{[^}]*--cols: repeat\(12, minmax\(0, 1fr\)\);/);
   // Lists, body copy, the contact list and the footer address start on the content edge.
   for (const selector of ['.contents__page', '.archive__list', '.more .toc', '.colophon__list', '.back__copy']) {
     assert.ok(css.includes(`${selector} { grid-column: var(--content-start) / -1;`), selector);
@@ -659,4 +659,37 @@ test('puts every edition section on one shared grid (Albert, Oct 12: text in lin
   assert.match(css, /picture > source \{ display: none; \}/);
   // Drop caps start on the text edge (no negative left margin).
   assert.doesNotMatch(css, /::first-letter \{[^}]*margin: [^;]* -\.02em;/);
+});
+
+const mediaBody = (query) => topLevelBlocks(css).find((block) => block.prelude === `@media (${query})`)?.body ?? '';
+
+test('keeps the home cover on twelve columns at every width (round 4 blocker)', () => {
+  // The cover is placed on the twelve page columns (the roundel at 8 / -1 and the
+  // cover lines at 2 / -1 on phones). When the phone override set --cols to one
+  // column on :root, the cover inherited it and collapsed: "Ac" at 0px, the nav and
+  // the name one word per line. The one-column override belongs to the content grids.
+  assert.match(css, /\.cover \{[^}]*display: grid;[^}]*grid-template-columns: var\(--cols\);/);
+  for (const query of ['max-width: 1080px', 'max-width: 760px', 'max-width: 420px']) {
+    const body = mediaBody(query);
+    assert.ok(body, `@media (${query}) exists`);
+    for (const [, selector, decls] of body.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const sel = selector.trim();
+      // Nothing in a breakpoint redefines --cols where the cover would inherit it.
+      if (/--cols:/.test(decls)) {
+        assert.doesNotMatch(sel, /(^|[\s,(])(:root|html|body|main|\.home|\.turn__stage|\.cover)\b/, `@media (${query}) sets --cols on ${sel}`);
+      }
+      // And nothing there gives the cover its own column template.
+      if (/(^|[\s,(])\.cover(?![\w-])/.test(sel)) assert.doesNotMatch(decls, /grid-template-columns/, sel);
+    }
+  }
+  // At 760px and below the content grids, and only they, drop to one column.
+  const phone = mediaBody('max-width: 760px');
+  const oneCol = [...phone.matchAll(/([^{}]+)\{\s*--cols: minmax\(0, 1fr\);\s*\}/g)].map((m) => m[1].trim());
+  assert.deepEqual(oneCol, [':is(.contents, .feature, .profile__inner, .colophon, .archive, .article, .article__head, .more__inner, .back)']);
+  // The cover's own phone placements still assume twelve tracks.
+  assert.match(phone, /\.coverlines \{ grid-column: 2 \/ -1;/);
+  assert.match(phone, /\.flash \{\s*grid-column: 8 \/ -1;/);
+  // The browser check of the same thing (needs Chrome, so not in npm test).
+  assert.equal(pkg.scripts['check:cover'], 'node scripts/check-cover-layout.mjs dist');
+  assert.match(read('AGENTS.md'), /npm run check:cover/);
 });

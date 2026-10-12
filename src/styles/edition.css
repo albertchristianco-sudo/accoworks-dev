@@ -915,8 +915,10 @@ main { display: block; }
   }
   .flash span { font-size: .75em; }
 
-  :root { --cols: minmax(0, 1fr); }
-  /* One column on phones: every placed child spans it, whatever its desktop placement. */
+  /* One column on phones for the content grids only: every placed child spans it,
+     whatever its desktop placement. The cover is not in this list: it keeps its
+     twelve columns (the roundel and cover lines are placed on them). */
+  :is(.contents, .feature, .profile__inner, .colophon, .archive, .article, .article__head, .more__inner, .back) { --cols: minmax(0, 1fr); }
   :is(.contents, .feature, .profile__inner, .colophon, .archive, .article, .article__head, .more__inner, .back) > * { grid-column: 1 / -1 !important; grid-row: auto !important; }
 
   .contents__letter { position: static; padding: 0 0 2.25rem; margin-bottom: 2.25rem; border-right: 0; border-bottom: 1px solid var(--line); }

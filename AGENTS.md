@@ -47,6 +47,16 @@ landing-page --branch main`. So:
   is a pending workflow change (see the Sunday edition PR), so run it
   yourself before merging. If you add an island, add that page to
   `ALLOWED_PAGES` in `scripts/check-no-react.mjs` on purpose.
+- **Cover layout check**: `npm run check:cover` (after `npm run build`) runs
+  `scripts/check-cover-layout.mjs`. It serves `dist/` on a free local port,
+  opens home in headless Chrome at 360x640, 390x844, 760x900, 768, 1024, 1366
+  and 1440, with and without motion, and fails unless the cover has 12 grid
+  tracks, the "Ac" masthead is wider than 100px, the name line is 4 lines or
+  fewer, the cover nav is one row, and the race roundel overlaps neither the
+  masthead nor the lead cover line. It needs Chrome (`CHROME_PATH`, default
+  `/usr/bin/google-chrome`) and the `playwright-core` dev dependency, so it is
+  not part of `npm test` or CI: run it yourself before merging any change to
+  the cover, the grid tokens or the breakpoints. It stops its server itself.
 - **MDX field notes** in `src/content/field-notes/`. Schema in
   `src/content.config.ts` (labels: Training | Building | Operating).
   `/field-notes/<slug>/` is the canonical post URL; `/writing/...` redirects
@@ -96,7 +106,7 @@ instances of the bug class at once. This project has a known failure mode
 ## Conventions
 
 - Build: `npm run build`. Type/template check: `npx astro check`. After a
-  build: `npm run check:no-react`. Tests: `npm test`.
+  build: `npm run check:no-react` and `npm run check:cover`. Tests: `npm test`.
 - Keep one signature motion moment per page (home = the cover turning like a
   page on scroll). Motion is CSS scroll-driven first, with a tiny fallback
   script; everything sits inside `prefers-reduced-motion: no-preference` and
