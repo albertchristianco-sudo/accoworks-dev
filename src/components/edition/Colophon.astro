@@ -1,0 +1,27 @@
+---
+// Get in touch: email plus the public socials. No form.
+interface Props {
+  level?: 1 | 2;
+}
+
+const { level = 2 } = Astro.props;
+const Title = level === 1 ? 'h1' : 'h2';
+
+const socials = [
+  { label: 'Instagram', href: 'https://www.instagram.com/axtian.cf/', text: '@axtian.cf' },
+  { label: 'Facebook', href: 'https://www.facebook.com/lordac/', text: 'facebook.com/lordac' },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/albertchristianco/', text: 'albertchristianco' },
+  { label: 'GitHub', href: 'https://github.com/albertchristianco-sudo', text: 'albertchristianco-sudo' },
+];
+---
+
+<section class="colophon" id="contact" aria-labelledby="contact-title">
+  <Title id="contact-title">Get in touch</Title>
+  <p class="colophon__line">Email is the fastest way to reach me.</p>
+  <dl class="colophon__list">
+    <div><dt>Email</dt><dd><a class="colophon__mail" href="mailto:ac@accoworks.dev">ac@accoworks.dev</a></dd></div>
+    {socials.map((social) => (
+      <div><dt>{social.label}</dt><dd><a href={social.href} rel="me">{social.text}</a></dd></div>
+    ))}
+  </dl>
+</section>

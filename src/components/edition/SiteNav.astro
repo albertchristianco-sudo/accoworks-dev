@@ -1,0 +1,19 @@
+---
+// Primary navigation. "Writing" is the Field Notes section.
+const path = Astro.url.pathname;
+const items = [
+  { href: '/field-notes/', label: 'Writing' },
+  { href: '/projects/', label: 'Projects' },
+  { href: '/about/', label: 'About' },
+  { href: '/contact/', label: 'Contact' },
+];
+const current = (href: string) => (path === href || path.startsWith(href) ? 'page' : undefined);
+---
+
+<nav class="nav" aria-label="Main">
+  <ul>
+    {items.map((item) => (
+      <li><a href={item.href} aria-current={current(item.href)}>{item.label}</a></li>
+    ))}
+  </ul>
+</nav>

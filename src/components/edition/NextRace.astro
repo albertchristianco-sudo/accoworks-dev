@@ -1,0 +1,13 @@
+---
+// "Next race" roundel. Driven by src/data/races.json; renders nothing when no
+// race falls on or after the build date.
+import { nextRace, raceDay } from '../../lib/races';
+
+const race = nextRace();
+---
+
+{race && (
+  <p class="flash">
+    <span>Next race:</span>{` ${race.name}, `}<time datetime={race.date}>{raceDay(race)}</time>
+  </p>
+)}

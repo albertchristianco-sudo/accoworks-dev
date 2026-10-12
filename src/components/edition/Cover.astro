@@ -1,0 +1,64 @@
+---
+// The magazine cover: giant "Ac" masthead over the duotone photo, the newest
+// Field Notes as cover lines, and the next race roundel.
+import SiteNav from './SiteNav.astro';
+import NextRace from './NextRace.astro';
+import { firstSentence, noteHref, type Note } from '../../lib/notes';
+
+interface Props {
+  notes: Note[];
+}
+
+const [lead, ...rest] = Astro.props.notes;
+---
+
+<header class="cover" id="top">
+  <div class="cover__photo">
+    <!-- placeholder: replace with high-res cover when Albert sends it -->
+    <picture>
+      <source
+        type="image/avif"
+        srcset="/photo-400.avif 400w, /photo-640.avif 640w, /photo-720.avif 720w, /photo-800.avif 799w"
+        sizes="100vw"
+      />
+      <source
+        type="image/webp"
+        srcset="/photo-400.webp 400w, /photo-640.webp 640w, /photo-720.webp 720w, /photo-800.webp 799w"
+        sizes="100vw"
+      />
+      <img
+        src="/photo-640.webp"
+        width="640"
+        height="849"
+        alt="Ac pushing a weighted sled at a HYROX race"
+        loading="eager"
+        decoding="async"
+        fetchpriority="high"
+      />
+    </picture>
+  </div>
+
+  <div class="cover__strip">
+    <p class="cover__edition">Edition: Field Notes</p>
+    <SiteNav />
+  </div>
+
+  <div class="cover__mast">
+    <p class="masthead" aria-hidden="true">Ac</p>
+    <h1 class="cover__name"><span>Albert Christian Co, coach, builder and operator in Cebu City.</span></h1>
+  </div>
+
+  {lead && (
+    <ul class="coverlines" aria-label="In this edition">
+      <li class="coverline coverline--lead">
+        <a href={noteHref(lead)}>{lead.data.title}</a>
+        <span class="coverline__dek">{firstSentence(lead.data.summary)}</span>
+      </li>
+      {rest.map((note) => (
+        <li class="coverline"><a href={noteHref(note)}>{note.data.title}</a></li>
+      ))}
+    </ul>
+  )}
+
+  <NextRace />
+</header>

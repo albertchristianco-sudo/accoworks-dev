@@ -1,0 +1,46 @@
+---
+// About: story, credentials and off the clock. Home section (h2) or /about/ page (h1).
+interface Props {
+  level?: 1 | 2;
+}
+
+const { level = 2 } = Astro.props;
+const Title = level === 1 ? 'h1' : 'h2';
+const Sub = level === 1 ? 'h2' : 'h3';
+---
+
+<section class="profile" id="about" aria-labelledby="about-title">
+  <div class="profile__inner">
+    <figure class="profile__photo">
+      <picture>
+        <source type="image/avif" srcset="/field-coach-480.avif 480w, /field-coach-720.avif 720w" sizes="(max-width: 760px) calc(100vw - 2.5rem), 30vw" />
+        <source type="image/webp" srcset="/field-coach-480.webp 480w, /field-coach-720.webp 720w" sizes="(max-width: 760px) calc(100vw - 2.5rem), 30vw" />
+        <img src="/field-coach-720.webp" width="720" height="720" alt="Ac coaching at a CrossFit event" loading="lazy" decoding="async" />
+      </picture>
+    </figure>
+
+    <div class="profile__body">
+      <Title id="about-title">About</Title>
+      <p class="profile__open">Before the gyms, before CrossFit, I was the IT guy. I studied Information Technology at the University of San Carlos. Fitness came later and took over the stage. The tech never left.</p>
+      <p>Today I own CrossFit Subtero, two CrossFit boxes in Cebu City built around coaching standards, athlete development, and community. I serve as Country Manager for CrossFit Philippines, supporting affiliates across the country, and I operate Flame &amp; Finish, which brings imported building materials to the Philippine market.</p>
+      <p>CrossFit is the sport. I have coached for more than a decade and hold the CrossFit Level 3 credential. I also race HYROX, enough to test myself outside the gym. The long game is simpler: move well at 60, keep up with my son, and stay useful when real life gets heavy.</p>
+      <p class="profile__coach">I also coach athletes remotely. You get a program written for you, and I review your work and adjust it as you change. <a href="/coaching/">Read about remote coaching</a></p>
+    </div>
+
+    <aside class="profile__side" aria-label="Credentials and off the clock">
+      <div class="sidebox">
+        <Sub class="sidebox__title">Credentials</Sub>
+        <ul>
+          <li>CrossFit Level 3 Trainer</li>
+          <li>OPEX CCP1</li>
+          <li>Precision Nutrition Level 1</li>
+          <li>HYROX athlete</li>
+        </ul>
+      </div>
+      <div class="sidebox sidebox--plain">
+        <Sub class="sidebox__title">Off the clock</Sub>
+        <p>Husband and father. They are the whole point. Then Dungeons &amp; Dragons, World of Warcraft, and whatever problem refuses to leave my head.</p>
+      </div>
+    </aside>
+  </div>
+</section>
