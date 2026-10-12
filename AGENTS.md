@@ -68,9 +68,9 @@ landing-page --branch main`. So:
 - **Two layouts, two stylesheets (do not mix them):**
   - `src/layouts/EditionLayout.astro` + `src/styles/edition.css`: the
     "Sunday edition" design for home, `/field-notes/`, posts, `/projects/`,
-    `/about/`, `/contact/`. Components live in `src/components/edition/`.
+    `/about/`, `/contact/` and the unlisted (noindex) `/coaching/`. Components live in `src/components/edition/`.
   - `src/layouts/BaseLayout.astro` + `src/styles/global.css`: legacy layout,
-    still used by `/coaching/`, `/links/`, `/power/`, `/power/update/`.
+    still used by `/links/`, `/power/`, `/power/update/`.
 - **Fonts**: Gloock (display) and Schibsted Grotesk (text), self-hosted from
   `public/fonts/`. No Google Fonts or CDNs.
 - **Next race roundel** on the home cover reads `src/data/races.json`. The

@@ -1,37 +1,49 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
+import EditionLayout from '../layouts/EditionLayout.astro';
 ---
 
-<BaseLayout
-  minimalNav
+<EditionLayout
   noindex
-  title="Ac — Remote Coaching | accoworks.dev"
-  description="Remote personalized coaching with Ac: one program written for one athlete, reviewed and adjusted every week. Apply through the intake form."
+  title="Remote coaching | accoworks.dev"
+  description="Remote coaching with Ac: I write your program, check your training and adjust it as you go. $150 USD a month, 3-month commitment. Apply through the form."
 >
-  <section class="intake" aria-label="Remote coaching intake">
-    <header class="intake-head">
-      <p class="slot-flag"><span class="slot-dot" aria-hidden="true"></span><span class="slot-text">1 slot open for remote personalized coaching</span></p>
-      <h1 class="intake-title">One athlete.<span class="accent">One program.</span></h1>
-      <div class="intake-copy">
-        <p>This is for athletes who take training seriously.</p>
-        <p class="intake-cred">CrossFit Level 3 Trainer. CrossFit Philippines Country Manager. Owner, CrossFit Subtero. OPEX CCP Level 1.</p>
-        <p>You get a program written for you: your history, your schedule, your weaknesses. It changes as you change.</p>
-        <p>I review your work, I ask questions, and I adjust. You show up and do the training.</p>
-        <p>This is for people who can train on their own. If you are new to training and still building the habit, you may get more from in-person coaching than I can give remotely. You should be comfortable working out alone, or have complete access to equipment.</p>
-        <p>If that sounds like what you want, fill out the form. I read every submission myself.</p>
+  <section class="coach" aria-labelledby="coach-title">
+    <header class="coach__head">
+      <h1 id="coach-title">Remote coaching</h1>
+      <p class="coach__slot">1 slot open</p>
+      <div class="sidebox">
+        <h2 class="sidebox__title">Price</h2>
+        <ul>
+          <li>$150 USD per month</li>
+          <li>About ₱9,300 per month</li>
+          <li>3-month commitment</li>
+        </ul>
       </div>
     </header>
 
-    <div class="intake-offer">
-      <p class="offer-figure">$150 <span class="offer-unit offer-unit--prose">USD per month</span></p>
-      <span class="offer-unit offer-unit--prose">≈ ₱9,300 per month</span>
-      <p class="offer-terms">3-month commitment.</p>
-    </div>
+    <div class="coach__body">
+      <div class="coach__copy">
+        <p class="coach__open">I coach athletes remotely. I write your program, check your training and adjust it as you go.</p>
+        <p>I've coached CrossFit for more than ten years. I own CrossFit Subtero, two gyms in Cebu City, and I'm Country Manager for CrossFit Philippines. I also race HYROX.</p>
+        <p class="coach__cred">Credentials: CrossFit Level 3 Trainer, OPEX CCP Level 1.</p>
 
-    <form class="intake-form" id="intake-form" novalidate>
-      <fieldset class="fgroup">
-        <legend>Who you are</legend>
-        <div class="fgroup-fields">
+        <h2>How it works</h2>
+        <p>Your program is written for you: your history, your schedule and what you need to work on. You do the training. I check it, ask questions and change the program when it needs changing.</p>
+
+        <h2>Who it is for</h2>
+        <p>It is for people who can train on their own and have the equipment they need. If you are new to training and still building the habit, you may get more from a coach in person.</p>
+
+        <h2>Apply</h2>
+        <p>Fill in the form below. I read every submission myself. You can also email me at <a href="mailto:ac@accoworks.dev">ac@accoworks.dev</a>.</p>
+      </div>
+
+      <noscript>
+        <p class="coach__noscript">This form needs JavaScript. Without it, email me at <a href="mailto:ac@accoworks.dev">ac@accoworks.dev</a> instead.</p>
+      </noscript>
+
+      <form class="coach__form" id="intake-form" novalidate>
+        <fieldset class="fgroup">
+          <legend>Who you are</legend>
           <div class="field-row">
             <div class="field">
               <label for="in-name">Name</label>
@@ -42,12 +54,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
               <input id="in-email" name="email" type="email" autocomplete="email" required maxlength="200" />
             </div>
           </div>
-        </div>
-      </fieldset>
+        </fieldset>
 
-      <fieldset class="fgroup">
-        <legend>Where you are</legend>
-        <div class="fgroup-fields">
+        <fieldset class="fgroup">
+          <legend>Where you are</legend>
           <div class="field">
             <label for="in-experience">Experience level</label>
             <select id="in-experience" name="experience">
@@ -61,12 +71,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <label for="in-training">Current training</label>
             <textarea id="in-training" name="training" required maxlength="2000" placeholder="Current training load, and any injuries or limitations."></textarea>
           </div>
-        </div>
-      </fieldset>
+        </fieldset>
 
-      <fieldset class="fgroup">
-        <legend>What you want</legend>
-        <div class="fgroup-fields">
+        <fieldset class="fgroup">
+          <legend>What you want</legend>
           <div class="field">
             <label for="in-goal">Goal</label>
             <textarea id="in-goal" name="goal" required maxlength="2000" placeholder="What do you want to achieve?"></textarea>
@@ -75,28 +83,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <label for="in-why"><span>Why me</span><span class="opt">Optional</span></label>
             <textarea id="in-why" name="why" maxlength="2000" placeholder="Why do you want to work with me?"></textarea>
           </div>
+        </fieldset>
+
+        <div class="field visually-hidden" aria-hidden="true">
+          <label for="in-company">Company</label>
+          <input id="in-company" name="company" type="text" tabindex="-1" autocomplete="off" />
         </div>
-      </fieldset>
 
-      <div class="field visually-hidden" aria-hidden="true">
-        <label for="in-company">Company</label>
-        <input id="in-company" name="company" type="text" tabindex="-1" autocomplete="off" />
+        <div class="coach__submit">
+          <button class="btn btn--solid" type="submit" data-submit>Send my application</button>
+          <p class="form-status" data-status role="status" aria-live="polite"></p>
+        </div>
+      </form>
+
+      <div class="sidebox coach__done" data-done hidden tabindex="-1">
+        <h2 class="sidebox__title">Received</h2>
+        <p>I will reply within 48 hours. If it is a fit, we start with a call.</p>
       </div>
-
-      <div class="intake-submit">
-        <button class="btn btn--primary btn--submit" type="submit" data-submit>Apply for the slot</button>
-        <p class="form-status" data-status role="status" aria-live="polite"></p>
-      </div>
-    </form>
-
-    <div class="intake-done" data-done hidden tabindex="-1">
-      <h2>Received.</h2>
-      <p>I will reply within 48 hours. If it is a fit, we start with a call.</p>
     </div>
-
-    <p class="intake-return"><a href="/">&larr; back to accoworks.dev</a></p>
   </section>
-</BaseLayout>
+</EditionLayout>
 
 <script>
   const form = document.getElementById('intake-form') as HTMLFormElement | null;

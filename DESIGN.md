@@ -3,7 +3,8 @@
 ## Current system: Sunday edition
 
 A personal Sunday magazine. Used by home, `/field-notes/` and posts,
-`/projects/`, `/about/` and `/contact/` through
+`/projects/`, `/about/`, `/contact/` and the unlisted (noindex) `/coaching/`
+through
 `src/layouts/EditionLayout.astro` and `src/styles/edition.css`.
 
 - Palette (Albert, Oct 12): a neutral cool grey base with a light blue
@@ -88,7 +89,7 @@ A personal Sunday magazine. Used by home, `/field-notes/` and posts,
   as written). No em or en dashes, arrow glyphs, middle dots or emoji.
 
 The sections below describe the legacy system that still styles
-`/coaching/`, `/links/`, `/power/` and `/power/update/` through
+`/links/`, `/power/` and `/power/update/` through
 `BaseLayout.astro` and `global.css`.
 
 ## Direction
