@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
-import { checkDist } from '../scripts/check-no-react.mjs';
+import { checkDist, isExecutableScript } from '../scripts/check-no-react.mjs';
 import { nextRace, raceDay } from '../src/scripts/next-race.mjs';
 
 const root = new URL('../', import.meta.url);
@@ -148,6 +148,29 @@ test('check:no-react fails real Astro island markup and passes the clean case', 
     writeFileSync(join(dist, '_astro', 'client.CP0hKK24.js'), 'export default ()=>{};');
     writeFileSync(join(dist, '_astro', 'Hi.tqv9BQlb.js'), 'export default ()=>{};');
     assert.deepEqual(checkDist(dist).problems, ['island/index.html: has 1 astro-island(s) but is not in ALLOWED_PAGES']);
+  } finally {
+    rmSync(dist, { recursive: true, force: true });
+  }
+});
+
+test('check:no-react scans inline JavaScript but not inline data scripts', () => {
+  for (const attrs of ['', ' type=""', ' type="module"', " type='text/javascript'", ' type=application/javascript', ' type="TEXT/ECMASCRIPT"']) {
+    assert.equal(isExecutableScript(attrs), true, attrs);
+  }
+  for (const attrs of [' type="application/ld+json"', ' type="application/json"', ' type="importmap"', ' type="text/template"', ' type="speculationrules"']) {
+    assert.equal(isExecutableScript(attrs), false, attrs);
+  }
+
+  const dist = mkdtempSync(join(tmpdir(), 'no-react-inline-'));
+  try {
+    const mention = 'A post about hydrateRoot and react-dom.';
+    writeFileSync(join(dist, 'index.html'), `<script type="application/ld+json">{"description":"${mention}"}</script>`);
+    assert.deepEqual(checkDist(dist).problems, []);
+
+    for (const type of ['', ' type="module"', ' type="text/javascript"']) {
+      writeFileSync(join(dist, 'index.html'), `<script${type}>/* ${mention} */</script>`);
+      assert.deepEqual(checkDist(dist).problems, ['index.html: inline script contains React runtime code'], type);
+    }
   } finally {
     rmSync(dist, { recursive: true, force: true });
   }
@@ -330,8 +353,15 @@ test('lifts the pinned cover only for keyboard focus, not mouse clicks in main',
   assert.match(layout, /<main id="main-content" tabindex="-1">/);
   // main has tabindex="-1", so a click focuses it: :focus-within would hide the cover.
   assert.doesNotMatch(css, /:has\(main:focus-within\)/);
-  const lifts = [...css.matchAll(/([^{}\n]*:has\(main:focus-visible, main :focus-visible\) \.cover) \{ visibility: hidden; \}/g)];
+  const lifts = [...css.matchAll(/([^{}\n]*:has\(([^)]*)\) \.cover) \{ visibility: hidden; \}/g)];
   assert.equal(lifts.length, 2, 'both motion engines lift the cover on keyboard focus');
+  for (const [, rule, list] of lifts) {
+    const selectors = list.split(',').map((part) => part.trim());
+    // A bare main:focus-visible turns true on any keypress after a click focuses main.
+    assert.ok(!selectors.includes('main:focus-visible'), `bare main:focus-visible lifts the cover: ${rule}`);
+    assert.ok(selectors.every((sel) => /^main /.test(sel) || /^main:target\b/.test(sel)), `only focus inside main or the skip-link target lifts the cover: ${rule}`);
+    assert.ok(selectors.some((sel) => /^main :focus-visible$/.test(sel)), `Tab into the spread lifts the cover: ${rule}`);
+  }
 });
 
 test('uses responsive modern formats for the above-fold cover photo', () => {
@@ -433,11 +463,14 @@ test('builds the cover from real data: newest notes as cover lines and the race 
   assert.equal(raceDay(races[0]), 'Nov 28');
 });
 
-test('removes a stale race roundel in the browser once the Cebu date is past race day', () => {
+test('removes a stale race roundel in the browser once the Asia/Manila date is past race day', () => {
   assert.match(nextRaceComponent, /<p class="flash" data-until=\{race\.date\}>/);
   const inline = nextRaceComponent.match(/<script is:inline>([\s\S]*?)<\/script>/)?.[1];
   assert.ok(inline, 'roundel carries a tiny inline script');
   assert.match(inline, /timeZone:'Asia\/Manila'/);
+  // The date comes from formatToParts, not from a locale's string format.
+  assert.match(inline, /formatToParts/);
+  assert.doesNotMatch(inline, /en-CA/);
 
   const run = (isoNow) => {
     let removed = false;
@@ -448,8 +481,8 @@ test('removes a stale race roundel in the browser once the Cebu date is past rac
     return removed;
   };
   assert.equal(run('2026-10-12T04:00:00Z'), false);
-  assert.equal(run('2026-11-28T15:59:00Z'), false, 'still race day in Cebu (23:59)');
-  assert.equal(run('2026-11-28T16:00:00Z'), true, 'Nov 29 00:00 in Cebu');
+  assert.equal(run('2026-11-28T15:59:00Z'), false, 'still race day in Manila (23:59)');
+  assert.equal(run('2026-11-28T16:00:00Z'), true, 'Nov 29 00:00 in Manila');
 });
 
 test('filters Field Notes by label without JavaScript', () => {

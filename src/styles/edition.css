@@ -981,11 +981,13 @@ main { display: block; }
   /* While the stage is pinned the cover lies on top of the spread. When keyboard
      focus moves into the spread, lift the cover out of the way so focus stays visible.
      :focus-visible, not :focus-within: main has tabindex="-1", so a mouse click on
-     its text focuses main, and that must not hide the cover. */
-  html.fx .home .turn__stage:has(main:focus-visible, main :focus-visible) .cover { visibility: hidden; }
+     its text focuses main, and that must not hide the cover. main itself only counts
+     when reached through the skip link (:target); a bare main:focus-visible would
+     turn true on the first keypress after such a click. */
+  html.fx .home .turn__stage:has(main:target:focus-visible, main :focus-visible) .cover { visibility: hidden; }
 
   @supports (animation-timeline: view()) {
-    .home .turn__stage:has(main:focus-visible, main :focus-visible) .cover { visibility: hidden; }
+    .home .turn__stage:has(main:target:focus-visible, main :focus-visible) .cover { visibility: hidden; }
     .home .cover {
       animation: page-turn linear both;
       animation-timeline: scroll(root);
