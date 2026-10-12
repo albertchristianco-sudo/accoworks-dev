@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -111,6 +112,64 @@ test('check:no-react fails a page that loads React and passes a clean build', ()
     assert.match(problems[0], /^index\.html: loads \/_astro\/island\.js which reaches React/);
   } finally {
     rmSync(dist, { recursive: true, force: true });
+  }
+});
+
+// Island markup exactly as Astro 6 emits it for <Hi client:load n={1} /> with
+// @astrojs/react: the renderer URL is a hashed chunk with no "react" in it, and
+// the runtime is loaded later through import(this.getAttribute(...)).
+const ASTRO_ISLAND_PAGE = '<html><head><style>astro-island,astro-slot,astro-static-slot{display:contents}</style>'
+  + '<script>(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).load=e;window.dispatchEvent(new Event("astro:load"));})();</script>'
+  + '</head><body><astro-island uid="2uJanX" prefix="r1" component-url="/_astro/Hi.tqv9BQlb.js" component-export="default" '
+  + 'renderer-url="/_astro/client.CP0hKK24.js" props="{&quot;n&quot;:[0,1]}" ssr client="load" '
+  + 'opts="{&quot;name&quot;:&quot;Hi&quot;,&quot;value&quot;:true}" await-children><b>hi <!-- -->1</b></astro-island></body></html>';
+
+test('check:no-react fails real Astro island markup and passes the clean case', () => {
+  const dist = mkdtempSync(join(tmpdir(), 'no-react-island-'));
+  try {
+    mkdirSync(join(dist, '_astro'));
+    writeFileSync(join(dist, '_astro', 'client.CP0hKK24.js'), 'import{h as r}from"./index.Bx1.js";export default r;');
+    writeFileSync(join(dist, '_astro', 'index.Bx1.js'), 'const h=()=>{};export{h};var s=Symbol.for("react.transitional.element");');
+    writeFileSync(join(dist, '_astro', 'Hi.tqv9BQlb.js'), 'import{j as e}from"./jsx.Cq2.js";export default function(){return e("b",{})}');
+    writeFileSync(join(dist, '_astro', 'jsx.Cq2.js'), 'export const j=()=>Symbol.for("react.transitional.element");');
+    writeFileSync(join(dist, 'index.html'), '<html><body><main><h1>Clean</h1></main></body></html>');
+    const clean = checkDist(dist);
+    assert.equal(clean.pages, 1);
+    assert.deepEqual(clean.problems, []);
+
+    mkdirSync(join(dist, 'island'));
+    writeFileSync(join(dist, 'island', 'index.html'), ASTRO_ISLAND_PAGE);
+    const { problems } = checkDist(dist);
+    assert.ok(problems.some((p) => /^island\/index\.html: island renderer-url \/_astro\/client\.CP0hKK24\.js reaches React \(_astro\/index\.Bx1\.js\)$/.test(p)), problems.join('\n'));
+    assert.ok(problems.some((p) => /^island\/index\.html: island component-url \/_astro\/Hi\.tqv9BQlb\.js reaches React/.test(p)), problems.join('\n'));
+    assert.ok(problems.some((p) => /^island\/index\.html: has 1 astro-island\(s\) but is not in ALLOWED_PAGES$/.test(p)), problems.join('\n'));
+
+    // Any island fails outside ALLOWED_PAGES, even one whose chunks are not React.
+    writeFileSync(join(dist, '_astro', 'client.CP0hKK24.js'), 'export default ()=>{};');
+    writeFileSync(join(dist, '_astro', 'Hi.tqv9BQlb.js'), 'export default ()=>{};');
+    assert.deepEqual(checkDist(dist).problems, ['island/index.html: has 1 astro-island(s) but is not in ALLOWED_PAGES']);
+  } finally {
+    rmSync(dist, { recursive: true, force: true });
+  }
+});
+
+test('check:no-react runs from a path with a space and fails on an empty dist', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'no react '));
+  try {
+    const script = join(dir, 'check-no-react.mjs');
+    writeFileSync(script, read('scripts/check-no-react.mjs'));
+    mkdirSync(join(dir, 'empty dist'));
+    const empty = spawnSync(process.execPath, [script, join(dir, 'empty dist')], { encoding: 'utf8' });
+    assert.equal(empty.status, 1, empty.stdout + empty.stderr);
+    assert.match(empty.stderr, /no HTML pages found/);
+
+    mkdirSync(join(dir, 'dist'));
+    writeFileSync(join(dir, 'dist', 'index.html'), '<h1>Clean</h1>');
+    const clean = spawnSync(process.execPath, [script, join(dir, 'dist')], { encoding: 'utf8' });
+    assert.equal(clean.status, 0, clean.stdout + clean.stderr);
+    assert.match(clean.stdout, /check:no-react passed: 1 HTML pages scanned/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
   }
 });
 

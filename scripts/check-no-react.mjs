@@ -4,16 +4,21 @@
 // @astrojs/react is registered so islands can be added later, but a page that
 // does not use an island must ship zero React. This script:
 //   1. scans dist/_astro/*.js for React runtime signatures,
-//   2. scans every dist/**/*.html for script tags (and astro-island renderers),
-//      follows local module imports transitively,
-//   3. exits 1 if any page reaches a React chunk.
+//   2. scans every dist/**/*.html for script tags, modulepreloads and the
+//      astro-island renderer-url / component-url attributes, following local
+//      module imports transitively,
+//   3. exits 1 if any page reaches a React chunk, if any page outside
+//      ALLOWED_PAGES contains an <astro-island> at all (built renderer URLs are
+//      hashed, e.g. /_astro/client.CP0hKK24.js, so file names prove nothing),
+//      or if no HTML pages were found.
 //
 // Usage: node scripts/check-no-react.mjs [distDir]
 // Pages that are allowed to hydrate a React island go in ALLOWED_PAGES
 // (paths relative to dist, e.g. 'some-page/index.html').
 
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const ALLOWED_PAGES = new Set([]);
 
@@ -43,7 +48,8 @@ function walk(dir, predicate, out = []) {
 
 function localTarget(distDir, fromFile, specifier) {
   if (/^(?:[a-z]+:)?\/\//i.test(specifier) || specifier.startsWith('data:')) return null;
-  const clean = specifier.split(/[?#]/)[0];
+  let clean = specifier.split(/[?#]/)[0];
+  try { clean = decodeURI(clean); } catch { return null; }
   if (!clean.endsWith('.js') && !clean.endsWith('.mjs')) return null;
   const target = clean.startsWith('/')
     ? join(distDir, clean)
@@ -88,9 +94,17 @@ export function checkDist(distDir) {
     if (ALLOWED_PAGES.has(pagePath)) continue;
     const html = readFileSync(page, 'utf8');
 
-    if (/<astro-island\b[^>]*renderer-url="[^"]*react/i.test(html)) {
-      problems.push(`${pagePath}: hydrates a React island`);
-      continue;
+    const islands = [...html.matchAll(/<astro-island\b[^>]*>/gi)];
+    for (const island of islands) {
+      for (const attr of ['renderer-url', 'component-url', 'before-hydration-url']) {
+        const url = island[0].match(new RegExp(`\\b${attr}=["']([^"']+)["']`, 'i'))?.[1];
+        const target = url && localTarget(root, page, url);
+        const hit = target && scriptGraphHasReact(root, target);
+        if (hit) problems.push(`${pagePath}: island ${attr} ${url} reaches React (${hit})`);
+      }
+    }
+    if (islands.length) {
+      problems.push(`${pagePath}: has ${islands.length} astro-island(s) but is not in ALLOWED_PAGES`);
     }
 
     for (const tag of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
@@ -124,16 +138,26 @@ export function checkDist(distDir) {
   return { pages: pages.length, reactChunks, problems };
 }
 
-const isMain = process.argv[1] && resolve(process.argv[1]) === resolve(new URL(import.meta.url).pathname);
+function realPath(path) {
+  try { return realpathSync(path); } catch { return resolve(path); }
+}
+
+// fileURLToPath decodes %20 and friends, so clone paths with spaces still match.
+const isMain = Boolean(process.argv[1])
+  && realPath(resolve(process.argv[1])) === realPath(fileURLToPath(import.meta.url));
 if (isMain) {
   const distDir = process.argv[2] ?? 'dist';
   try {
     const { pages, reactChunks, problems } = checkDist(distDir);
+    if (pages === 0) {
+      console.error(`check:no-react failed: no HTML pages found in ${resolve(distDir)}.`);
+      process.exit(1);
+    }
     if (reactChunks.length) {
       console.log(`React runtime chunks present in _astro (not loaded unless listed below): ${reactChunks.join(', ')}`);
     }
     if (problems.length) {
-      console.error(`check:no-react failed. ${problems.length} page(s) load React:`);
+      console.error(`check:no-react failed with ${problems.length} problem(s):`);
       for (const problem of problems) console.error(`  ${problem}`);
       process.exit(1);
     }
