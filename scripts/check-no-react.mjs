@@ -12,6 +12,11 @@
 //      hashed, e.g. /_astro/client.CP0hKK24.js, so file names prove nothing),
 //      or if no HTML pages were found.
 //
+// Known limits (Astro never emits these): a chunk loaded only through
+// <link rel="preload" as="script">, unquoted src/href attributes, and inline
+// import(variable) calls are not followed. Inline scripts with a non-JS type
+// (application/ld+json and the like) are data, so they are not scanned.
+//
 // Usage: node scripts/check-no-react.mjs [distDir]
 // Pages that are allowed to hydrate a React island go in ALLOWED_PAGES
 // (paths relative to dist, e.g. 'some-page/index.html').
@@ -55,6 +60,17 @@ function localTarget(distDir, fromFile, specifier) {
     ? join(distDir, clean)
     : resolve(dirname(fromFile), clean);
   return target.startsWith(distDir + sep) && existsSync(target) ? target : null;
+}
+
+// A script element runs only when its type is missing, empty, module or a
+// JavaScript MIME type; anything else (application/ld+json, text/template) is data.
+const JS_SCRIPT_TYPE = /^(?:module|(?:text|application)\/(?:x-)?(?:java|ecma)script|text\/(?:javascript1\.[0-5]|jscript|livescript))$/i;
+
+export function isExecutableScript(attrs) {
+  const type = attrs.match(/\btype\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+  if (!type) return true;
+  const value = (type[1] ?? type[2] ?? type[3]).trim();
+  return value === '' || JS_SCRIPT_TYPE.test(value);
 }
 
 const IMPORT_PATTERN = /(?:import|export)\s*(?:[^'"`;]*?from\s*)?["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g;
@@ -114,7 +130,7 @@ export function checkDist(distDir) {
         const target = localTarget(root, page, src);
         const hit = target && scriptGraphHasReact(root, target);
         if (hit) problems.push(`${pagePath}: loads ${src} which reaches React (${hit})`);
-      } else if (body.trim()) {
+      } else if (body.trim() && isExecutableScript(attrs)) {
         if (findReactSignature(body)) {
           problems.push(`${pagePath}: inline script contains React runtime code`);
           continue;
