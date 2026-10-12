@@ -2,6 +2,7 @@
 // Sunday edition layout: home, Field Notes, projects, about and contact.
 // Legacy utility pages (coaching, links, power) stay on BaseLayout + global.css.
 import '../styles/edition.css';
+import editionCss from '../styles/edition.css?raw';
 import SiteNav from '../components/edition/SiteNav.astro';
 import SiteFooter from '../components/edition/SiteFooter.astro';
 
@@ -27,6 +28,9 @@ const {
 const site = Astro.site ?? new URL('https://accoworks.dev');
 const canonical = new URL(Astro.url.pathname, site).href;
 const ogImage = new URL(image, site).href;
+// Browser chrome takes the ink token, read from the stylesheet so it cannot drift.
+const themeColor = editionCss.match(/--ink:\s*(#[0-9A-Fa-f]{6});/)?.[1];
+if (!themeColor) throw new Error('edition.css must define --ink as a hex color');
 ---
 
 <!doctype html>
@@ -40,7 +44,7 @@ const ogImage = new URL(image, site).href;
     {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={canonical} />
 
-    <meta name="theme-color" content="#0E3B43" />
+    <meta name="theme-color" content={themeColor} />
 
     <!-- Open Graph -->
     <meta property="og:type" content={ogType} />

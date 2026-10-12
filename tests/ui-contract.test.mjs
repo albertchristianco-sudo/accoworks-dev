@@ -173,23 +173,74 @@ test('check:no-react runs from a path with a space and fails on an empty dist', 
   }
 });
 
+// Final palette (Albert, Oct 12): cool grey base with one teal accent.
+const PALETTE = {
+  bg: 'F3F5F6',
+  surface: 'E3E7E9',
+  line: 'C5CDD0',
+  ink: '1C2326',
+  'ink-soft': '4E595E',
+  'on-ink-soft': 'A7B2B6',
+  'photo-tint': '6E8084',
+  accent: '136A72',
+  'accent-strong': '0E3B43',
+  'on-accent': 'FFFFFF',
+  shade: '0B0F11',
+  error: 'B3261E',
+};
+
+test('defines the cool grey and teal palette as tokens', () => {
+  for (const [name, hex] of Object.entries(PALETTE)) {
+    assert.equal(token(name)?.toUpperCase(), hex, `--${name}`);
+  }
+  // Retired tokens stay gone, and edition.css holds no colour literal outside :root.
+  assert.doesNotMatch(css, /--(paper|sea|hibiscus|hibiscus-deep|sand|shallow|ink-sand)\b/);
+  const rootBlock = css.match(/:root \{[^}]*\}/)[0];
+  const rest = css.replace(rootBlock, '').replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.doesNotMatch(rest, /#[0-9A-Fa-f]{3,8}\b|\brgba?\(|\bhsla?\(/);
+  // The browser chrome colour is read from --ink, not written out.
+  assert.match(layout, /<meta name="theme-color" content=\{themeColor\} \/>/);
+  assert.match(layout, /const themeColor = editionCss\.match\(\/--ink:/);
+});
+
+test('removes hibiscus and sand from every edition file', () => {
+  const legacy = /(coaching|links|power)\.astro$|power\/update\.astro$|BaseLayout\.astro$|global\.css$/;
+  const files = ['src/pages', 'src/components', 'src/layouts', 'src/styles', 'src/data', 'src/lib']
+    .flatMap((dir) => walk(new URL(dir, root).pathname))
+    .filter((file) => !legacy.test(file));
+  for (const file of files) {
+    assert.doesNotMatch(readFileSync(file, 'utf8'), /#(D6336C|C92A62|E6DFD0)\b|hibiscus|\bsand\b/i, file);
+  }
+});
+
 test('uses accessible solid text colors without gradient clipping', () => {
   const muted = legacyCss.match(/--ink-3:\s*#([A-Fa-f0-9]{6})/)?.[1];
   assert.ok(muted, 'legacy muted ink token must exist');
   assert.ok(contrast(muted, 'F5F7FB') >= 4.5, `legacy muted ink contrast is ${contrast(muted, 'F5F7FB').toFixed(2)}:1`);
 
+  // [foreground, background, minimum]: 4.5 for text, 3 for focus rings and control boundaries.
   const pairs = [
-    ['sea', 'paper'],
-    ['ink-soft', 'paper'],
-    ['ink-sand', 'sand'],
-    ['paper', 'hibiscus-deep'],
-    ['shallow', 'sea'],
+    ['ink', 'bg', 4.5],
+    ['ink-soft', 'bg', 4.5],
+    ['ink', 'surface', 4.5],
+    ['ink-soft', 'surface', 4.5],
+    ['accent', 'bg', 4.5],
+    ['accent-strong', 'bg', 4.5],
+    ['on-accent', 'accent', 4.5],
+    ['on-accent', 'accent-strong', 4.5],
+    ['bg', 'ink', 4.5],
+    ['on-ink-soft', 'ink', 4.5],
+    ['error', 'bg', 4.5],
+    ['accent', 'bg', 3],
+    ['bg', 'ink', 3],
+    ['ink', 'surface', 3],
   ];
-  for (const [fg, bg] of pairs) {
+  for (const [fg, bg, min] of pairs) {
     const ratio = contrast(token(fg), token(bg));
-    assert.ok(ratio >= 4.5, `--${fg} on --${bg} is ${ratio.toFixed(2)}:1`);
+    assert.ok(ratio >= min, `--${fg} on --${bg} is ${ratio.toFixed(2)}:1, needs ${min}:1`);
   }
-  assert.match(css, /\.flash\s*\{[^}]*background:\s*var\(--hibiscus-deep\)/);
+  // The roundel is the cover's one teal spot and carries small on-accent text.
+  assert.match(css, /\.flash\s*\{[^}]*background:\s*var\(--accent\);[^}]*color:\s*var\(--on-accent\);/);
   for (const source of [css, legacyCss]) {
     assert.doesNotMatch(source, /background-clip:\s*text|-webkit-text-fill-color:\s*transparent/);
   }
@@ -321,7 +372,7 @@ test('marks the nav item as the current page only on an exact match', () => {
 
 test('uses one mobile breakpoint for the nav strip backing and the name plate', () => {
   assert.doesNotMatch(css, /max-width: 700px/);
-  assert.match(css, /@media \(max-width: 760px\) \{[\s\S]*?\.cover__strip \{[^}]*background: var\(--sea\);[\s\S]*?\.cover__name span \{[^}]*background: var\(--sea\)/);
+  assert.match(css, /@media \(max-width: 760px\) \{[\s\S]*?\.cover__strip \{[^}]*background: var\(--ink\);[\s\S]*?\.cover__name span \{[^}]*background: var\(--ink\)/);
 });
 
 test('gives every edition image alt text and explicit dimensions', () => {
@@ -337,17 +388,18 @@ test('gives every edition image alt text and explicit dimensions', () => {
 
 test('keeps cover text AA-legible over any part of the duotone photo', () => {
   // The filtered img paints in the z-index 0 layer, so the tint layers need z-index to blend over it.
-  assert.match(css, /\.cover__photo::before \{ z-index: 1; background: #([A-Fa-f0-9]{6}); mix-blend-mode: multiply; \}/);
-  assert.match(css, /\.cover__photo::after \{ z-index: 2; background: var\(--sea\); mix-blend-mode: lighten; \}/);
-  const tint = css.match(/\.cover__photo::before \{[^}]*background: #([A-Fa-f0-9]{6})/)[1];
+  assert.match(css, /\.cover__photo::before \{ z-index: 1; background: var\(--photo-tint\); mix-blend-mode: multiply; \}/);
+  assert.match(css, /\.cover__photo::after \{ z-index: 2; background: var\(--ink\); mix-blend-mode: lighten; \}/);
+  const tint = token('photo-tint');
   const brightness = Number(css.match(/\.cover__photo img \{[^}]*filter: grayscale\(1\) contrast\([\d.]+\) brightness\(([\d.]+)\)/)[1]);
-  // Brightest possible pixel: white after brightness, multiplied by the tint, lightened with sea.
-  const sea = token('sea').match(/../g).map((h) => Number.parseInt(h, 16));
+  // Brightest possible pixel: white after brightness, multiplied by the tint, lightened with ink.
+  const ink = token('ink').match(/../g).map((h) => Number.parseInt(h, 16));
   const brightest = tint.match(/../g)
-    .map((h, i) => Math.max(Math.round(255 * brightness * Number.parseInt(h, 16) / 255), sea[i]))
+    .map((h, i) => Math.max(Math.round(255 * brightness * Number.parseInt(h, 16) / 255), ink[i]))
     .map((v) => v.toString(16).padStart(2, '0')).join('');
-  const ratio = contrast(token('paper'), brightest);
-  assert.ok(ratio >= 4.5, `paper on the brightest cover pixel #${brightest} is ${ratio.toFixed(2)}:1`);
+  assert.equal(brightest.toUpperCase(), '58666A');
+  const ratio = contrast(token('bg'), brightest);
+  assert.ok(ratio >= 4.5, `--bg on the brightest cover pixel #${brightest} is ${ratio.toFixed(2)}:1`);
 });
 
 test('fits the masthead, roundel and cover lines on short viewports', () => {
@@ -358,8 +410,10 @@ test('fits the masthead, roundel and cover lines on short viewports', () => {
 
 test('keeps the mobile name line legible over the photo with a solid plate', () => {
   assert.match(cover, /<h1 class="cover__name"><span>/);
-  assert.match(css, /@media \(max-width: 760px\)[\s\S]*?\.cover__name span \{[^}]*background:\s*var\(--sea\)/);
-  assert.match(css, /\.cover :focus-visible \{ outline-color: var\(--paper\); \}/);
+  assert.match(css, /@media \(max-width: 760px\)[\s\S]*?\.cover__name span \{[^}]*background:\s*var\(--ink\)/);
+  assert.ok(contrast(token('bg'), token('ink')) >= 4.5, 'name line on its ink plate');
+  assert.match(css, /\.cover \{[^}]*background: var\(--ink\);\s*color: var\(--bg\);/);
+  assert.match(css, /\.cover :focus-visible \{ outline-color: var\(--bg\); \}/);
 });
 
 test('builds the cover from real data: newest notes as cover lines and the race roundel', () => {

@@ -6,18 +6,39 @@ A personal Sunday magazine. Used by home, `/field-notes/` and posts,
 `/projects/`, `/about/` and `/contact/` through
 `src/layouts/EditionLayout.astro` and `src/styles/edition.css`.
 
-- Palette: paper `#F5F7F6`, deep sea teal `#0E3B43` (ink and dark
-  surfaces), hibiscus `#D6336C` (rules, underlines, focus, drop caps),
-  hibiscus deep `#C92A62` (surfaces carrying small paper text, e.g. the
-  race roundel), sand `#E6DFD0` (secondary surfaces), shallow `#8FB8B4`
-  (text on sea). Soft ink `#4a6a6f` on paper, `#3f5f64` on sand. All text
-  pairs meet WCAG AA; tests check the tokens.
+- Palette (Albert, Oct 12): a neutral cool grey base with one teal accent.
+  No pink, no sand. Tokens in `src/styles/edition.css`:
+  - `--bg` `#F3F5F6`: page background.
+  - `--surface` `#E3E7E9`: secondary panels (the projects column, sideboxes,
+    "More Field Notes", code, image placeholders, chip hover).
+  - `--line` `#C5CDD0`: hairline rules only, never text or a control edge.
+  - `--ink` `#1C2326`: text, heavy rules, control borders, and the solid
+    plate behind the cover, the profile and the mobile name line. Also the
+    `theme-color`, which the layout reads from this token.
+  - `--ink-soft` `#4E595E`: secondary text on `--bg` and `--surface`.
+  - `--on-ink-soft` `#A7B2B6`: secondary text, rules and drop caps on the
+    ink plate.
+  - `--accent` `#136A72`: the teal. Link underlines, active nav underline,
+    drop caps, quote marks, list markers, focus rings, progress bar,
+    scrollbar thumb, the liked state, and the Next race roundel (the cover's
+    only spot of colour, with an ink ring).
+  - `--accent-strong` `#0E3B43`: the deep sea teal, for selected filter chips
+    and text selection.
+  - `--on-accent` `#FFFFFF`: text on either accent.
+  - `--photo-tint` `#6E8084`, `--shade` `#0B0F11`, `--error` `#B3261E`: cover
+    duotone highlight, page-turn shading, error text.
+  Ratios: ink on bg 14.57:1, ink-soft on bg 6.59:1, ink on surface
+  12.80:1, ink-soft on surface 5.79:1, accent on bg 5.76:1, accent-strong
+  on bg 11.13:1, white on accent 6.30:1, white on accent-strong 12.17:1,
+  bg on ink 14.57:1, on-ink-soft on ink 7.35:1, error on bg 5.98:1. Cover
+  text reads at 5.45:1 or better over the brightest duotone pixel
+  (`#58666A`). Tests assert the token values and these pairs.
 - Type: Gloock for display (masthead, headlines, drop caps, pull quote),
   Schibsted Grotesk for text and UI. Both self-hosted from `public/fonts/`.
 - Home: magazine cover with a giant "Ac" masthead over a duotone photo,
   real post titles as cover lines (newest first, from the content
   collection), and a "Next race" roundel from `src/data/races.json`. The
-  name line gets a solid sea plate on phones so it stays legible.
+  name line gets a solid ink plate on phones so it stays legible.
 - Signature motion: the cover turns like a page on scroll to reveal the
   Field Notes spread. Supporting motion: hero depth layers, pull quote
   lines printing in, the power pole drawing itself, rules drawing across.
