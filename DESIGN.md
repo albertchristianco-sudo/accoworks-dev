@@ -40,6 +40,19 @@ A personal Sunday magazine. Used by home, `/field-notes/` and posts,
   the brightest duotone pixel (`#58666A`), and the light blue roundel and
   rules read at 3.27:1 against it. Tests assert the token values and these
   pairs.
+- Grid (Albert, Oct 12: "text placements not in-line"): every edition section
+  is the same container (`--max`, `--gutter`) holding twelve `--cols` with
+  `--gap`. Section titles, letters, photos and the byline sit in `--aside`
+  (columns 1 to 4; 1 to 5 at 1080px and below). Lists, the article dek and
+  body, the contact list and the footer address start at `--content-start`
+  (column 5; 6 at 1080px and below), so they share one edge on every page.
+  Two-column lists (note dates, contact labels) use `--label-col`, two of
+  their grid columns. Article copy is capped at `--measure`. Pull-quote
+  steps are whole grid columns. The "Ac" marks are moved right by
+  `--mark-bearing` (Gloock's "A" overhangs by .03125em) so their ink sits
+  on the gutter. Right-set cover lines, the nav and the footer links share
+  the right gutter. At 760px and below everything is one column on the
+  gutter. Check with the alignment audit before changing any of these.
 - Type: Gloock for display (masthead, headlines, drop caps, pull quote),
   Schibsted Grotesk for text and UI. Both self-hosted from `public/fonts/`.
 - Home: magazine cover with a giant "Ac" masthead over a duotone photo,

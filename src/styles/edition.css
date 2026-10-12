@@ -48,9 +48,28 @@
   --error: #B3261E;
   --display: 'Gloock', 'Iowan Old Style', Georgia, serif;
   --text: 'Schibsted Grotesk', system-ui, sans-serif;
+  /* One grid for every edition page. Each section is a --max wide container with
+     --gutter padding and twelve --cols with --gap between them. Section titles,
+     letters and photos sit in the --aside columns; lists, body copy and the
+     contact list start at --content-start, so they share one edge on every page. */
   --gutter: clamp(1.25rem, 4vw, 4rem);
   --gap: clamp(1rem, 2.2vw, 2.25rem);
   --max: 1600px;
+  --cols: repeat(12, minmax(0, 1fr));
+  --aside: 1 / span 4;
+  --content-start: 5;
+  /* How many columns the content side spans (from --content-start to the edge). */
+  --content-cols: 8;
+  /* One grid step (a column plus a gap) as a share of a full-width box. */
+  --step: calc((100% + var(--gap)) / 12);
+  /* Reading measure for article body copy. */
+  --measure: 42rem;
+  /* Label column of the two-column lists on the content side (note dates, contact
+     labels): two of its grid columns, so the values start on a page column. */
+  --label-col: calc((100% - (var(--content-cols) - 1) * var(--gap)) * 2 / var(--content-cols) + var(--gap));
+  /* Gloock's "A" overhangs its advance box by .03125em. The "Ac" marks are shifted
+     right by that much so their ink, not their box, sits on the gutter. */
+  --mark-bearing: .03125em;
   --ease-out: cubic-bezier(.16, 1, .3, 1);
   color-scheme: light;
 }
@@ -80,6 +99,21 @@ body {
 
 img { display: block; max-width: 100%; height: auto; }
 picture { display: contents; }
+/* With picture as display: contents its source elements would become flex and grid
+   items, and each one adds a gap before the image (the avatars sat 32px in). */
+picture > source { display: none; }
+
+/* The shared page container and grid (see --cols above). */
+.runhead, .contents, .pull, .feature, .profile__inner, .colophon, .back, .archive, .article, .more {
+  max-width: var(--max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.contents, .feature, .profile__inner, .colophon, .back, .archive, .article, .article__head, .more__inner {
+  display: grid;
+  grid-template-columns: var(--cols);
+  column-gap: var(--gap);
+}
 h1, h2, h3, p, ul, ol, dl, dd, figure, blockquote { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
 
@@ -160,7 +194,7 @@ a:hover { text-decoration-thickness: 4px; }
   position: relative;
   z-index: 3;
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: var(--cols);
   grid-template-rows: auto auto 1fr auto;
   column-gap: var(--gap);
   height: 100vh;
@@ -239,7 +273,7 @@ a:hover { text-decoration-thickness: 4px; }
   line-height: .74;
   letter-spacing: -.045em;
   margin-top: .06em;
-  margin-left: -.04em;
+  margin-left: var(--mark-bearing);
 }
 .cover__name {
   max-width: 24ch;
@@ -320,18 +354,13 @@ a:hover { text-decoration-thickness: 4px; }
 main { display: block; }
 
 .contents {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: var(--gap);
   min-height: 100vh;
   min-height: 100svh;
-  max-width: var(--max);
-  margin-inline: auto;
-  padding: clamp(2.5rem, 7vh, 5rem) var(--gutter) clamp(3rem, 8vh, 6rem);
+  padding-block: clamp(2.5rem, 7vh, 5rem) clamp(3rem, 8vh, 6rem);
 }
 
 .contents__letter {
-  grid-column: 1 / span 4;
+  grid-column: var(--aside);
   align-self: start;
   position: sticky;
   top: clamp(2.5rem, 7vh, 5rem);
@@ -347,7 +376,7 @@ main { display: block; }
 }
 .contents__lede::first-letter {
   float: left;
-  margin: .02em .08em 0 -.02em;
+  margin: .02em .08em 0 0;
   font-size: 3.35em;
   line-height: .74;
   color: var(--accent-ink);
@@ -363,13 +392,11 @@ main { display: block; }
 }
 .contents__sig img { width: 64px; height: 64px; border-radius: 50%; }
 
-.contents__page { grid-column: 6 / -1; }
+.contents__page { grid-column: var(--content-start) / -1; }
+/* Title and standfirst share the content edge. */
 .contents__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: .5rem 2rem;
+  display: grid;
+  gap: 1rem;
   padding-bottom: 1.25rem;
   border-bottom: 3px solid var(--ink);
 }
@@ -379,12 +406,12 @@ main { display: block; }
   line-height: .85;
   letter-spacing: -.035em;
 }
-.contents__head p { max-width: 26ch; color: var(--ink-soft); font-weight: 500; }
+.contents__head p { max-width: 40ch; color: var(--ink-soft); font-weight: 500; }
 
 .toc__item { border-bottom: 1px solid var(--line); }
 .toc__item a {
   display: grid;
-  grid-template-columns: 9.5rem minmax(0, 1fr);
+  grid-template-columns: var(--label-col) minmax(0, 1fr);
   column-gap: var(--gap);
   padding: 1.1rem 0 1.2rem;
   text-decoration: none;
@@ -413,9 +440,7 @@ main { display: block; }
 /* ---------- Pull quote ---------- */
 
 .pull {
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: clamp(5rem, 14vh, 10rem) var(--gutter);
+  padding-block: clamp(5rem, 14vh, 10rem);
   border-top: 1px solid var(--line);
 }
 .pull__quote {
@@ -426,13 +451,14 @@ main { display: block; }
 }
 .pull__quote p { text-wrap: wrap; }
 .pull__line { display: block; }
-.pull__line:nth-child(2) { padding-left: .9em; }
-.pull__line:nth-child(3) { padding-left: 1.8em; }
+/* The lines step in by whole grid columns; the source sits under the last step. */
+.pull__line:nth-child(2) { padding-left: var(--step); }
+.pull__line:nth-child(3) { padding-left: calc(2 * var(--step)); }
 .pull__line:nth-child(1)::before { content: '\201C'; position: absolute; translate: -.5em 0; color: var(--accent-ink); }
 .pull__line:nth-child(3)::after { content: '\201D'; color: var(--accent-ink); }
 .pull__src {
   margin-top: 2.25rem;
-  padding-left: calc(1.8 * clamp(2.75rem, 7.4vw, 7.75rem));
+  padding-left: calc(2 * var(--step));
   font-weight: 500;
   color: var(--ink-soft);
 }
@@ -441,13 +467,8 @@ main { display: block; }
 /* ---------- What I build ---------- */
 
 .feature {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: var(--gap);
-  max-width: var(--max);
-  margin: 0 auto;
   grid-template-rows: auto auto 1fr;
-  padding: clamp(4rem, 10vh, 7rem) var(--gutter) clamp(5rem, 12vh, 8rem);
+  padding-block: clamp(4rem, 10vh, 7rem) clamp(5rem, 12vh, 8rem);
   background: linear-gradient(var(--surface), var(--surface)) right top / calc(33.333% - var(--gap) / 2 + var(--gutter)) 100% no-repeat;
 }
 .feature__title {
@@ -459,19 +480,21 @@ main { display: block; }
   letter-spacing: -.035em;
 }
 
+/* Seven of the page columns, split into the same seven columns, so the pole takes
+   two and the text starts on a page column. */
 .lead-project {
   grid-column: 1 / span 7;
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 5fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: var(--gap);
   align-items: start;
   padding-top: 1.5rem;
   border-top: 3px solid var(--ink);
 }
-.pole { width: 100%; max-width: 15rem; height: auto; margin-top: .5rem; }
+.pole { grid-column: 1 / span 2; width: 100%; max-width: 15rem; height: auto; margin-top: .5rem; }
 .pole path { fill: none; stroke: var(--ink); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .pole .draw--wire { stroke: var(--accent-ink); stroke-width: 2; }
-.lead-project__text { display: grid; gap: 1.1rem; justify-items: start; }
+.lead-project__text { grid-column: 3 / -1; display: grid; gap: 1.1rem; justify-items: start; }
 .lead-project__name {
   font-family: var(--display);
   font-size: clamp(2.4rem, 4.4vw, 4.5rem);
@@ -519,17 +542,10 @@ main { display: block; }
 /* ---------- Profile ---------- */
 
 .profile { background: var(--ink); color: var(--bg); }
-.profile__inner {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: var(--gap);
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: clamp(4.5rem, 12vh, 8rem) var(--gutter);
-}
-.profile__photo { grid-column: 1 / span 4; align-self: start; }
+.profile__inner { padding-block: clamp(4.5rem, 12vh, 8rem); }
+.profile__photo { grid-column: var(--aside); align-self: start; }
 .profile__photo img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; object-position: 58% 50%; }
-.profile__body { grid-column: 5 / span 5; display: grid; gap: 1.2rem; align-content: start; }
+.profile__body { grid-column: var(--content-start) / span 5; display: grid; gap: 1.2rem; align-content: start; }
 .profile__body > :is(h1, h2) {
   margin-bottom: .75rem;
   font-family: var(--display);
@@ -555,32 +571,26 @@ main { display: block; }
 .sidebox { padding: 1.25rem 1.35rem 1.4rem; background: var(--surface); color: var(--ink); }
 .sidebox__title { margin-bottom: .6rem; font-family: var(--display); font-size: 1.4rem; }
 .sidebox li { padding: .45rem 0; border-top: 1px solid var(--line); font-weight: 500; }
-.sidebox--plain { padding: 0; background: none; color: var(--bg); }
+/* No panel, but the same inner edge as the panel above it. */
+.sidebox--plain { padding-block: 0; background: none; color: var(--bg); }
 .sidebox--plain p { color: var(--on-ink-soft); }
 
 /* ---------- Colophon ---------- */
 
-.colophon {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: var(--gap);
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: clamp(4.5rem, 12vh, 8rem) var(--gutter);
-}
+.colophon { padding-block: clamp(4.5rem, 12vh, 8rem); }
 .colophon > :is(h1, h2) {
-  grid-column: 1 / span 5;
+  grid-column: var(--aside);
   font-family: var(--display);
   font-size: clamp(3rem, 6.5vw, 6rem);
   line-height: .9;
   letter-spacing: -.035em;
 }
-.colophon__line { grid-column: 1 / span 5; margin-top: 1.25rem; font-size: 1.1875rem; color: var(--ink-soft); }
-.colophon__list { grid-column: 7 / -1; grid-row: 1 / span 3; border-top: 3px solid var(--ink); }
+.colophon__line { grid-column: var(--aside); margin-top: 1.25rem; font-size: 1.1875rem; color: var(--ink-soft); }
+.colophon__list { grid-column: var(--content-start) / -1; grid-row: 1 / span 3; border-top: 3px solid var(--ink); }
 .colophon__list > div {
   display: grid;
-  grid-template-columns: 8rem minmax(0, 1fr);
-  gap: var(--gap);
+  grid-template-columns: var(--label-col) minmax(0, 1fr);
+  column-gap: var(--gap);
   align-items: baseline;
   border-bottom: 1px solid var(--line);
 }
@@ -590,29 +600,30 @@ main { display: block; }
 
 /* ---------- Back page ---------- */
 
+/* The back page uses the same grid: the mark in the aside, the address and
+   copyright on the content edge, the links set right on the last four columns. */
 .back {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
   align-items: end;
-  gap: 1rem var(--gap);
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: 2.5rem var(--gutter) max(2rem, env(safe-area-inset-bottom));
+  row-gap: 1rem;
+  padding-block: 2.5rem max(2rem, env(safe-area-inset-bottom));
   border-top: 1px solid var(--line);
   font-size: .9375rem;
   overflow: hidden;
 }
 .back__mark {
+  grid-column: var(--aside);
   grid-row: 1 / span 2;
+  margin-left: var(--mark-bearing);
   font-family: var(--display);
   font-size: clamp(5rem, 11vw, 9rem);
   line-height: .74;
   letter-spacing: -.045em;
 }
-.back__where { font-weight: 600; }
-.back__links { display: flex; flex-wrap: wrap; gap: 0 1.25rem; grid-column: 3; grid-row: 1; justify-content: end; }
+.back__where { grid-column: var(--content-start) / span 4; grid-row: 1; font-weight: 600; }
+.back > nav { grid-column: 9 / -1; grid-row: 1; }
+.back__links { display: flex; flex-wrap: wrap; gap: 0 1.25rem; justify-content: end; }
 .back__links a { display: inline-flex; align-items: center; min-height: 44px; }
-.back__copy { grid-column: 2 / -1; color: var(--ink-soft); }
+.back__copy { grid-column: var(--content-start) / -1; grid-row: 2; color: var(--ink-soft); }
 
 /* ---------- Inner pages: running head ---------- */
 
@@ -622,15 +633,14 @@ main { display: block; }
   align-items: center;
   justify-content: space-between;
   gap: .25rem 1.5rem;
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: .5rem var(--gutter);
+  padding-block: .5rem;
   border-bottom: 1px solid var(--line);
 }
 .runhead__mark {
   display: inline-flex;
   align-items: center;
   min-height: 48px;
+  margin-left: var(--mark-bearing);
   font-family: var(--display);
   font-size: 2.4rem;
   line-height: 1;
@@ -642,15 +652,8 @@ main { display: block; }
 
 /* ---------- Writing index ---------- */
 
-.archive {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: var(--gap);
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: clamp(3rem, 9vh, 6rem) var(--gutter) clamp(4rem, 10vh, 7rem);
-}
-.archive__head { grid-column: 1 / span 4; align-self: start; position: sticky; top: 2rem; display: grid; gap: 1.25rem; }
+.archive { padding-block: clamp(3rem, 9vh, 6rem) clamp(4rem, 10vh, 7rem); }
+.archive__head { grid-column: var(--aside); align-self: start; position: sticky; top: 2rem; display: grid; gap: 1.25rem; }
 .archive__head h1 {
   font-family: var(--display);
   font-size: clamp(3.5rem, 8vw, 7rem);
@@ -685,7 +688,7 @@ main { display: block; }
 .filter input:focus-visible + label { outline: 3px solid var(--accent-ink); outline-offset: 3px; }
 .filter__note { font-size: .9375rem; color: var(--ink-soft); }
 
-.archive__list { grid-column: 6 / -1; border-top: 3px solid var(--ink); }
+.archive__list { grid-column: var(--content-start) / -1; border-top: 3px solid var(--ink); }
 
 .archive:has(#f-training:checked) .toc__item:not([data-label='Training']),
 .archive:has(#f-building:checked) .toc__item:not([data-label='Building']),
@@ -704,11 +707,11 @@ main { display: block; }
   display: none;
 }
 
-.article { max-width: var(--max); margin: 0 auto; padding: clamp(3rem, 9vh, 6rem) var(--gutter) 0; }
+/* The title runs from the gutter; the dek, body, reactions and sign-off share the
+   content edge with the "More Field Notes" list below, and the byline sits in the aside. */
+.article { padding-top: clamp(3rem, 9vh, 6rem); }
 .article__head {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: var(--gap);
+  grid-column: 1 / -1;
   padding-bottom: clamp(2rem, 5vh, 3rem);
   border-bottom: 3px solid var(--ink);
 }
@@ -723,18 +726,22 @@ main { display: block; }
   letter-spacing: -.035em;
 }
 .article__dek {
-  grid-column: 1 / span 7;
+  grid-column: var(--content-start) / span 7;
+  grid-row: 3;
   margin-top: 1.75rem;
   font-size: clamp(1.25rem, 1.7vw, 1.55rem);
   line-height: 1.4;
 }
-.byline { grid-column: 9 / -1; align-self: end; display: flex; align-items: center; gap: .9rem; font-weight: 600; }
+.byline { grid-column: var(--aside); grid-row: 3; align-self: start; margin-top: 1.75rem; display: flex; align-items: center; gap: .9rem; font-weight: 600; }
 .byline img { width: 56px; height: 56px; border-radius: 50%; }
 .byline__who span { display: block; font-weight: 400; font-size: .9375rem; color: var(--ink-soft); }
 
+.article__body, .article__react, .article__end {
+  grid-column: var(--content-start) / span 7;
+  max-width: var(--measure);
+}
 .article__body {
-  max-width: 68ch;
-  margin: clamp(2.5rem, 7vh, 4.5rem) auto 0;
+  margin-top: clamp(2.5rem, 7vh, 4.5rem);
   font-size: 1.1875rem;
   line-height: 1.7;
 }
@@ -747,7 +754,7 @@ main { display: block; }
 }
 .article__body > p:first-of-type::first-letter {
   float: left;
-  margin: .02em .1em 0 -.02em;
+  margin: .02em .1em 0 0;
   font-size: 2.6em;
   line-height: .74;
   color: var(--accent-ink);
@@ -797,8 +804,8 @@ main { display: block; }
   color: var(--ink-soft);
 }
 
-.article__react { max-width: 68ch; margin: 2.5rem auto 0; }
-.article__end { max-width: 68ch; margin: 1.5rem auto 0; color: var(--ink-soft); font-weight: 500; }
+.article__react { margin-top: 2.5rem; }
+.article__end { margin-top: 1.5rem; color: var(--ink-soft); font-weight: 500; }
 .article__end a { color: var(--ink); font-weight: 600; display: inline-flex; min-height: 44px; align-items: center; }
 
 /* Reaction control (markup and behaviour in LikeButton.astro) */
@@ -834,32 +841,36 @@ main { display: block; }
 .like__burst { display: none; }
 
 .more {
-  max-width: var(--max);
-  margin: clamp(4rem, 10vh, 6rem) auto 0;
-  padding: clamp(3rem, 8vh, 5rem) var(--gutter);
+  margin-top: clamp(4rem, 10vh, 6rem);
+  padding-block: clamp(3rem, 8vh, 5rem);
   background: var(--surface);
 }
-.more__inner { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gap); }
-.more h2 { grid-column: 1 / span 4; font-family: var(--display); font-size: clamp(2.25rem, 4vw, 3.5rem); line-height: .95; letter-spacing: -.03em; }
-.more .toc { grid-column: 5 / -1; border-top: 3px solid var(--ink); }
-.more__all { grid-column: 5 / -1; margin-top: 1.25rem; font-weight: 600; }
+.more h2 { grid-column: var(--aside); font-family: var(--display); font-size: clamp(2.25rem, 4vw, 3.5rem); line-height: .95; letter-spacing: -.03em; }
+.more .toc { grid-column: var(--content-start) / -1; border-top: 3px solid var(--ink); }
+.more__all { grid-column: var(--content-start) / -1; margin-top: 1.25rem; font-weight: 600; }
 .more__all a { display: inline-flex; min-height: 44px; align-items: center; }
 
 /* ---------- Responsive ---------- */
 
 @media (max-width: 1080px) {
-  .contents__letter { grid-column: 1 / span 5; }
-  .contents__page { grid-column: 6 / -1; }
+  /* The aside widens to five columns, so every content edge moves to column 6. */
+  :root { --aside: 1 / span 5; --content-start: 6; --content-cols: 7; }
   .toc__item a { grid-template-columns: 1fr; }
   .toc__meta { grid-row: auto; display: flex; gap: .75rem; padding: 0 0 .3rem; }
-  .lead-project, .feature__home { grid-column: 1 / span 7; }
+  /* The briefs take column 8 here, so the title must stop at 7 or it is pushed below them. */
+  .feature__title, .lead-project, .feature__home { grid-column: 1 / span 7; }
   .lead-project { grid-template-columns: 1fr; }
+  .pole, .lead-project__text { grid-column: 1 / -1; }
   .pole { max-width: 9rem; }
   .briefs { grid-column: 8 / -1; }
   .feature { background-size: calc(41.666% - var(--gap) / 2 + var(--gutter)) 100%; }
-  .profile__photo { grid-column: 1 / span 5; }
-  .profile__body { grid-column: 6 / -1; }
-  .profile__side { grid-column: 6 / -1; grid-template-columns: 1fr 1fr; margin-top: 2.5rem; }
+  .profile__body { grid-column: var(--content-start) / -1; }
+  .profile__side { grid-column: var(--content-start) / -1; grid-template-columns: 1fr 1fr; margin-top: 2.5rem; }
+  /* The footer links drop under the address, on the same content edge. */
+  .back > nav { grid-column: var(--content-start) / -1; grid-row: 2; }
+  .back__links { justify-content: start; }
+  .back__copy { grid-row: 3; }
+  .back__mark { grid-row: 1 / span 3; }
 }
 
 @media (max-width: 760px) {
@@ -904,9 +915,9 @@ main { display: block; }
   }
   .flash span { font-size: .75em; }
 
-  .contents, .feature, .profile__inner, .colophon, .archive, .article__head, .more__inner { grid-template-columns: minmax(0, 1fr); }
+  :root { --cols: minmax(0, 1fr); }
   /* One column on phones: every placed child spans it, whatever its desktop placement. */
-  :is(.contents, .feature, .profile__inner, .colophon, .archive, .article__head, .more__inner) > * { grid-column: 1 / -1 !important; grid-row: auto !important; }
+  :is(.contents, .feature, .profile__inner, .colophon, .archive, .article, .article__head, .more__inner, .back) > * { grid-column: 1 / -1 !important; grid-row: auto !important; }
 
   .contents__letter { position: static; padding: 0 0 2.25rem; margin-bottom: 2.25rem; border-right: 0; border-bottom: 1px solid var(--line); }
   .contents__head h2 { font-size: 4rem; }
@@ -918,7 +929,8 @@ main { display: block; }
 
   .feature { background: none; }
   .lead-project { grid-template-columns: 6rem minmax(0, 1fr); }
-  .pole { max-width: 6rem; }
+  .pole { grid-column: 1; max-width: 6rem; }
+  .lead-project__text { grid-column: 2; }
   .briefs { margin-top: 3rem; margin-inline: calc(-1 * var(--gutter)); padding: .25rem var(--gutter) .5rem; background: var(--surface); }
   .feature__home { margin-top: 2.5rem; }
 
@@ -928,9 +940,9 @@ main { display: block; }
   .colophon__list { margin-top: 2.5rem; }
   .colophon__list > div { grid-template-columns: 6.5rem minmax(0, 1fr); }
 
-  .back { grid-template-columns: auto 1fr; }
-  .back__links { grid-column: 1 / -1; grid-row: auto; justify-content: start; }
-  .back__copy { grid-column: 1 / -1; }
+  /* The footer stacks on the gutter: mark, address, links, copyright. */
+  .back { row-gap: .75rem; }
+  .back__mark { margin-bottom: .5rem; }
 
   .archive__head { position: static; margin-bottom: 2.5rem; }
   .byline { margin-top: 2rem; }
@@ -938,6 +950,7 @@ main { display: block; }
 
 @media (max-width: 420px) {
   .lead-project { grid-template-columns: 1fr; }
+  .pole, .lead-project__text { grid-column: 1 / -1; }
   .pole { max-width: 5rem; }
 }
 

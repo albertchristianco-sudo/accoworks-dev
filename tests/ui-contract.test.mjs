@@ -637,3 +637,26 @@ test('gates production deployment on tests and Astro diagnostics', () => {
   assert.ok(workflow.indexOf('run: npm test') < workflow.indexOf('wrangler pages deploy'));
   assert.ok(workflow.indexOf('run: npx astro check') < workflow.indexOf('wrangler pages deploy'));
 });
+
+test('puts every edition section on one shared grid (Albert, Oct 12: text in line)', () => {
+  for (const name of ['gutter', 'gap', 'max', 'cols', 'aside', 'content-start', 'content-cols', 'measure', 'label-col', 'mark-bearing']) {
+    assert.match(css, new RegExp(`--${name}:`), `--${name} token`);
+  }
+  // One container rule and one grid rule; no section restates the twelve columns.
+  assert.match(css, /\.runhead, \.contents, \.pull, \.feature, \.profile__inner, \.colophon, \.back, \.archive, \.article, \.more \{\s*max-width: var\(--max\);\s*margin-inline: auto;\s*padding-inline: var\(--gutter\);/);
+  assert.match(css, /grid-template-columns: var\(--cols\);/);
+  assert.doesNotMatch(css, /grid-template-columns: repeat\(12/);
+  // Lists, body copy, the contact list and the footer address start on the content edge.
+  for (const selector of ['.contents__page', '.archive__list', '.more .toc', '.colophon__list', '.back__copy']) {
+    assert.ok(css.includes(`${selector} { grid-column: var(--content-start) / -1;`), selector);
+  }
+  assert.match(css, /\.article__body, \.article__react, \.article__end \{\s*grid-column: var\(--content-start\) \/ span 7;\s*max-width: var\(--measure\);/);
+  // Notes and contact rows share one label column.
+  assert.equal(css.match(/grid-template-columns: var\(--label-col\) minmax\(0, 1fr\);/g)?.length, 2);
+  // The "Ac" marks put their ink, not their box, on the gutter.
+  assert.equal(css.match(/margin-left: var\(--mark-bearing\);/g)?.length, 3);
+  // picture is display: contents, so its sources must not become flex or grid items.
+  assert.match(css, /picture > source \{ display: none; \}/);
+  // Drop caps start on the text edge (no negative left margin).
+  assert.doesNotMatch(css, /::first-letter \{[^}]*margin: [^;]* -\.02em;/);
+});
