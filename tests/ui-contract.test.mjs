@@ -237,6 +237,14 @@ test('keeps content visible without JavaScript and honours reduced motion', () =
   assert.doesNotMatch(script + css, /preventDefault|scroll-snap|wheel|lenis|locomotive/i);
 });
 
+test('lifts the pinned cover only for keyboard focus, not mouse clicks in main', () => {
+  assert.match(layout, /<main id="main-content" tabindex="-1">/);
+  // main has tabindex="-1", so a click focuses it: :focus-within would hide the cover.
+  assert.doesNotMatch(css, /:has\(main:focus-within\)/);
+  const lifts = [...css.matchAll(/([^{}\n]*:has\(main:focus-visible, main :focus-visible\) \.cover) \{ visibility: hidden; \}/g)];
+  assert.equal(lifts.length, 2, 'both motion engines lift the cover on keyboard focus');
+});
+
 test('uses responsive modern formats for the above-fold cover photo', () => {
   assert.match(cover, /<picture>/);
   assert.match(cover, /type="image\/avif"/);
