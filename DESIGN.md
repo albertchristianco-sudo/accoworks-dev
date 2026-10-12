@@ -21,16 +21,17 @@ A personal Sunday magazine. Used by home, `/field-notes/` and posts,
   - `--accent` `#7FC8F8`: the light blue, for fills only. The Next race
     roundel (with ink text and an ink ring), the selected filter chip (which
     also gets a doubled ink border at the same type weight, so selected and
-    hover differ in greyscale and the chip keeps its width), text selection, the progress bar, the liked heart
+    hover differ in greyscale and the chip keeps its width), text selection, the liked heart
     (inside a deep blue stroke), and on the ink plate the cover-line rules,
-    link underlines, the profile drop cap and focus rings. Never text, a
+    link underlines, the profile drop cap, focus rings and the home skip link ring. Never text, a
     rule or a ring on the light pages: it is 1.67:1 on bg. The filled side
     box inside the profile is a light panel, so links and rings there use
     the deep blue.
   - `--accent-ink` `#1A6393`: the deep blue of the same hue (about 204
     degrees). Link underlines, the active nav underline, drop caps, quote
     marks, list markers, the blockquote rule, the pole wires, the liked
-    state, the scrollbar thumb and focus rings on the light pages.
+    state, the scrollbar thumb, the reading progress bar, the skip link ring
+    on light pages and focus rings on the light pages.
   - `--on-accent` `#1C2326`: text on a light blue fill (ink; white is only
     1.82:1 there).
   - `--photo-tint` `#6E8084`, `--shade` `#0B0F11`, `--error` `#B3261E`: cover

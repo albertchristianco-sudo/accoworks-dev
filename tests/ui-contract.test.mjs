@@ -291,7 +291,7 @@ test('uses accessible solid text colors without gradient clipping', () => {
   // the ink plate. Each rule that paints it so is named here on purpose; anything
   // new fails until it is checked and added. Fills (background) are fine anywhere.
   const ON_INK = [
-    '.skip:focus', // the ink skip-link box, ring at offset 0
+    '.home .skip:focus', // the skip link over the ink cover on home
     '.cover :focus-visible',
     '.cover .nav a:hover',
     '.coverline a:hover',
@@ -344,10 +344,16 @@ test('provides a skip link and a stable main-content target', () => {
   // The skip link is an ink box shown over the ink cover on home: its ring is the
   // light blue, 3:1 or better on ink.
   assert.match(css, /\.skip \{[^}]*background: var\(--ink\);/);
-  // No offset, so the ring touches the link's ink box instead of sitting on --bg.
-  assert.match(css, /\.skip:focus \{ top: 1rem; outline-color: var\(--accent\); outline-offset: 0; \}/);
-  const ring = contrast(token('accent'), token('ink'));
-  assert.ok(ring >= 3, `skip link ring --accent on ink is ${ring.toFixed(2)}:1`);
+  // Light pages: deep blue ring, 3:1 or better on the page background (and on ink
+  // is irrelevant there). Home: light blue ring over the ink cover.
+  assert.match(css, /\.skip:focus \{ top: 1rem; outline-color: var\(--accent-ink\); outline-offset: 0; \}/);
+  assert.match(css, /\.home \.skip:focus \{ outline-color: var\(--accent\); \}/);
+  const pageRing = contrast(token('accent-ink'), token('bg'));
+  assert.ok(pageRing >= 3, `skip link ring --accent-ink on bg is ${pageRing.toFixed(2)}:1`);
+  const homeRing = contrast(token('accent'), token('ink'));
+  assert.ok(homeRing >= 3, `home skip link ring --accent on ink is ${homeRing.toFixed(2)}:1`);
+  // The reading progress bar sits on the light page: deep blue, not the light fill.
+  assert.match(css, /\.progress \{[^}]*background: var\(--accent-ink\);/);
 });
 
 test('keeps head essentials and drops the concept preview robots tag', () => {

@@ -162,10 +162,11 @@ a:hover { text-decoration-thickness: 4px; }
   font-weight: 600;
   text-decoration: none;
 }
-/* The skip link is an ink box, and on home it sits over the ink cover, where the
-   deep blue ring would fail 3:1. Light blue reads at 8.74:1 on ink, and with no
-   offset the ring touches the link's own ink box on the light pages too. */
-.skip:focus { top: 1rem; outline-color: var(--accent); outline-offset: 0; }
+/* The skip link is an ink box. On light pages its ring is the deep blue, 5.91:1 on
+   --bg. On home it sits over the ink cover, where the deep blue would fail 3:1, so
+   the ring is the light blue there, 8.74:1 on ink. */
+.skip:focus { top: 1rem; outline-color: var(--accent-ink); outline-offset: 0; }
+.home .skip:focus { outline-color: var(--accent); }
 
 .visually-hidden {
   position: absolute;
@@ -718,7 +719,7 @@ main { display: block; }
   inset: 0 0 auto;
   z-index: 20;
   height: 4px;
-  background: var(--accent);
+  background: var(--accent-ink);
   transform: scaleX(0);
   transform-origin: left;
   display: none;
