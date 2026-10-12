@@ -650,7 +650,6 @@ test('puts every edition section on one shared grid (Albert, Oct 12: text in lin
   for (const selector of ['.contents__page', '.archive__list', '.more .toc', '.colophon__list', '.back__copy']) {
     assert.ok(css.includes(`${selector} { grid-column: var(--content-start) / -1;`), selector);
   }
-  assert.match(css, /\.article__body, \.article__react, \.article__end \{\s*grid-column: var\(--content-start\) \/ span 7;\s*max-width: var\(--measure\);/);
   // Notes and contact rows share one label column.
   assert.equal(css.match(/grid-template-columns: var\(--label-col\) minmax\(0, 1fr\);/g)?.length, 2);
   // The "Ac" marks put their ink, not their box, on the gutter.
@@ -692,4 +691,19 @@ test('keeps the home cover on twelve columns at every width (round 4 blocker)', 
   // The browser check of the same thing (needs Chrome, so not in npm test).
   assert.equal(pkg.scripts['check:cover'], 'node scripts/check-cover-layout.mjs dist');
   assert.match(read('AGENTS.md'), /npm run check:cover/);
+});
+
+test('sets post copy at one measure from phones to desktop (round 4)', () => {
+  // Dek, body, reactions and sign-off run from the content edge and stop at
+  // --measure, so they share both edges; the measure is about 68 characters.
+  assert.match(css, /--measure: 37rem;/);
+  assert.match(css, /\.article__dek \{\s*grid-column: var\(--content-start\) \/ -1;\s*max-width: var\(--measure\);/);
+  assert.match(css, /\.article__body, \.article__react, \.article__end \{\s*grid-column: var\(--content-start\) \/ -1;\s*max-width: var\(--measure\);/);
+  // At 1080px and below a post is one column on the gutter, as on phones, so the
+  // body does not drop to the seven content columns (41 characters at 768px) and
+  // nothing jumps at 760/761px.
+  const tablet = mediaBody('max-width: 1080px');
+  assert.match(tablet, /:is\(\.article, \.article__head, \.more__inner\) \{ --cols: minmax\(0, 1fr\); \}/);
+  assert.match(tablet, /:is\(\.article, \.article__head, \.more__inner\) > \* \{ grid-column: 1 \/ -1 !important; grid-row: auto !important; \}/);
+  assert.match(tablet, /\.more \.toc, \.more__all \{ max-width: var\(--measure\); \}/);
 });

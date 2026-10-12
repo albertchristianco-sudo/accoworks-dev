@@ -62,8 +62,10 @@
   --content-cols: 8;
   /* One grid step (a column plus a gap) as a share of a full-width box. */
   --step: calc((100% + var(--gap)) / 12);
-  /* Reading measure for article body copy. */
-  --measure: 42rem;
+  /* Reading measure for article body copy: about 68 characters a line of the
+     19px body text (42rem ran to 77). In rem, not ch, so the larger dek stops
+     on the same right edge as the body. */
+  --measure: 37rem;
   /* Label column of the two-column lists on the content side (note dates, contact
      labels): two of its grid columns, so the values start on a page column. */
   --label-col: calc((100% - (var(--content-cols) - 1) * var(--gap)) * 2 / var(--content-cols) + var(--gap));
@@ -725,8 +727,11 @@ main { display: block; }
   line-height: .9;
   letter-spacing: -.035em;
 }
+/* The dek, body, reactions and sign-off run from the content edge to the page edge
+   and stop at --measure, so they share one right edge as well as one left edge. */
 .article__dek {
-  grid-column: var(--content-start) / span 7;
+  grid-column: var(--content-start) / -1;
+  max-width: var(--measure);
   grid-row: 3;
   margin-top: 1.75rem;
   font-size: clamp(1.25rem, 1.7vw, 1.55rem);
@@ -737,7 +742,7 @@ main { display: block; }
 .byline__who span { display: block; font-weight: 400; font-size: .9375rem; color: var(--ink-soft); }
 
 .article__body, .article__react, .article__end {
-  grid-column: var(--content-start) / span 7;
+  grid-column: var(--content-start) / -1;
   max-width: var(--measure);
 }
 .article__body {
@@ -871,6 +876,14 @@ main { display: block; }
   .back__links { justify-content: start; }
   .back__copy { grid-row: 3; }
   .back__mark { grid-row: 1 / span 3; }
+  /* Posts read in one column from here down: on the content side the body would
+     run at about 41 characters a line at 768px. Byline, dek, body, figures,
+     reactions, sign-off and the More list stack on the gutter and stop at
+     --measure, as they do on phones, so nothing jumps at 760/761px. */
+  :is(.article, .article__head, .more__inner) { --cols: minmax(0, 1fr); }
+  :is(.article, .article__head, .more__inner) > * { grid-column: 1 / -1 !important; grid-row: auto !important; }
+  .more .toc, .more__all { max-width: var(--measure); }
+  .more h2 { margin-bottom: 1.5rem; }
 }
 
 @media (max-width: 760px) {
