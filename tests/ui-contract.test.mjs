@@ -287,11 +287,40 @@ test('uses accessible solid text colors without gradient clipping', () => {
   for (const plate of ['.cover', '.profile']) {
     assert.ok(css.includes(`${plate} :focus-visible { outline-color: var(--accent); }`), `${plate} ring is light blue on ink`);
   }
-  // Light blue text only appears on the ink plate (the profile drop cap).
+  // Light blue as text, a ring, an underline, a stroke or a border only appears on
+  // the ink plate. Each rule that paints it so is named here on purpose; anything
+  // new fails until it is checked and added. Fills (background) are fine anywhere.
+  const ON_INK = [
+    '.skip:focus', // the ink skip-link box, ring at offset 0
+    '.cover :focus-visible',
+    '.cover .nav a:hover',
+    '.coverline a:hover',
+    '.profile__open::first-letter',
+    '.profile a',
+    '.profile :focus-visible',
+  ];
   const noComments = css.replace(/\/\*[\s\S]*?\*\//g, '');
-  const lightText = [...noComments.matchAll(/([^{}]+)\{[^}]*(?:^|[\s;])color:\s*var\(--accent\)/gm)].map((m) => m[1].trim());
-  assert.ok(lightText.length > 0);
-  for (const selector of lightText) assert.match(selector, /^\.(profile|cover)/, `light blue text outside the ink plate: ${selector}`);
+  const LINE_PROPS = /(?:^|[\s;])(color|outline|outline-color|fill|stroke|border(?:-(?:top|right|bottom|left))?(?:-color)?|text-decoration(?:-color)?|box-shadow|scrollbar-color)\s*:[^;]*var\(--accent\)/;
+  const lightLines = [];
+  for (const [, selector, body] of noComments.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const declarations = body.split(';');
+    for (const declaration of declarations) {
+      const hit = declaration.match(LINE_PROPS);
+      if (!hit) continue;
+      // A light blue fill drawn inside a deep blue stroke (the liked heart) carries
+      // its contrast on the stroke.
+      if (hit[1] === 'fill' && /(?:^|[\s;])stroke:\s*var\(--accent-ink\)/.test(body)) continue;
+      lightLines.push(selector.trim());
+    }
+  }
+  assert.deepEqual([...new Set(lightLines)].sort(), [...ON_INK].sort(), 'light blue text, rings or rules outside the listed on-ink rules');
+  // The filled side box is a light panel inside the ink profile: the on-ink link and
+  // ring colours are switched back to deep blue there.
+  assert.ok(css.includes('.profile .sidebox:not(.sidebox--plain) a { text-decoration-color: var(--accent-ink); }'));
+  assert.ok(css.includes('.profile .sidebox:not(.sidebox--plain) :focus-visible { outline-color: var(--accent-ink); }'));
+  assert.ok(contrast(token('accent-ink'), token('surface')) >= 3);
+  // The scrollbar thumb sits on --surface: deep blue, not light blue.
+  assert.match(css, /scrollbar-color: var\(--accent-ink\) var\(--surface\);/);
   for (const source of [css, legacyCss]) {
     assert.doesNotMatch(source, /background-clip:\s*text|-webkit-text-fill-color:\s*transparent/);
   }
@@ -315,7 +344,8 @@ test('provides a skip link and a stable main-content target', () => {
   // The skip link is an ink box shown over the ink cover on home: its ring is the
   // light blue, 3:1 or better on ink.
   assert.match(css, /\.skip \{[^}]*background: var\(--ink\);/);
-  assert.match(css, /\.skip:focus \{ top: 1rem; outline-color: var\(--accent\); \}/);
+  // No offset, so the ring touches the link's ink box instead of sitting on --bg.
+  assert.match(css, /\.skip:focus \{ top: 1rem; outline-color: var\(--accent\); outline-offset: 0; \}/);
   const ring = contrast(token('accent'), token('ink'));
   assert.ok(ring >= 3, `skip link ring --accent on ink is ${ring.toFixed(2)}:1`);
 });
@@ -540,6 +570,14 @@ test('filters Field Notes by label without JavaScript', () => {
   // Without :has() support the filter is hidden and every note stays listed.
   assert.match(css, /\.filter \{ display: none;/);
   assert.match(css, /@supports selector\(:has\(\*\)\) \{\s*\.filter \{ display: block; \}/);
+  // Selected is not colour alone: the light blue fill is only 1.46:1 against the
+  // hover grey, so the chip also gets a doubled border and heavier type.
+  const selected = css.match(/\.filter input:checked \+ label \{([^}]*)\}/)[1];
+  assert.match(selected, /background: var\(--accent\);/);
+  assert.match(selected, /box-shadow: inset 0 0 0 [\d.]+px var\(--ink\);/);
+  assert.match(selected, /font-weight: (?:7|8|9)00;/);
+  const hover = css.match(/\.filter label:hover \{([^}]*)\}/)[1];
+  assert.doesNotMatch(hover, /box-shadow|font-weight/);
 });
 
 test('keeps Field Notes canonical and redirects the concept /writing/ paths', () => {
