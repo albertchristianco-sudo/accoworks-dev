@@ -6,8 +6,8 @@ A personal Sunday magazine. Used by home, `/field-notes/` and posts,
 `/projects/`, `/about/` and `/contact/` through
 `src/layouts/EditionLayout.astro` and `src/styles/edition.css`.
 
-- Palette (Albert, Oct 12): a neutral cool grey base with one teal accent.
-  No pink, no sand. Tokens in `src/styles/edition.css`:
+- Palette (Albert, Oct 12): a neutral cool grey base with a light blue
+  accent. No pink, no sand, no teal. Tokens in `src/styles/edition.css`:
   - `--bg` `#F3F5F6`: page background.
   - `--surface` `#E3E7E9`: secondary panels (the projects column, sideboxes,
     "More Field Notes", code, image placeholders, chip hover).
@@ -16,23 +16,30 @@ A personal Sunday magazine. Used by home, `/field-notes/` and posts,
     plate behind the cover, the profile and the mobile name line. Also the
     `theme-color`, which the layout reads from this token.
   - `--ink-soft` `#4E595E`: secondary text on `--bg` and `--surface`.
-  - `--on-ink-soft` `#A7B2B6`: secondary text, rules and drop caps on the
-    ink plate.
-  - `--accent` `#136A72`: the teal. Link underlines, active nav underline,
-    drop caps, quote marks, list markers, focus rings, progress bar,
-    scrollbar thumb, the liked state, and the Next race roundel (the cover's
-    only spot of colour, with an ink ring).
-  - `--accent-strong` `#0E3B43`: the deep sea teal, for selected filter chips
-    and text selection.
-  - `--on-accent` `#FFFFFF`: text on either accent.
+  - `--on-ink-soft` `#A7B2B6`: secondary text and hairlines on the ink
+    plate.
+  - `--accent` `#7FC8F8`: the light blue, for fills only. The Next race
+    roundel (with ink text and an ink ring), the selected filter chip, text
+    selection, the progress bar, the scrollbar thumb, the blockquote rule,
+    the liked heart, and on the ink plate the cover-line rules, link
+    underlines, the profile drop cap and focus rings. Never text or a ring
+    on the light pages: it is 1.67:1 on bg.
+  - `--accent-ink` `#1A6393`: the deep blue of the same hue (about 204
+    degrees). Link underlines, the active nav underline, drop caps, quote
+    marks, list markers, the pole wires, the liked state and focus rings on
+    the light pages.
+  - `--on-accent` `#1C2326`: text on a light blue fill (ink; white is only
+    1.82:1 there).
   - `--photo-tint` `#6E8084`, `--shade` `#0B0F11`, `--error` `#B3261E`: cover
     duotone highlight, page-turn shading, error text.
   Ratios: ink on bg 14.57:1, ink-soft on bg 6.59:1, ink on surface
-  12.80:1, ink-soft on surface 5.79:1, accent on bg 5.76:1, accent-strong
-  on bg 11.13:1, white on accent 6.30:1, white on accent-strong 12.17:1,
-  bg on ink 14.57:1, on-ink-soft on ink 7.35:1, error on bg 5.98:1. Cover
-  text reads at 5.45:1 or better over the brightest duotone pixel
-  (`#58666A`). Tests assert the token values and these pairs.
+  12.80:1, ink-soft on surface 5.79:1, accent-ink on bg 5.91:1,
+  accent-ink on surface 5.19:1, ink on accent 8.74:1, accent ring on ink
+  8.74:1, accent-ink ring on bg 5.91:1, bg on ink 14.57:1, on-ink-soft on
+  ink 7.35:1, error on bg 5.98:1. Cover text reads at 5.45:1 or better over
+  the brightest duotone pixel (`#58666A`), and the light blue roundel and
+  rules read at 3.27:1 against it. Tests assert the token values and these
+  pairs.
 - Type: Gloock for display (masthead, headlines, drop caps, pull quote),
   Schibsted Grotesk for text and UI. Both self-hosted from `public/fonts/`.
 - Home: magazine cover with a giant "Ac" masthead over a duotone photo,

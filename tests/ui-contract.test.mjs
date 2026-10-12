@@ -207,7 +207,7 @@ test('check:no-react runs from a path with a space and fails on an empty dist', 
   }
 });
 
-// Final palette (Albert, Oct 12): cool grey base with one teal accent.
+// Final palette (Albert, Oct 12): cool grey base with a light blue accent.
 const PALETTE = {
   bg: 'F3F5F6',
   surface: 'E3E7E9',
@@ -216,19 +216,19 @@ const PALETTE = {
   'ink-soft': '4E595E',
   'on-ink-soft': 'A7B2B6',
   'photo-tint': '6E8084',
-  accent: '136A72',
-  'accent-strong': '0E3B43',
-  'on-accent': 'FFFFFF',
+  accent: '7FC8F8',
+  'accent-ink': '1A6393',
+  'on-accent': '1C2326',
   shade: '0B0F11',
   error: 'B3261E',
 };
 
-test('defines the cool grey and teal palette as tokens', () => {
+test('defines the cool grey and light blue palette as tokens', () => {
   for (const [name, hex] of Object.entries(PALETTE)) {
     assert.equal(token(name)?.toUpperCase(), hex, `--${name}`);
   }
   // Retired tokens stay gone, and edition.css holds no colour literal outside :root.
-  assert.doesNotMatch(css, /--(paper|sea|hibiscus|hibiscus-deep|sand|shallow|ink-sand)\b/);
+  assert.doesNotMatch(css, /--(paper|sea|hibiscus|hibiscus-deep|sand|shallow|ink-sand|accent-strong)\b/);
   const rootBlock = css.match(/:root \{[^}]*\}/)[0];
   const rest = css.replace(rootBlock, '').replace(/\/\*[\s\S]*?\*\//g, '');
   assert.doesNotMatch(rest, /#[0-9A-Fa-f]{3,8}\b|\brgba?\(|\bhsla?\(/);
@@ -237,13 +237,13 @@ test('defines the cool grey and teal palette as tokens', () => {
   assert.match(layout, /const themeColor = editionCss\.match\(\/--ink:/);
 });
 
-test('removes hibiscus and sand from every edition file', () => {
+test('removes hibiscus, sand and teal from every edition file', () => {
   const legacy = /(coaching|links|power)\.astro$|power\/update\.astro$|BaseLayout\.astro$|global\.css$/;
   const files = ['src/pages', 'src/components', 'src/layouts', 'src/styles', 'src/data', 'src/lib']
     .flatMap((dir) => walk(new URL(dir, root).pathname))
     .filter((file) => !legacy.test(file));
   for (const file of files) {
-    assert.doesNotMatch(readFileSync(file, 'utf8'), /#(D6336C|C92A62|E6DFD0)\b|hibiscus|\bsand\b/i, file);
+    assert.doesNotMatch(readFileSync(file, 'utf8'), /#(D6336C|C92A62|E6DFD0|136A72|0E3B43)\b|hibiscus|\bsand\b|\bteal\b/i, file);
   }
 });
 
@@ -258,14 +258,18 @@ test('uses accessible solid text colors without gradient clipping', () => {
     ['ink-soft', 'bg', 4.5],
     ['ink', 'surface', 4.5],
     ['ink-soft', 'surface', 4.5],
-    ['accent', 'bg', 4.5],
-    ['accent-strong', 'bg', 4.5],
+    // Deep blue text, underlines, markers and drop caps on both light grounds.
+    ['accent-ink', 'bg', 4.5],
+    ['accent-ink', 'surface', 4.5],
+    // Ink text on the light blue fills (roundel, selected chip, selection).
     ['on-accent', 'accent', 4.5],
-    ['on-accent', 'accent-strong', 4.5],
     ['bg', 'ink', 4.5],
     ['on-ink-soft', 'ink', 4.5],
     ['error', 'bg', 4.5],
-    ['accent', 'bg', 3],
+    // Focus rings: deep blue on the light pages, light blue on the ink plate.
+    ['accent-ink', 'bg', 3],
+    ['accent-ink', 'surface', 3],
+    ['accent', 'ink', 3],
     ['bg', 'ink', 3],
     ['ink', 'surface', 3],
   ];
@@ -273,8 +277,21 @@ test('uses accessible solid text colors without gradient clipping', () => {
     const ratio = contrast(token(fg), token(bg));
     assert.ok(ratio >= min, `--${fg} on --${bg} is ${ratio.toFixed(2)}:1, needs ${min}:1`);
   }
-  // The roundel is the cover's one teal spot and carries small on-accent text.
+  // The roundel is a light blue fill with small ink text; white would fail there.
   assert.match(css, /\.flash\s*\{[^}]*background:\s*var\(--accent\);[^}]*color:\s*var\(--on-accent\);/);
+  assert.ok(contrast('FFFFFF', token('accent')) < 4.5, 'white on the light blue fails, so --on-accent must stay dark');
+  // Light blue is a fill: it is never text or a ring on the light pages.
+  assert.ok(contrast(token('accent'), token('bg')) < 3);
+  assert.match(css, /:focus-visible \{\s*outline: 3px solid var\(--accent-ink\);/);
+  assert.match(css, /\.filter input:focus-visible \+ label \{ outline: 3px solid var\(--accent-ink\);/);
+  for (const plate of ['.cover', '.profile']) {
+    assert.ok(css.includes(`${plate} :focus-visible { outline-color: var(--accent); }`), `${plate} ring is light blue on ink`);
+  }
+  // Light blue text only appears on the ink plate (the profile drop cap).
+  const noComments = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const lightText = [...noComments.matchAll(/([^{}]+)\{[^}]*(?:^|[\s;])color:\s*var\(--accent\)/gm)].map((m) => m[1].trim());
+  assert.ok(lightText.length > 0);
+  for (const selector of lightText) assert.match(selector, /^\.(profile|cover)/, `light blue text outside the ink plate: ${selector}`);
   for (const source of [css, legacyCss]) {
     assert.doesNotMatch(source, /background-clip:\s*text|-webkit-text-fill-color:\s*transparent/);
   }
@@ -295,11 +312,12 @@ test('provides a skip link and a stable main-content target', () => {
   }
   assert.equal(layout.match(/id="main-content"/g).length, 2);
   assert.match(css, /#main-content \{ position: absolute; \}\n#main-content:focus \{ outline: none; \}/);
-  // The skip link shows over the ink cover on home: its ring is --bg, 3:1 on ink.
+  // The skip link is an ink box shown over the ink cover on home: its ring is the
+  // light blue, 3:1 or better on ink.
   assert.match(css, /\.skip \{[^}]*background: var\(--ink\);/);
-  assert.match(css, /\.skip:focus \{ top: 1rem; outline-color: var\(--bg\); \}/);
-  const ring = contrast(token('bg'), token('ink'));
-  assert.ok(ring >= 3, `skip link ring --bg on ink is ${ring.toFixed(2)}:1`);
+  assert.match(css, /\.skip:focus \{ top: 1rem; outline-color: var\(--accent\); \}/);
+  const ring = contrast(token('accent'), token('ink'));
+  assert.ok(ring >= 3, `skip link ring --accent on ink is ${ring.toFixed(2)}:1`);
 });
 
 test('keeps head essentials and drops the concept preview robots tag', () => {
@@ -465,7 +483,8 @@ test('keeps the mobile name line legible over the photo with a solid plate', () 
   assert.match(css, /@media \(max-width: 760px\)[\s\S]*?\.cover__name span \{[^}]*background:\s*var\(--ink\)/);
   assert.ok(contrast(token('bg'), token('ink')) >= 4.5, 'name line on its ink plate');
   assert.match(css, /\.cover \{[^}]*background: var\(--ink\);\s*color: var\(--bg\);/);
-  assert.match(css, /\.cover :focus-visible \{ outline-color: var\(--bg\); \}/);
+  assert.match(css, /\.cover :focus-visible \{ outline-color: var\(--accent\); \}/);
+  assert.ok(contrast(token('accent'), token('ink')) >= 3, 'light blue ring on the ink cover');
 });
 
 test('builds the cover from real data: newest notes as cover lines and the race roundel', () => {
