@@ -41,10 +41,12 @@ landing-page --branch main`. So:
 
 - **Astro 6** (static output). `@astrojs/react` is registered in
   `astro.config.mjs` so React islands can be added later, but **no island is
-  used today and no page may ship React**. `npm run check:no-react` (run in CI
-  and before deploy) fails the build if any page loads the React runtime. If
-  you add an island, add that page to `ALLOWED_PAGES` in
-  `scripts/check-no-react.mjs` on purpose.
+  used today and no page may ship React**. `npm run check:no-react` is an npm
+  script to run after `npm run build`; it scans `dist/` and fails if any page
+  loads the React runtime. It is not yet wired into CI or `deploy.yml`: that
+  is a pending workflow change (see the Sunday edition PR), so run it
+  yourself before merging. If you add an island, add that page to
+  `ALLOWED_PAGES` in `scripts/check-no-react.mjs` on purpose.
 - **MDX field notes** in `src/content/field-notes/`. Schema in
   `src/content.config.ts` (labels: Training | Building | Operating).
   `/field-notes/<slug>/` is the canonical post URL; `/writing/...` redirects

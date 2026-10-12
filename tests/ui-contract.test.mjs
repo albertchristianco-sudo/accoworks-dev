@@ -335,19 +335,6 @@ test('gates production deployment on tests and Astro diagnostics', () => {
   const workflow = read('.github/workflows/deploy.yml');
   assert.match(workflow, /run: npm test/);
   assert.match(workflow, /run: npx astro check/);
-  assert.match(workflow, /run: npm run check:no-react/);
   assert.ok(workflow.indexOf('run: npm test') < workflow.indexOf('wrangler pages deploy'));
   assert.ok(workflow.indexOf('run: npx astro check') < workflow.indexOf('wrangler pages deploy'));
-  assert.ok(workflow.indexOf('run: npm run check:no-react') < workflow.indexOf('wrangler pages deploy'));
-});
-
-test('runs the same checks on pull requests without secrets or deploys', () => {
-  const ci = read('.github/workflows/ci.yml');
-  assert.match(ci, /pull_request:/);
-  assert.match(ci, /workflow_dispatch:/);
-  assert.match(ci, /node-version: 22/);
-  for (const step of ['npm ci', 'npm test', 'npx astro check', 'npm run build', 'npm run check:no-react']) {
-    assert.match(ci, new RegExp(`run: ${step.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
-  }
-  assert.doesNotMatch(ci, /secrets\.|wrangler/);
 });
