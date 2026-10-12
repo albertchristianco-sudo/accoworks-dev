@@ -160,6 +160,12 @@ test('check:no-react scans inline JavaScript but not inline data scripts', () =>
   for (const attrs of [' type="application/ld+json"', ' type="application/json"', ' type="importmap"', ' type="text/template"', ' type="speculationrules"']) {
     assert.equal(isExecutableScript(attrs), false, attrs);
   }
+  // Only a real type attribute counts, not data-type or "type=" inside another value.
+  for (const attrs of [' data-type="x"', ' data-note="type=json"', " data-note='type=json'", ' data-type="application/json" type="module"']) {
+    assert.equal(isExecutableScript(attrs), true, attrs);
+  }
+  assert.equal(isExecutableScript(' data-type="module" type="application/json"'), false);
+  assert.equal(isExecutableScript('\ttype="application/json"'), false);
 
   const dist = mkdtempSync(join(tmpdir(), 'no-react-inline-'));
   try {
@@ -170,6 +176,11 @@ test('check:no-react scans inline JavaScript but not inline data scripts', () =>
     for (const type of ['', ' type="module"', ' type="text/javascript"']) {
       writeFileSync(join(dist, 'index.html'), `<script${type}>/* ${mention} */</script>`);
       assert.deepEqual(checkDist(dist).problems, ['index.html: inline script contains React runtime code'], type);
+    }
+    // data-src is not src: the inline body is still scanned.
+    for (const attrs of [' data-src="/x.js"', ' data-type="application/json"', ' data-note="src=\'/x.js\'"']) {
+      writeFileSync(join(dist, 'index.html'), `<script${attrs}>/* ${mention} */</script>`);
+      assert.deepEqual(checkDist(dist).problems, ['index.html: inline script contains React runtime code'], attrs);
     }
   } finally {
     rmSync(dist, { recursive: true, force: true });
@@ -272,9 +283,23 @@ test('uses accessible solid text colors without gradient clipping', () => {
 test('provides a skip link and a stable main-content target', () => {
   for (const source of [layout, legacyLayout]) {
     assert.match(source, /href="#main-content"[^>]*>\s*Skip to content/);
-    assert.match(source, /<main\s+id="main-content"/);
     assert.match(source, /viewport-fit=cover/);
   }
+  assert.match(legacyLayout, /<main\s+id="main-content"/);
+  // Edition: the target is a zero-size span first inside main; main itself is not focusable.
+  const mains = [...layout.matchAll(/<main\b([^>]*)>\s*(<[^>]*>)/g)];
+  assert.equal(mains.length, 2, 'both edition variants have a main');
+  for (const [, attrs, first] of mains) {
+    assert.equal(attrs, '', 'edition main carries no id or tabindex');
+    assert.equal(first, '<span id="main-content" tabindex="-1">');
+  }
+  assert.equal(layout.match(/id="main-content"/g).length, 2);
+  assert.match(css, /#main-content \{ position: absolute; \}\n#main-content:focus \{ outline: none; \}/);
+  // The skip link shows over the ink cover on home: its ring is --bg, 3:1 on ink.
+  assert.match(css, /\.skip \{[^}]*background: var\(--ink\);/);
+  assert.match(css, /\.skip:focus \{ top: 1rem; outline-color: var\(--bg\); \}/);
+  const ring = contrast(token('bg'), token('ink'));
+  assert.ok(ring >= 3, `skip link ring --bg on ink is ${ring.toFixed(2)}:1`);
 });
 
 test('keeps head essentials and drops the concept preview robots tag', () => {
@@ -350,18 +375,15 @@ test('keeps content visible without JavaScript and honours reduced motion', () =
 });
 
 test('lifts the pinned cover only for keyboard focus, not mouse clicks in main', () => {
-  assert.match(layout, /<main id="main-content" tabindex="-1">/);
-  // main has tabindex="-1", so a click focuses it: :focus-within would hide the cover.
-  assert.doesNotMatch(css, /:has\(main:focus-within\)/);
+  // main is not focusable, so a click in it focuses nothing; the skip link targets a span inside.
+  assert.doesNotMatch(layout, /<main\b[^>]*tabindex/);
+  assert.doesNotMatch(css, /main:focus-within|main:target|main:focus-visible/);
   const lifts = [...css.matchAll(/([^{}\n]*:has\(([^)]*)\) \.cover) \{ visibility: hidden; \}/g)];
   assert.equal(lifts.length, 2, 'both motion engines lift the cover on keyboard focus');
-  for (const [, rule, list] of lifts) {
-    const selectors = list.split(',').map((part) => part.trim());
-    // A bare main:focus-visible turns true on any keypress after a click focuses main.
-    assert.ok(!selectors.includes('main:focus-visible'), `bare main:focus-visible lifts the cover: ${rule}`);
-    assert.ok(selectors.every((sel) => /^main /.test(sel) || /^main:target\b/.test(sel)), `only focus inside main or the skip-link target lifts the cover: ${rule}`);
-    assert.ok(selectors.some((sel) => /^main :focus-visible$/.test(sel)), `Tab into the spread lifts the cover: ${rule}`);
-  }
+  // Exactly keyboard focus inside main: no :target clause (it outlives the skip) and no main itself.
+  assert.deepEqual(lifts.map(([, , list]) => list), ['main :focus-visible', 'main :focus-visible']);
+  assert.match(lifts[0][1], /^\s*html\.fx \.home \.turn__stage:has/);
+  assert.match(lifts[1][1], /^\s*\.home \.turn__stage:has/);
 });
 
 test('uses responsive modern formats for the above-fold cover photo', () => {

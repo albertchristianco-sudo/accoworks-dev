@@ -95,7 +95,8 @@ a:hover { text-decoration-thickness: 4px; }
   outline-offset: 3px;
   border-radius: 2px;
 }
-main:focus { outline: none; }
+#main-content { position: absolute; }
+#main-content:focus { outline: none; }
 
 .skip {
   position: absolute;
@@ -111,7 +112,9 @@ main:focus { outline: none; }
   font-weight: 600;
   text-decoration: none;
 }
-.skip:focus { top: 1rem; outline-color: var(--accent); }
+/* On home the skip link sits over the ink cover, where teal fails 3:1; --bg reads
+   on ink and still edges the link's own ink box on the page background. */
+.skip:focus { top: 1rem; outline-color: var(--bg); }
 
 .visually-hidden {
   position: absolute;
@@ -980,14 +983,13 @@ main { display: block; }
   .home .cover:focus-within { transform: none !important; }
   /* While the stage is pinned the cover lies on top of the spread. When keyboard
      focus moves into the spread, lift the cover out of the way so focus stays visible.
-     :focus-visible, not :focus-within: main has tabindex="-1", so a mouse click on
-     its text focuses main, and that must not hide the cover. main itself only counts
-     when reached through the skip link (:target); a bare main:focus-visible would
-     turn true on the first keypress after such a click. */
-  html.fx .home .turn__stage:has(main:target:focus-visible, main :focus-visible) .cover { visibility: hidden; }
+     Only focus inside main counts. main is not focusable, so a click on its text
+     focuses nothing; the skip link targets a zero-size span first inside main,
+     which a click can never reach. */
+  html.fx .home .turn__stage:has(main :focus-visible) .cover { visibility: hidden; }
 
   @supports (animation-timeline: view()) {
-    .home .turn__stage:has(main:target:focus-visible, main :focus-visible) .cover { visibility: hidden; }
+    .home .turn__stage:has(main :focus-visible) .cover { visibility: hidden; }
     .home .cover {
       animation: page-turn linear both;
       animation-timeline: scroll(root);

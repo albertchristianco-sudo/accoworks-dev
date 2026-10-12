@@ -67,7 +67,8 @@ function localTarget(distDir, fromFile, specifier) {
 const JS_SCRIPT_TYPE = /^(?:module|(?:text|application)\/(?:x-)?(?:java|ecma)script|text\/(?:javascript1\.[0-5]|jscript|livescript))$/i;
 
 export function isExecutableScript(attrs) {
-  const type = attrs.match(/\btype\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+  // Anchored on whitespace so data-type= or a "type=" inside another value does not count.
+  const type = attrs.match(/(?:^|\s)type\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
   if (!type) return true;
   const value = (type[1] ?? type[2] ?? type[3]).trim();
   return value === '' || JS_SCRIPT_TYPE.test(value);
@@ -125,7 +126,7 @@ export function checkDist(distDir) {
 
     for (const tag of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
       const [, attrs, body] = tag;
-      const src = attrs.match(/\bsrc=["']([^"']+)["']/i)?.[1];
+      const src = attrs.match(/(?:^|\s)src\s*=\s*["']([^"']+)["']/i)?.[1];
       if (src) {
         const target = localTarget(root, page, src);
         const hit = target && scriptGraphHasReact(root, target);

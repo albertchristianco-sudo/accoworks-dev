@@ -78,7 +78,8 @@ if (!themeColor) throw new Error('edition.css must define --ink as a hex color')
       <div class="turn">
         <div class="turn__stage">
           <slot name="cover" />
-          <main id="main-content" tabindex="-1">
+          <main>
+            <span id="main-content" tabindex="-1"></span>
             <slot />
           </main>
         </div>
@@ -90,7 +91,8 @@ if (!themeColor) throw new Error('edition.css must define --ink as a hex color')
           <a class="runhead__mark" href="/" aria-label="Ac, home">Ac</a>
           <SiteNav />
         </header>
-        <main id="main-content" tabindex="-1">
+        <main>
+          <span id="main-content" tabindex="-1"></span>
           <slot />
         </main>
       </>
