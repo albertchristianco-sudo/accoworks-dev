@@ -49,14 +49,18 @@ landing-page --branch main`. So:
   `ALLOWED_PAGES` in `scripts/check-no-react.mjs` on purpose.
 - **Cover layout check**: `npm run check:cover` (after `npm run build`) runs
   `scripts/check-cover-layout.mjs`. It serves `dist/` on a free local port,
-  opens home in headless Chrome at 360x640, 390x844, 760x900, 768, 1024, 1366
-  and 1440, with and without motion, and fails unless the cover has 12 grid
-  tracks, the "Ac" masthead is wider than 100px, the name line is 4 lines or
-  fewer, the cover nav is one row, and the race roundel overlaps neither the
-  masthead nor the lead cover line. It needs Chrome (`CHROME_PATH`, default
-  `/usr/bin/google-chrome`) and the `playwright-core` dev dependency, so it is
-  not part of `npm test` or CI: run it yourself before merging any change to
-  the cover, the grid tokens or the breakpoints. It stops its server itself.
+  opens home in headless Chrome at 360x640, 390x844, 760x900, 761x900, 768,
+  1024, 1080x900, 1366 and 1440, with and without motion, and fails unless the
+  cover has 12 grid tracks, the `.masthead` box and its "Ac" glyphs are each
+  wider than 100px, the name line is 4 lines or fewer, the cover nav is one
+  row, and the race roundel overlaps neither the masthead nor the lead cover
+  line. When the build has no upcoming race there is no roundel: the script
+  then prints "roundel not rendered: no upcoming race; overlap checks skipped"
+  and still passes, so read the output after race day. It needs Chrome
+  (`CHROME_PATH`, default `/usr/bin/google-chrome`) and the `playwright-core`
+  dev dependency, so it is not part of `npm test` or CI: run it yourself
+  before merging any change to the cover, the grid tokens or the
+  breakpoints. It stops its server itself.
 - **MDX field notes** in `src/content/field-notes/`. Schema in
   `src/content.config.ts` (labels: Training | Building | Operating).
   `/field-notes/<slug>/` is the canonical post URL; `/writing/...` redirects

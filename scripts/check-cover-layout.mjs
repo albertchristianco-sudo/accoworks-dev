@@ -11,11 +11,14 @@
 // It serves dist/ itself on a free local port and closes the server when done.
 // For every viewport, with reduced motion and with motion at the top of the page:
 //   1. the cover has 12 computed grid tracks, each wider than 0px,
-//   2. the "Ac" masthead glyphs are wider than 100px,
+//   2. the .masthead element box and the "Ac" glyphs are each wider than 100px
+//      (the glyphs alone can spill out of a box squeezed to zero),
 //   3. the name line wraps to 4 lines or fewer,
 //   4. the cover nav items sit on one row,
-//   5. the race roundel (if shown) overlaps neither the masthead glyphs nor the
-//      lead cover line and its dek.
+//   5. the race roundel overlaps neither the masthead glyphs nor the lead cover
+//      line and its dek. With no upcoming race in src/data/races.json the build
+//      renders no roundel; the script then prints a warning that the overlap
+//      checks were skipped instead of passing quietly.
 //
 // Usage: node scripts/check-cover-layout.mjs [distDir]
 // Chrome: CHROME_PATH, else /usr/bin/google-chrome (run with --no-sandbox).
@@ -25,7 +28,8 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, resolve, sep } from 'node:path';
 import { chromium } from 'playwright-core';
 
-const VIEWPORTS = [[360, 640], [390, 844], [760, 900], [768, 1024], [1024, 768], [1366, 768], [1440, 900]];
+const VIEWPORTS = [[360, 640], [390, 844], [760, 900], [761, 900], [768, 1024], [1024, 768], [1080, 900], [1366, 768], [1440, 900]];
+const NO_ROUNDEL = 'roundel not rendered: no upcoming race; overlap checks skipped';
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.mjs': 'text/javascript',
   '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg',
@@ -60,20 +64,23 @@ function measureCover() {
   };
   const cover = document.querySelector('.cover');
   const tracks = getComputedStyle(cover).gridTemplateColumns.split(' ').map(parseFloat);
-  const mast = union(textRects(document.querySelector('.masthead')));
+  const masthead = document.querySelector('.masthead');
+  const mast = union(textRects(masthead));
+  const mastBoxWidth = masthead ? masthead.getBoundingClientRect().width : 0;
   const nameSpan = document.querySelector('.cover__name span');
   // An inline span returns one client rect per line box.
   const nameLines = new Set([...nameSpan.getClientRects()].map((r) => Math.round(r.top))).size;
   const navTops = [...document.querySelectorAll('.cover .nav li')].map((li) => Math.round(li.getBoundingClientRect().top));
   const flash = document.querySelector('.flash');
   let roundel = null;
+  const roundelRendered = Boolean(flash);
   if (flash && getComputedStyle(flash).display !== 'none') {
     // The roundel is a rotated circle: its centre and radius, plus the 3px ink ring.
     const box = flash.getBoundingClientRect();
     roundel = { x: (box.left + box.right) / 2, y: (box.top + box.bottom) / 2, r: flash.offsetWidth / 2 + 3 };
   }
   const lead = [...textRects(document.querySelector('.coverline--lead a')), ...textRects(document.querySelector('.coverline--lead .coverline__dek'))];
-  return { tracks, mastWidth: mast ? mast.right - mast.left : 0, mast, nameLines, navTops, roundel, lead };
+  return { tracks, mastWidth: mast ? mast.right - mast.left : 0, mastBoxWidth, mast, nameLines, navTops, roundelRendered, roundel, lead };
 }
 
 function circleHitsRect(c, r) {
@@ -86,6 +93,7 @@ function coverProblems(m) {
   const problems = [];
   if (m.tracks.length !== 12) problems.push(`cover has ${m.tracks.length} grid tracks, expected 12`);
   if (m.tracks.some((t) => !(t > 0))) problems.push(`a cover track is 0px wide (${m.tracks.map((t) => t.toFixed(0)).join(' ')})`);
+  if (!(m.mastBoxWidth > 100)) problems.push(`masthead box is ${m.mastBoxWidth.toFixed(1)}px wide, expected > 100px`);
   if (!(m.mastWidth > 100)) problems.push(`masthead glyphs are ${m.mastWidth.toFixed(1)}px wide, expected > 100px`);
   if (m.nameLines > 4) problems.push(`name line wraps to ${m.nameLines} lines, expected <= 4`);
   if (new Set(m.navTops).size > 1) problems.push(`cover nav wraps to ${new Set(m.navTops).size} rows`);
@@ -103,6 +111,7 @@ async function main() {
   const base = `http://127.0.0.1:${server.address().port}/`;
   const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || '/usr/bin/google-chrome', args: ['--no-sandbox'] });
   let failures = 0;
+  let skipped = 0;
   try {
     for (const [width, height] of VIEWPORTS) {
       for (const reducedMotion of ['reduce', 'no-preference']) {
@@ -114,9 +123,13 @@ async function main() {
         await context.close();
         const problems = coverProblems(m);
         failures += problems.length;
-        const summary = `tracks ${m.tracks.length}, masthead ${m.mastWidth.toFixed(0)}px, name ${m.nameLines} lines, nav rows ${new Set(m.navTops).size}, roundel ${m.roundel ? 'shown' : 'none'}`;
+        const summary = `tracks ${m.tracks.length}, masthead box ${m.mastBoxWidth.toFixed(0)}px, glyphs ${m.mastWidth.toFixed(0)}px, name ${m.nameLines} lines, nav rows ${new Set(m.navTops).size}, roundel ${m.roundel ? 'shown' : 'none'}`;
         console.log(`${problems.length ? 'FAIL' : 'ok  '} ${width}x${height} motion=${reducedMotion}: ${summary}`);
         for (const problem of problems) console.log(`       ${problem}`);
+        if (!m.roundel) {
+          skipped += 1;
+          console.warn(`       WARNING: ${m.roundelRendered ? 'roundel hidden at this size; overlap checks skipped' : NO_ROUNDEL}`);
+        }
       }
     }
   } finally {
@@ -128,6 +141,7 @@ async function main() {
     process.exit(1);
   }
   console.log(`check:cover passed: ${VIEWPORTS.length} viewports, with and without motion.`);
+  if (skipped) console.warn(`WARNING: roundel overlap checks skipped on ${skipped} of ${VIEWPORTS.length * 2} runs; see the warnings above.`);
 }
 
 main().catch((error) => {

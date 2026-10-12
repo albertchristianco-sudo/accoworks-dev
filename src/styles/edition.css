@@ -699,8 +699,9 @@ main { display: block; }
 .filter label:hover { background: var(--surface); }
 /* Selected: a light blue fill with ink text; the ink border keeps the chip's edge.
    The fill is close to the hover grey (1.46:1), so selected also gets a doubled
-   border (an inset ring, no layout shift) and heavier type, which read in greyscale. */
-.filter input:checked + label { background: var(--accent); color: var(--on-accent); box-shadow: inset 0 0 0 1.5px var(--ink); font-weight: 800; }
+   border (an inset ring), which reads in greyscale. The weight stays at 600 so the
+   chip keeps its width and the row does not re-flow. */
+.filter input:checked + label { background: var(--accent); color: var(--on-accent); box-shadow: inset 0 0 0 1.5px var(--ink); }
 .filter input:focus-visible + label { outline: 3px solid var(--accent-ink); outline-offset: 3px; }
 .filter__note { font-size: .9375rem; color: var(--ink-soft); }
 

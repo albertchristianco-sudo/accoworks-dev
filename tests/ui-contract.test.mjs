@@ -571,11 +571,12 @@ test('filters Field Notes by label without JavaScript', () => {
   assert.match(css, /\.filter \{ display: none;/);
   assert.match(css, /@supports selector\(:has\(\*\)\) \{\s*\.filter \{ display: block; \}/);
   // Selected is not colour alone: the light blue fill is only 1.46:1 against the
-  // hover grey, so the chip also gets a doubled border and heavier type.
+  // hover grey, so the chip also gets a doubled border. The weight does not change,
+  // so selecting a chip does not change its width.
   const selected = css.match(/\.filter input:checked \+ label \{([^}]*)\}/)[1];
   assert.match(selected, /background: var\(--accent\);/);
   assert.match(selected, /box-shadow: inset 0 0 0 [\d.]+px var\(--ink\);/);
-  assert.match(selected, /font-weight: (?:7|8|9)00;/);
+  assert.doesNotMatch(selected, /font-weight/);
   const hover = css.match(/\.filter label:hover \{([^}]*)\}/)[1];
   assert.doesNotMatch(hover, /box-shadow|font-weight/);
 });

@@ -20,8 +20,8 @@ A personal Sunday magazine. Used by home, `/field-notes/` and posts,
     plate.
   - `--accent` `#7FC8F8`: the light blue, for fills only. The Next race
     roundel (with ink text and an ink ring), the selected filter chip (which
-    also gets a doubled ink border and heavier type, so selected and hover
-    differ in greyscale), text selection, the progress bar, the liked heart
+    also gets a doubled ink border at the same type weight, so selected and
+    hover differ in greyscale and the chip keeps its width), text selection, the progress bar, the liked heart
     (inside a deep blue stroke), and on the ink plate the cover-line rules,
     link underlines, the profile drop cap and focus rings. Never text, a
     rule or a ring on the light pages: it is 1.67:1 on bg. The filled side
