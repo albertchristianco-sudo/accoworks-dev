@@ -273,6 +273,27 @@ test('gives every edition image alt text and explicit dimensions', () => {
   }
 });
 
+test('keeps cover text AA-legible over any part of the duotone photo', () => {
+  // The filtered img paints in the z-index 0 layer, so the tint layers need z-index to blend over it.
+  assert.match(css, /\.cover__photo::before \{ z-index: 1; background: #([A-Fa-f0-9]{6}); mix-blend-mode: multiply; \}/);
+  assert.match(css, /\.cover__photo::after \{ z-index: 2; background: var\(--sea\); mix-blend-mode: lighten; \}/);
+  const tint = css.match(/\.cover__photo::before \{[^}]*background: #([A-Fa-f0-9]{6})/)[1];
+  const brightness = Number(css.match(/\.cover__photo img \{[^}]*filter: grayscale\(1\) contrast\([\d.]+\) brightness\(([\d.]+)\)/)[1]);
+  // Brightest possible pixel: white after brightness, multiplied by the tint, lightened with sea.
+  const sea = token('sea').match(/../g).map((h) => Number.parseInt(h, 16));
+  const brightest = tint.match(/../g)
+    .map((h, i) => Math.max(Math.round(255 * brightness * Number.parseInt(h, 16) / 255), sea[i]))
+    .map((v) => v.toString(16).padStart(2, '0')).join('');
+  const ratio = contrast(token('paper'), brightest);
+  assert.ok(ratio >= 4.5, `paper on the brightest cover pixel #${brightest} is ${ratio.toFixed(2)}:1`);
+});
+
+test('fits the masthead, roundel and cover lines on short viewports', () => {
+  assert.match(css, /\.masthead \{[^}]*font-size: clamp\(9rem, min\(31vw, 46svh\), 31rem\);/);
+  assert.match(css, /\.coverlines \{[^}]*grid-column: 8 \/ -1;[^}]*grid-row: 2 \/ span 3;/);
+  assert.match(css, /@media \(max-width: 760px\) \{[\s\S]*?\.masthead \{ font-size: min\(44vw, 26svh\);[\s\S]*?\.coverlines \{ grid-column: 2 \/ -1; grid-row: 3 \/ span 2; \}/);
+});
+
 test('keeps the mobile name line legible over the photo with a solid plate', () => {
   assert.match(cover, /<h1 class="cover__name"><span>/);
   assert.match(css, /@media \(max-width: 760px\)[\s\S]*?\.cover__name span \{[^}]*background:\s*var\(--sea\)/);

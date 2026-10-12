@@ -167,15 +167,19 @@ main:focus { outline: none; }
   object-position: 52% 14%;
   filter: grayscale(1) contrast(1.18) brightness(.8);
 }
-/* Duotone in the sea palette: highlights take shallow water, shadows take deep sea */
+/* Duotone in the sea palette: highlights take shallow water, shadows take deep sea.
+   The img has a filter, which paints it in the z-index 0 layer, so both tint layers
+   need an explicit z-index to sit above it. With both applied the brightest pixel
+   is #4C706E (white x .8 brightness, multiplied by #5f8c89), so paper text on the
+   cover reads at 5:1 or better whatever part of the photo is behind it. */
 .cover__photo::before,
 .cover__photo::after {
   content: '';
   position: absolute;
   inset: 0;
 }
-.cover__photo::before { background: #5f8c89; mix-blend-mode: multiply; }
-.cover__photo::after { background: var(--sea); mix-blend-mode: lighten; }
+.cover__photo::before { z-index: 1; background: #5f8c89; mix-blend-mode: multiply; }
+.cover__photo::after { z-index: 2; background: var(--sea); mix-blend-mode: lighten; }
 
 .cover__strip {
   position: relative;
@@ -209,7 +213,9 @@ main:focus { outline: none; }
 }
 .masthead {
   font-family: var(--display);
-  font-size: clamp(9rem, 31vw, 31rem);
+  /* Capped by viewport height too, so the roundel and every cover line fit on
+     short landscape screens (1366x768, 1280x720). */
+  font-size: clamp(9rem, min(31vw, 46svh), 31rem);
   line-height: .74;
   letter-spacing: -.045em;
   margin-top: .06em;
@@ -227,7 +233,9 @@ main:focus { outline: none; }
 .coverlines {
   position: relative;
   grid-column: 8 / -1;
-  grid-row: 3 / span 2;
+  /* Starts beside the masthead (its letters stop well short of column 8), so the
+     lines get the full height under the strip instead of only what the mast leaves. */
+  grid-row: 2 / span 3;
   align-self: end;
   display: grid;
   justify-items: end;
@@ -841,7 +849,7 @@ main { display: block; }
   .cover__strip { padding-top: .25rem; font-size: .875rem; }
   .cover__edition { padding-block: .5rem 0; width: 100%; }
   .nav ul { margin-left: -.75rem; }
-  .masthead { font-size: 44vw; margin-top: .1em; }
+  .masthead { font-size: min(44vw, 26svh); margin-top: .1em; }
   .cover__name { font-size: 1rem; max-width: 20ch; }
   /* The name line sits over the photo on phones: give it a solid sea plate
      so it reads at AA whatever part of the photo is behind it. */
@@ -852,7 +860,7 @@ main { display: block; }
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
   }
-  .coverlines { grid-column: 2 / -1; }
+  .coverlines { grid-column: 2 / -1; grid-row: 3 / span 2; }
   .coverline a { font-size: 1.3rem; }
   .coverline--lead a { font-size: 2.15rem; }
   .coverline__dek { font-size: .9375rem; }
