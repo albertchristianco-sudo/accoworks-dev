@@ -1,0 +1,25 @@
+---
+// Primary navigation. "Writing" is the Field Notes section.
+const path = Astro.url.pathname;
+const items = [
+  { href: '/field-notes/', label: 'Writing' },
+  { href: '/projects/', label: 'Projects' },
+  { href: '/about/', label: 'About' },
+  { href: '/contact/', label: 'Contact' },
+];
+// "page" only on the section index itself; a post under /field-notes/ is in the
+// section but is not that page, so it gets "true".
+const current = (href: string) => {
+  if (path === href || path === href.slice(0, -1)) return 'page';
+  if (path.startsWith(href)) return 'true';
+  return undefined;
+};
+---
+
+<nav class="nav" aria-label="Main">
+  <ul>
+    {items.map((item) => (
+      <li><a href={item.href} aria-current={current(item.href)}>{item.label}</a></li>
+    ))}
+  </ul>
+</nav>

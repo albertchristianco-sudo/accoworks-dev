@@ -1,4 +1,4 @@
-# AGENTS.md — accoworks.dev
+# AGENTS.md for accoworks.dev
 
 Operational rules for any AI coding agent working in this repo. Read this
 before touching anything.
@@ -39,17 +39,52 @@ landing-page --branch main`. So:
 
 ## Stack
 
-- **Astro 6** (static output), **React islands** via `@astrojs/react`
-  (theme toggle, hero sparkles). Ship zero JS where it is not needed.
+- **Astro 6** (static output). `@astrojs/react` is registered in
+  `astro.config.mjs` so React islands can be added later, but **no island is
+  used today and no page may ship React**. `npm run check:no-react` is an npm
+  script to run after `npm run build`; it scans `dist/` and fails if any page
+  loads the React runtime. It is not yet wired into CI or `deploy.yml`: that
+  is a pending workflow change (see the Sunday edition PR), so run it
+  yourself before merging. If you add an island, add that page to
+  `ALLOWED_PAGES` in `scripts/check-no-react.mjs` on purpose.
+- **Cover layout check**: `npm run check:cover` (after `npm run build`) runs
+  `scripts/check-cover-layout.mjs`. It serves `dist/` on a free local port,
+  opens home in headless Chrome at 360x640, 390x844, 760x900, 761x900, 768,
+  1024, 1080x900, 1366 and 1440, with and without motion, and fails unless the
+  cover has 12 grid tracks, the `.masthead` box and its "Ac" glyphs are each
+  wider than 100px, the name line is 4 lines or fewer, the cover nav is one
+  row, and the race roundel overlaps neither the masthead nor the lead cover
+  line. When the build has no upcoming race there is no roundel: the script
+  then prints "roundel not rendered: no upcoming race; overlap checks skipped"
+  and still passes, so read the output after race day. It needs Chrome
+  (`CHROME_PATH`, default `/usr/bin/google-chrome`) and the `playwright-core`
+  dev dependency, so it is not part of `npm test` or CI: run it yourself
+  before merging any change to the cover, the grid tokens or the
+  breakpoints. It stops its server itself.
 - **MDX field notes** in `src/content/field-notes/`. Schema in
   `src/content.config.ts` (labels: Training | Building | Operating).
-- **Design system**: single file `src/styles/global.css`. Dark-first,
-  light theme via `:root[data-theme="light"]`. Tokens drive everything.
+  `/field-notes/<slug>/` is the canonical post URL; `/writing/...` redirects
+  there via `public/_redirects`.
+- **Two layouts, two stylesheets (do not mix them):**
+  - `src/layouts/EditionLayout.astro` + `src/styles/edition.css`: the
+    "Sunday edition" design for home, `/field-notes/`, posts, `/projects/`,
+    `/about/`, `/contact/`. Components live in `src/components/edition/`.
+  - `src/layouts/BaseLayout.astro` + `src/styles/global.css`: legacy layout,
+    still used by `/coaching/`, `/links/`, `/power/`, `/power/update/`.
+- **Fonts**: Gloock (display) and Schibsted Grotesk (text), self-hosted from
+  `public/fonts/`. No Google Fonts or CDNs.
+- **Next race roundel** on the home cover reads `src/data/races.json`. The
+  race is picked at **build time** (earliest race on or after the build date,
+  Asia/Manila), so the deployed page does not update itself: after race day
+  the site needs a rebuild (any push to `main`) to drop or advance the
+  roundel. Until then a tiny inline script removes it once the Manila date is
+  past its `data-until`; with JS off it stays visible. No scheduled deploy
+  exists yet (pending workflow change). Edit the data, not the markup.
 - **Like button**: `src/components/LikeButton.astro` + Cloudflare Pages
   Function `functions/api/reactions.js`, backed by Workers KV
   (binding `REACTIONS`, see `wrangler.toml`).
-- Logo (`/logo.svg`) is theme-tinted via CSS mask (`.brand-logo`), not an
-  `<img>`. Do not revert it to `<img>` or it goes black on dark.
+- Do not port the concept's TechText / React Bits name treatment: its
+  MIT + Commons Clause license does not fit this public repo.
 
 ## Dependencies / npm audit
 
@@ -74,10 +109,12 @@ instances of the bug class at once. This project has a known failure mode
 
 ## Conventions
 
-- Build: `npm run build`. Type/template check: `npx astro check`.
-- Keep one signature visual effect per page (home = sparkles, field notes
-  = animated gradient title, projects = infinite-grid spotlight). Do not
-  stack loud effects.
+- Build: `npm run build`. Type/template check: `npx astro check`. After a
+  build: `npm run check:no-react` and `npm run check:cover`. Tests: `npm test`.
+- Keep one signature motion moment per page (home = the cover turning like a
+  page on scroll). Motion is CSS scroll-driven first, with a tiny fallback
+  script; everything sits inside `prefers-reduced-motion: no-preference` and
+  the site reads fully with JS off. No scroll hijacking or preloaders.
 - 21st.dev / Aceternity components are React + Tailwind; this project is
   plain CSS. Adapt them to plain CSS + small islands, do not add Tailwind.
 - Removed on purpose (do not reintroduce): `GooeyTextMorph`, `TypewriterText`.

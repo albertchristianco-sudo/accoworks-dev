@@ -1,184 +1,60 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import { getCollection } from 'astro:content';
+import EditionLayout from '../layouts/EditionLayout.astro';
+import Cover from '../components/edition/Cover.astro';
+import NoteList from '../components/edition/NoteList.astro';
+import ProjectsFeature from '../components/edition/ProjectsFeature.astro';
+import Profile from '../components/edition/Profile.astro';
+import Colophon from '../components/edition/Colophon.astro';
+import { getNotes, noteHref } from '../lib/notes';
 
-const notes = (await getCollection('field-notes'))
-  .filter((note) => !note.data.draft)
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 3);
-
-const ventures = [
-  { n: '01', title: 'CrossFit Subtero', role: 'Owner · Coach', desc: 'Two CrossFit boxes in Cebu City, built around coaching standards, athlete development, and community.' },
-  { n: '02', title: 'CrossFit Philippines', role: 'Country Manager', desc: 'Supporting affiliates and helping grow the CrossFit network across the Philippines.' },
-  { n: '03', title: 'Flame & Finish', role: 'Operator', desc: 'Imported building materials for the Philippine market, with the systems required to sell and deliver them well.' },
-  { n: '04', title: 'accoworks lab', role: 'Builder', desc: 'Small tools and agents shaped around problems from the gym, the office, and daily operations.' },
-];
-
-const life = [
-  { n: '01', title: 'Family', desc: 'Husband and father. They are the whole point.' },
-  { n: '02', title: 'Dungeons & Dragons', desc: 'Long arcs, party dynamics, and the cost of a bad roll.' },
-  { n: '03', title: 'World of Warcraft', desc: 'More hours in Azeroth than most people log at work. The lore holds up.' },
-];
+const notes = await getNotes();
+const pullSource = notes.find((note) => note.id.replace(/\.mdx?$/, '') === 'the-it-guy-was-there-first');
 ---
 
-<BaseLayout title="Ac | CrossFit L3 Coach and Builder" description="Founder, builder, coach, and operator in Cebu City, Philippines. Two CrossFit boxes, Country Manager for CrossFit Philippines, a building materials business, and a workbench of tools.">
-  <section class="hero" aria-label="Intro">
-    <div class="hero-main">
-      <p class="kicker">Cebu City, Philippines</p>
-      <h1>Founder. Builder. <span class="accent">Coach.</span></h1>
-      <p class="hero-copy">
-        I run two CrossFit gyms in Cebu, serve as Country Manager for CrossFit Philippines, and operate a building materials business. I build tools around the problems those jobs reveal. Training keeps me honest. Family keeps the work in perspective.
+<EditionLayout
+  title="Ac | Coach, builder and operator in Cebu"
+  description="Albert Christian Co (Ac) runs two CrossFit gyms in Cebu, serves as Country Manager for CrossFit Philippines, operates a building materials business, and builds tools around the problems those jobs reveal."
+  variant="cover"
+>
+  <Cover slot="cover" notes={notes.slice(0, 3)} />
+
+  <section class="contents" id="field-notes" aria-labelledby="fn-title">
+    <div class="contents__letter">
+      <p class="contents__lede">I run two CrossFit gyms in Cebu, serve as Country Manager for CrossFit Philippines, and operate a building materials business. I build tools around the problems those jobs reveal. Training keeps me honest. Family keeps the work in perspective.</p>
+      <p class="contents__links">
+        <a class="btn btn--solid" href="/field-notes/">Read the writing</a>
+        <a class="btn" href="/projects/">See what I build</a>
       </p>
-      <div class="hero-actions">
-        <a class="btn btn--primary" href="/projects/">
-          Explore projects
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </a>
-        <a class="btn btn--ghost" href="mailto:ac@accoworks.dev?subject=Coaching%20Inquiry">Ask about coaching</a>
-      </div>
-    </div>
-    <aside class="hero-aside" aria-label="From the field">
-      <div class="photo-registration" aria-hidden="true">
-        <span>Field log 01</span>
-        <span>CEB · PH</span>
-      </div>
-      <figure class="portrait-frame">
-        <span class="crop-mark crop-mark--tl" aria-hidden="true"></span>
-        <span class="crop-mark crop-mark--tr" aria-hidden="true"></span>
-        <span class="crop-mark crop-mark--bl" aria-hidden="true"></span>
-        <span class="crop-mark crop-mark--br" aria-hidden="true"></span>
+      <figure class="contents__sig">
         <picture>
-          <source type="image/avif" srcset="/photo-400.avif 400w, /photo-640.avif 640w, /photo-720.avif 720w, /photo-800.avif 799w" sizes="(max-width: 699px) calc(100vw - 32px), (max-width: 860px) 400px, 360px" />
-          <source type="image/webp" srcset="/photo-400.webp 400w, /photo-640.webp 640w, /photo-720.webp 720w, /photo-800.webp 799w" sizes="(max-width: 699px) calc(100vw - 32px), (max-width: 860px) 400px, 360px" />
-          <img src="/photo.jpg" alt="Ac carrying a weighted sled at a Hyrox competition" width="799" height="1060" loading="eager" decoding="async" fetchpriority="high" />
+          <source type="image/avif" srcset="/avatar-160.avif 160w, /avatar-440.avif 440w" sizes="64px" />
+          <source type="image/webp" srcset="/avatar-160.webp 160w, /avatar-440.webp 440w" sizes="64px" />
+          <img src="/avatar-160.webp" width="160" height="160" alt="Ac" loading="lazy" decoding="async" />
         </picture>
-        <figcaption class="portrait-cap"><span>Field 01</span> Hyrox · Cebu</figcaption>
-      </figure>
-    </aside>
-  </section>
-
-  <section class="section" aria-labelledby="notes-heading">
-    <span class="folio-number" aria-hidden="true">02</span>
-    <div class="section-head">
-      <p class="section-eyebrow"><span class="hash">//</span> field notes</p>
-      <div>
-        <h2 id="notes-heading" class="section-lede">Notes from training, building, and operating in the real world.</h2>
-        <a class="cta-link" href="/field-notes/">
-          Read all Field Notes
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </a>
-      </div>
-    </div>
-    {notes.length > 0 && (
-      <ol class="note-list">
-        {notes.map((note) => (
-          <li class="note-item">
-            <span class="note-date">{note.data.date.toLocaleDateString('en', { month: 'short', day: 'numeric' })}</span>
-            <div>
-              <h3 class="note-title"><a href={`/field-notes/${note.id.replace(/\.mdx?$/, '')}/`}>{note.data.title}</a></h3>
-              <p>{note.data.summary}</p>
-            </div>
-            <span class="tag">{note.data.label}</span>
-          </li>
-        ))}
-      </ol>
-    )}
-  </section>
-
-  <section class="section chapter-band" aria-labelledby="build-heading">
-    <span class="folio-number" aria-hidden="true">03</span>
-    <div class="section-head">
-      <p class="section-eyebrow"><span class="hash">//</span> operating record</p>
-      <h2 id="build-heading" class="section-lede">The gym, the affiliate network, the trade business, and the tools behind them.</h2>
-    </div>
-    <ol class="venture-ledger">
-      {ventures.map((venture) => (
-        <li class="venture-row">
-          <span class="venture-row__number">{venture.n}</span>
-          <div class="venture-row__identity">
-            <h3>{venture.title}</h3>
-            <span>{venture.role}</span>
-          </div>
-          <p>{venture.desc}</p>
-        </li>
-      ))}
-    </ol>
-    <div class="field-strip" aria-label="Scenes from the work">
-      <figure>
-        <picture>
-          <source type="image/avif" srcset="/field-coach-480.avif 480w, /field-coach-720.avif 720w" sizes="(max-width: 699px) calc(100vw - 32px), 33vw" />
-          <source type="image/webp" srcset="/field-coach-480.webp 480w, /field-coach-720.webp 720w" sizes="(max-width: 699px) calc(100vw - 32px), 33vw" />
-          <img src="/field-coach-480.webp" alt="Ac coaching at a CrossFit event" width="480" height="480" loading="lazy" decoding="async" />
-        </picture>
-        <figcaption><span>01</span> Coach</figcaption>
-      </figure>
-      <figure>
-        <picture>
-          <source type="image/avif" srcset="/photo-400.avif 400w, /photo-640.avif 640w, /photo-720.avif 720w" sizes="(max-width: 699px) calc(100vw - 32px), 33vw" />
-          <source type="image/webp" srcset="/photo-400.webp 400w, /photo-640.webp 640w, /photo-720.webp 720w" sizes="(max-width: 699px) calc(100vw - 32px), 33vw" />
-          <img src="/photo-400.webp" alt="Ac moving a weighted sled during a Hyrox race" width="400" height="531" loading="lazy" decoding="async" />
-        </picture>
-        <figcaption><span>02</span> Train</figcaption>
-      </figure>
-      <figure>
-        <picture>
-          <source type="image/avif" srcset="/field-build-480.avif 480w, /field-build-720.avif 720w" sizes="(max-width: 699px) calc(100vw - 32px), 33vw" />
-          <source type="image/webp" srcset="/field-build-480.webp 480w, /field-build-720.webp 720w" sizes="(max-width: 699px) calc(100vw - 32px), 33vw" />
-          <img src="/field-build-480.webp" alt="Flame & Finish website showing architectural materials stocked in Cebu" width="480" height="315" loading="lazy" decoding="async" />
-        </picture>
-        <figcaption><span>03</span> Build</figcaption>
+        <figcaption>Albert Christian Co. Goes by Ac.</figcaption>
       </figure>
     </div>
-  </section>
 
-  <section class="section" aria-labelledby="gym-heading">
-    <span class="folio-number" aria-hidden="true">04</span>
-    <div class="section-head">
-      <p class="section-eyebrow"><span class="hash">//</span> in the gym</p>
-      <div>
-        <h2 id="gym-heading" class="section-lede">Training is how I stay honest. Coaching is how I learned to see people clearly.</h2>
-        <p class="section-sub">
-          CrossFit is the sport. I have coached for more than a decade and hold the CrossFit Level 3 credential. I also race Hyrox, enough to test myself outside the gym. The long game is simpler: move well at 60, keep up with my son, and stay useful when real life gets heavy.
-        </p>
-        <ul class="credential-list" aria-label="Credentials">
-          <li>CrossFit Level 3 Trainer</li>
-          <li>OPEX CCP1</li>
-          <li>Precision Nutrition Level 1</li>
-          <li>Hyrox athlete</li>
-        </ul>
+    <div class="contents__page">
+      <div class="contents__head">
+        <h2 id="fn-title">Field Notes</h2>
+        <p>Notes from training, building, and operating in the real world.</p>
       </div>
+      <NoteList notes={notes.slice(0, 6)} lead />
+      <p class="contents__all"><a href="/field-notes/">All Field Notes</a></p>
     </div>
   </section>
 
-  <section class="section" aria-labelledby="life-heading">
-    <span class="folio-number" aria-hidden="true">05</span>
-    <div class="section-head">
-      <p class="section-eyebrow"><span class="hash">//</span> off the clock</p>
-      <h2 id="life-heading" class="section-lede">Family first. Then dice, Azeroth, and whatever problem refuses to leave my head.</h2>
-    </div>
-    <ul class="personal-strip">
-      {life.map((item) => (
-        <li>
-          <span>{item.n}</span>
-          <h3>{item.title}</h3>
-          <p>{item.desc}</p>
-        </li>
-      ))}
-    </ul>
-  </section>
+  {pullSource && (
+    <figure class="pull" aria-labelledby="pull-src">
+      <blockquote class="pull__quote">
+        <p><span class="pull__line">It was never a shift.</span> <span class="pull__line">It was a return.</span> <span class="pull__line">The IT guy was there first.</span></p>
+      </blockquote>
+      <figcaption class="pull__src" id="pull-src">From <a href={noteHref(pullSource)}>{pullSource.data.title}</a></figcaption>
+    </figure>
+  )}
 
-  <section class="section" aria-labelledby="coaching-heading">
-    <span class="folio-number" aria-hidden="true">06</span>
-    <div class="coaching-cta">
-      <div>
-        <p class="section-eyebrow"><span class="hash">//</span> coaching</p>
-        <h2 id="coaching-heading">Need direction in training?</h2>
-        <p>I can help you start, compete, or rebuild. Tell me what you are training for and where you are stuck.</p>
-      </div>
-      <a class="btn btn--primary" href="mailto:ac@accoworks.dev?subject=Coaching%20Inquiry">
-        Ask about coaching
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-      </a>
-    </div>
-  </section>
-</BaseLayout>
+  <ProjectsFeature />
+  <Profile />
+  <Colophon />
+</EditionLayout>

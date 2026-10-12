@@ -1,0 +1,42 @@
+---
+// "Things I build": the power tracker as the lead feature, the rest as briefs.
+// Used as a home section (h2) and as the /projects/ page (h1).
+import { atHome, leadProject, projects } from '../../data/projects';
+
+interface Props {
+  level?: 1 | 2;
+}
+
+const { level = 2 } = Astro.props;
+const Title = level === 1 ? 'h1' : 'h2';
+const Item = level === 1 ? 'h2' : 'h3';
+---
+
+<section class="feature" id="projects" aria-labelledby="projects-title">
+  <Title class="feature__title" id="projects-title">Things I build</Title>
+
+  <article class="lead-project">
+    <svg class="pole" viewBox="0 0 240 300" aria-hidden="true" focusable="false">
+      <path class="draw" pathLength="1" d="M120 296V22M64 58h112M80 92h80M64 58v12M176 58v12M80 92v10M160 92v10" />
+      <path class="draw draw--wire" pathLength="1" d="M0 104c22 18 42 18 64-34M176 70c22 52 42 54 64 34M0 126c28 10 56 4 80-24M160 102c24 28 52 34 80 24" />
+    </svg>
+    <div class="lead-project__text">
+      <p class="status">{leadProject.status}</p>
+      <Item class="lead-project__name">{leadProject.name}</Item>
+      <p class="lead-project__dek">{leadProject.summary}</p>
+      {leadProject.link && <p><a class="btn btn--solid" href={leadProject.link.href}>{leadProject.link.label}</a></p>}
+    </div>
+  </article>
+
+  <ul class="briefs">
+    {projects.map((project) => (
+      <li class="brief">
+        <Item class="brief__name">{project.name}</Item>
+        <p>{project.summary}</p>
+        <p class="status">{project.status}</p>
+        {project.link && <p><a href={project.link.href}>{project.link.label}</a></p>}
+      </li>
+    ))}
+  </ul>
+  <p class="feature__home">{atHome}</p>
+</section>

@@ -1,0 +1,1145 @@
+/* Sunday edition: a personal magazine for accoworks.dev.
+   Used only by EditionLayout (home, Field Notes, projects, about, contact).
+   Legacy pages (coaching, links, power) keep BaseLayout + global.css. */
+
+@font-face {
+  font-family: 'Gloock';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/gloock-latin-400.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Schibsted Grotesk';
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('/fonts/schibsted-grotesk-latin-wght.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  /* Cool grey base with one light blue accent. Every text pair meets WCAG AA; the
+     ratios are asserted in tests/ui-contract.test.mjs. */
+  --bg: #F3F5F6;
+  --surface: #E3E7E9;
+  /* Hairline rules only, never text or a control boundary. */
+  --line: #C5CDD0;
+  /* Body text, and the solid plate behind the cover and profile. */
+  --ink: #1C2326;
+  --ink-soft: #4E595E;
+  /* Soft text on the ink plate. */
+  --on-ink-soft: #A7B2B6;
+  /* Highlight tint of the cover duotone (multiplied over the grey photo). */
+  --photo-tint: #6E8084;
+  /* Light blue, for fills only: the roundel, the selected chip, highlights, the
+     progress bar, the liked heart and rules on the ink plate. It is too light for
+     text, rules or rings on --bg (1.67:1); on --ink it reads at 8.74:1. */
+  --accent: #7FC8F8;
+  /* Deep blue of the same hue, for text, underlines, drop caps, markers and focus
+     rings on the light pages, the blockquote rule and the scrollbar thumb:
+     5.91:1 on --bg, 5.19:1 on --surface. */
+  --accent-ink: #1A6393;
+  /* Text on a light blue fill: white fails (1.82:1), ink reads at 8.74:1. */
+  --on-accent: #1C2326;
+  /* The darkest edge of the page-turn shading. */
+  --shade: #0B0F11;
+  --error: #B3261E;
+  --display: 'Gloock', 'Iowan Old Style', Georgia, serif;
+  --text: 'Schibsted Grotesk', system-ui, sans-serif;
+  /* One grid for every edition page. Each section is a --max wide container with
+     --gutter padding and twelve --cols with --gap between them. Section titles,
+     letters and photos sit in the --aside columns; lists, body copy and the
+     contact list start at --content-start, so they share one edge on every page. */
+  --gutter: clamp(1.25rem, 4vw, 4rem);
+  --gap: clamp(1rem, 2.2vw, 2.25rem);
+  --max: 1600px;
+  --cols: repeat(12, minmax(0, 1fr));
+  --aside: 1 / span 4;
+  --content-start: 5;
+  /* How many columns the content side spans (from --content-start to the edge).
+     Derived, so it follows --content-start wherever that is redefined on :root. */
+  --content-cols: calc(13 - var(--content-start));
+  /* Right rails, counted from the right edge: the briefs and the footer links
+     take the last four columns (five at 1080px and below), the profile's side
+     boxes the last three. */
+  --rail: span 4 / -1;
+  --rail-narrow: span 3 / -1;
+  /* One grid step (a column plus a gap) as a share of a full-width box. */
+  --step: calc((100% + var(--gap)) / 12);
+  /* Reading measure for article body copy: about 68 characters a line of the
+     19px body text (42rem ran to 77). In rem, not ch, so the larger dek stops
+     on the same right edge as the body. */
+  --measure: 37rem;
+  /* Label column of the two-column lists on the content side (note dates, contact
+     labels): two of its grid columns, so the values start on a page column. */
+  --label-col: calc((100% - (var(--content-cols) - 1) * var(--gap)) * 2 / var(--content-cols) + var(--gap));
+  /* Gloock's "A" overhangs its advance box by .03125em. The "Ac" marks are shifted
+     right by that much so their ink, not their box, sits on the gutter. */
+  --mark-bearing: .03125em;
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  color-scheme: light;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: 1rem;
+  /* Deep blue thumb: light blue on --surface was only 1.46:1. */
+  scrollbar-color: var(--accent-ink) var(--surface);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 1.0625rem/1.6 var(--text);
+  font-feature-settings: 'kern', 'liga';
+  overflow-x: clip;
+}
+
+::selection { background: var(--accent); color: var(--on-accent); }
+
+img { display: block; max-width: 100%; height: auto; }
+picture { display: contents; }
+/* With picture as display: contents its source elements would become flex and grid
+   items, and each one adds a gap before the image (the avatars sat 32px in). */
+picture > source { display: none; }
+
+/* The shared page container and grid (see --cols above). */
+.runhead, .contents, .pull, .feature, .profile__inner, .colophon, .back, .archive, .article, .more {
+  max-width: var(--max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.contents, .feature, .profile__inner, .colophon, .back, .archive, .article, .article__head, .more__inner {
+  display: grid;
+  grid-template-columns: var(--cols);
+  column-gap: var(--gap);
+}
+h1, h2, h3, p, ul, ol, dl, dd, figure, blockquote { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+
+h1, h2, h3 { font-weight: 400; text-wrap: balance; }
+p { text-wrap: pretty; }
+
+a {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-color: var(--accent-ink);
+  text-decoration-thickness: 2px;
+  text-underline-offset: .22em;
+  transition: text-decoration-thickness .2s var(--ease-out), color .2s var(--ease-out);
+}
+a:hover { text-decoration-thickness: 4px; }
+
+:focus-visible {
+  outline: 3px solid var(--accent-ink);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+#main-content { position: absolute; }
+#main-content:focus { outline: none; }
+
+.skip {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: .75rem 1rem;
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 600;
+  text-decoration: none;
+}
+/* The skip link is an ink box. On light pages its ring is the deep blue, 5.91:1 on
+   --bg. On home it sits over the ink cover, where the deep blue would fail 3:1, so
+   the ring is the light blue there, 8.74:1 on ink. */
+.skip:focus { top: 1rem; outline-color: var(--accent-ink); outline-offset: 0; }
+.home .skip:focus { outline-color: var(--accent); }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: .7rem 1.35rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color .25s var(--ease-out), color .25s var(--ease-out);
+}
+.btn:hover { background: var(--ink); color: var(--bg); }
+.btn--solid { background: var(--ink); color: var(--bg); }
+.btn--solid:hover { background: var(--bg); color: var(--ink); }
+
+.status {
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+/* ---------- The cover ---------- */
+
+.cover {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: var(--cols);
+  grid-template-rows: auto auto 1fr auto;
+  column-gap: var(--gap);
+  height: 100vh;
+  height: 100svh;
+  min-height: 600px;
+  padding: 0 var(--gutter) clamp(1.5rem, 4vh, 3rem);
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--bg);
+}
+.cover :focus-visible { outline-color: var(--accent); }
+
+.cover__photo {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+  background: var(--ink);
+}
+.cover__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 52% 14%;
+  filter: grayscale(1) contrast(1.18) brightness(.8);
+}
+/* Cool grey duotone: highlights take a cool blue-grey, shadows take ink.
+   The img has a filter, which paints it in the z-index 0 layer, so both tint layers
+   need an explicit z-index to sit above it. With both applied the brightest pixel
+   is #58666A (white x .8 brightness, multiplied by --photo-tint), so --bg text on the
+   cover reads at 5.4:1 or better whatever part of the photo is behind it. */
+.cover__photo::before,
+.cover__photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.cover__photo::before { z-index: 1; background: var(--photo-tint); mix-blend-mode: multiply; }
+.cover__photo::after { z-index: 2; background: var(--ink); mix-blend-mode: lighten; }
+
+.cover__strip {
+  position: relative;
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .25rem 1.5rem;
+  padding-top: .5rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--bg) 35%, transparent);
+  font-size: .9375rem;
+  font-weight: 500;
+}
+.cover__edition { padding-block: .75rem; }
+
+.nav ul { display: flex; flex-wrap: wrap; gap: 0 .25rem; margin-right: -.75rem; }
+.nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 .75rem;
+  text-decoration-color: transparent;
+}
+.nav a:hover { text-decoration-color: var(--accent-ink); }
+.cover .nav a:hover { text-decoration-color: var(--accent); }
+
+.cover__mast {
+  position: relative;
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+.masthead {
+  font-family: var(--display);
+  /* Capped by viewport height too, so the roundel and every cover line fit on
+     short landscape screens (1366x768, 1280x720). */
+  font-size: clamp(9rem, min(31vw, 46svh), 31rem);
+  line-height: .74;
+  letter-spacing: -.045em;
+  margin-top: .06em;
+  margin-left: var(--mark-bearing);
+}
+.cover__name {
+  max-width: 24ch;
+  margin-top: clamp(.75rem, 1.6vh, 1.25rem);
+  font-family: var(--text);
+  font-size: clamp(1.0625rem, 1.3vw, 1.3rem);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.coverlines {
+  position: relative;
+  grid-column: 8 / -1;
+  /* Starts beside the masthead (its letters stop well short of column 8), so the
+     lines get the full height under the strip instead of only what the mast leaves. */
+  grid-row: 2 / span 3;
+  align-self: end;
+  display: grid;
+  justify-items: end;
+  gap: clamp(.9rem, 2vh, 1.4rem);
+  text-align: right;
+}
+.coverline a {
+  display: block;
+  font-family: var(--display);
+  font-size: clamp(1.5rem, 2.3vw, 2.25rem);
+  line-height: 1.02;
+  letter-spacing: -.01em;
+  text-decoration-color: transparent;
+  text-wrap: balance;
+}
+.coverline a:hover { text-decoration-color: var(--accent); }
+.coverline::before {
+  content: '';
+  display: block;
+  width: 2.25rem;
+  height: 4px;
+  margin: 0 0 .55rem auto;
+  background: var(--accent);
+}
+.coverline--lead a { font-size: clamp(2.4rem, 4.6vw, 4.6rem); line-height: .95; max-width: 9ch; margin-left: auto; }
+.coverline__dek {
+  display: block;
+  max-width: 30ch;
+  margin: .5rem 0 0 auto;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.flash {
+  position: relative;
+  grid-column: 1 / span 3;
+  grid-row: 4;
+  align-self: end;
+  justify-self: start;
+  display: grid;
+  place-content: center;
+  width: clamp(9.5rem, 13vw, 12.5rem);
+  aspect-ratio: 1;
+  padding: 1.25rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  /* The cover's light blue spot, with ink text. The ink ring keeps its edge
+     clear wherever the photo behind it is light. */
+  box-shadow: 0 0 0 3px var(--ink);
+  font-size: clamp(1.2rem, 1.45vw, 1.4rem);
+  font-weight: 700;
+  line-height: 1.12;
+  text-align: center;
+  rotate: -9deg;
+}
+.flash span { display: block; font-weight: 600; font-size: .8em; margin-bottom: .2rem; }
+
+/* ---------- Contents spread ---------- */
+
+main { display: block; }
+
+.contents {
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-block: clamp(2.5rem, 7vh, 5rem) clamp(3rem, 8vh, 6rem);
+}
+
+.contents__letter {
+  grid-column: var(--aside);
+  align-self: start;
+  position: sticky;
+  top: clamp(2.5rem, 7vh, 5rem);
+  display: grid;
+  gap: 1.75rem;
+  padding-right: var(--gap);
+  border-right: 1px solid var(--line);
+}
+.contents__lede {
+  font-family: var(--display);
+  font-size: clamp(1.45rem, 1.9vw, 1.85rem);
+  line-height: 1.22;
+}
+.contents__lede::first-letter {
+  float: left;
+  margin: .02em .08em 0 0;
+  font-size: 3.35em;
+  line-height: .74;
+  color: var(--accent-ink);
+}
+.contents__links { display: flex; flex-wrap: wrap; gap: .75rem; }
+.contents__sig {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: .9375rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+.contents__sig img { width: 64px; height: 64px; border-radius: 50%; }
+
+.contents__page { grid-column: var(--content-start) / -1; }
+/* Title and standfirst share the content edge. */
+.contents__head {
+  display: grid;
+  gap: 1rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 3px solid var(--ink);
+}
+.contents__head h2 {
+  font-family: var(--display);
+  font-size: clamp(3.25rem, 7.2vw, 7rem);
+  line-height: .85;
+  letter-spacing: -.035em;
+}
+.contents__head p { max-width: 40ch; color: var(--ink-soft); font-weight: 500; }
+
+.toc__item { border-bottom: 1px solid var(--line); }
+.toc__item a {
+  display: grid;
+  grid-template-columns: var(--label-col) minmax(0, 1fr);
+  column-gap: var(--gap);
+  padding: 1.1rem 0 1.2rem;
+  text-decoration: none;
+}
+.toc__meta { grid-row: 1 / span 2; display: grid; align-content: start; gap: .1rem; padding-top: .3rem; font-size: .9375rem; }
+.toc__label { font-weight: 700; }
+.toc__meta time { color: var(--ink-soft); }
+.toc__title {
+  font-family: var(--display);
+  font-size: clamp(1.4rem, 1.9vw, 1.85rem);
+  line-height: 1.08;
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 2px;
+  text-underline-offset: .18em;
+  transition: text-decoration-color .25s var(--ease-out);
+}
+.toc__item a:hover .toc__title { text-decoration-color: var(--accent-ink); }
+.toc__sum { margin-top: .35rem; max-width: 60ch; color: var(--ink-soft); }
+.toc__item--lead .toc__title { font-size: clamp(2rem, 3.2vw, 3.1rem); line-height: 1; }
+.toc__item--lead .toc__sum { font-size: 1.125rem; color: var(--ink); }
+
+.contents__all { margin-top: 1.5rem; font-weight: 600; }
+.contents__all a { display: inline-flex; align-items: center; min-height: 44px; }
+
+/* ---------- Pull quote ---------- */
+
+.pull {
+  padding-block: clamp(5rem, 14vh, 10rem);
+  border-top: 1px solid var(--line);
+}
+.pull__quote {
+  font-family: var(--display);
+  font-size: clamp(2.75rem, 7.4vw, 7.75rem);
+  line-height: .96;
+  letter-spacing: -.03em;
+}
+.pull__quote p { text-wrap: wrap; }
+.pull__line { display: block; }
+/* The lines step in by whole grid columns; the source sits under the last step. */
+.pull__line:nth-child(2) { padding-left: var(--step); }
+.pull__line:nth-child(3) { padding-left: calc(2 * var(--step)); }
+.pull__line:nth-child(1)::before { content: '\201C'; position: absolute; translate: -.5em 0; color: var(--accent-ink); }
+.pull__line:nth-child(3)::after { content: '\201D'; color: var(--accent-ink); }
+.pull__src {
+  margin-top: 2.25rem;
+  padding-left: calc(2 * var(--step));
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+.pull__src a { color: var(--ink); font-weight: 600; display: inline-flex; align-items: center; min-height: 44px; }
+
+/* ---------- What I build ---------- */
+
+.feature {
+  grid-template-rows: auto auto 1fr;
+  padding-block: clamp(4rem, 10vh, 7rem) clamp(5rem, 12vh, 8rem);
+  background: linear-gradient(var(--surface), var(--surface)) right top / calc(33.333% - var(--gap) / 2 + var(--gutter)) 100% no-repeat;
+}
+.feature__title {
+  grid-column: 1 / span 8;
+  margin-bottom: clamp(2rem, 5vh, 3.5rem);
+  font-family: var(--display);
+  font-size: clamp(3rem, 7vw, 6.75rem);
+  line-height: .9;
+  letter-spacing: -.035em;
+}
+
+/* Seven of the page columns, split into the same seven columns, so the pole takes
+   two and the text starts on a page column. */
+.lead-project {
+  grid-column: 1 / span 7;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--gap);
+  align-items: start;
+  padding-top: 1.5rem;
+  border-top: 3px solid var(--ink);
+}
+.pole { grid-column: 1 / span 2; width: 100%; max-width: 15rem; height: auto; margin-top: .5rem; }
+.pole path { fill: none; stroke: var(--ink); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.pole .draw--wire { stroke: var(--accent-ink); stroke-width: 2; }
+.lead-project__text { grid-column: 3 / -1; display: grid; gap: 1.1rem; justify-items: start; }
+.lead-project__name {
+  font-family: var(--display);
+  font-size: clamp(2.4rem, 4.4vw, 4.5rem);
+  line-height: .95;
+  letter-spacing: -.025em;
+}
+.lead-project__dek { max-width: 40ch; font-size: 1.1875rem; line-height: 1.5; }
+
+.briefs {
+  grid-column: var(--rail);
+  grid-row: 1 / span 3;
+  display: grid;
+  align-content: start;
+}
+.brief {
+  position: relative;
+  display: grid;
+  gap: .35rem;
+  padding: 1.1rem 0 1.25rem;
+}
+.brief::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: var(--ink);
+  transform-origin: left;
+}
+.brief:first-child::before { height: 3px; }
+.brief__name { font-family: var(--display); font-size: 1.5rem; line-height: 1.1; }
+.brief p { max-width: 46ch; }
+.brief a { font-weight: 600; display: inline-flex; min-height: 44px; align-items: center; }
+
+.feature__home {
+  grid-column: 1 / span 7;
+  grid-row: 3;
+  align-self: start;
+  margin-top: clamp(3rem, 8vh, 5rem);
+  max-width: 34ch;
+  font-family: var(--display);
+  font-size: clamp(1.4rem, 2vw, 1.85rem);
+  line-height: 1.2;
+}
+
+/* ---------- Profile ---------- */
+
+.profile { background: var(--ink); color: var(--bg); }
+.profile__inner { padding-block: clamp(4.5rem, 12vh, 8rem); }
+.profile__photo { grid-column: var(--aside); align-self: start; }
+.profile__photo img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; object-position: 58% 50%; }
+.profile__body { grid-column: var(--content-start) / span 5; display: grid; gap: 1.2rem; align-content: start; }
+.profile__body > :is(h1, h2) {
+  margin-bottom: .75rem;
+  font-family: var(--display);
+  font-size: clamp(3.5rem, 8vw, 7.5rem);
+  line-height: .82;
+  letter-spacing: -.04em;
+}
+.profile__body p { max-width: 62ch; font-size: 1.125rem; line-height: 1.65; }
+.profile__body .profile__open { font-family: var(--display); font-size: clamp(1.45rem, 2vw, 1.8rem); line-height: 1.28; }
+.profile__open::first-letter {
+  float: left;
+  margin: .04em .08em 0 0;
+  font-size: 3.4em;
+  line-height: .74;
+  color: var(--accent);
+}
+.profile__coach { padding-top: 1.2rem; border-top: 1px solid color-mix(in srgb, var(--on-ink-soft) 45%, transparent); color: var(--on-ink-soft); }
+.profile__coach a { color: var(--bg); font-weight: 600; display: inline-flex; align-items: center; min-height: 44px; }
+.profile a { text-decoration-color: var(--accent); }
+.profile :focus-visible { outline-color: var(--accent); }
+/* The filled side box is a light panel inside the ink plate: back to deep blue
+   there (light blue on --surface is 1.46:1). */
+.profile .sidebox:not(.sidebox--plain) a { text-decoration-color: var(--accent-ink); }
+.profile .sidebox:not(.sidebox--plain) :focus-visible { outline-color: var(--accent-ink); }
+
+.profile__side { grid-column: var(--rail-narrow); display: grid; gap: 1.5rem; align-content: start; padding-top: .5rem; }
+.sidebox { padding: 1.25rem 1.35rem 1.4rem; background: var(--surface); color: var(--ink); }
+.sidebox__title { margin-bottom: .6rem; font-family: var(--display); font-size: 1.4rem; }
+.sidebox li { padding: .45rem 0; border-top: 1px solid var(--line); font-weight: 500; }
+/* No panel, but the same inner edge as the panel above it. */
+.sidebox--plain { padding-block: 0; background: none; color: var(--bg); }
+.sidebox--plain p { color: var(--on-ink-soft); }
+
+/* ---------- Colophon ---------- */
+
+.colophon { padding-block: clamp(4.5rem, 12vh, 8rem); }
+.colophon > :is(h1, h2) {
+  grid-column: var(--aside);
+  font-family: var(--display);
+  font-size: clamp(3rem, 6.5vw, 6rem);
+  line-height: .9;
+  letter-spacing: -.035em;
+}
+.colophon__line { grid-column: var(--aside); margin-top: 1.25rem; font-size: 1.1875rem; color: var(--ink-soft); }
+.colophon__list { grid-column: var(--content-start) / -1; grid-row: 1 / span 3; border-top: 3px solid var(--ink); }
+.colophon__list > div {
+  display: grid;
+  grid-template-columns: var(--label-col) minmax(0, 1fr);
+  column-gap: var(--gap);
+  align-items: baseline;
+  border-bottom: 1px solid var(--line);
+}
+.colophon__list dt { padding: .9rem 0; font-size: .9375rem; font-weight: 600; color: var(--ink-soft); }
+.colophon__list a { display: inline-flex; align-items: center; min-height: 48px; font-weight: 500; overflow-wrap: anywhere; }
+.colophon__list .colophon__mail { font-family: var(--display); font-size: clamp(1.6rem, 2.6vw, 2.4rem); font-weight: 400; }
+
+/* ---------- Back page ---------- */
+
+/* The back page uses the same grid: the mark in the aside, the address and
+   copyright on the content edge, the links set right on the last four columns. */
+.back {
+  align-items: end;
+  row-gap: 1rem;
+  padding-block: 2.5rem max(2rem, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  font-size: .9375rem;
+  overflow: hidden;
+}
+.back__mark {
+  grid-column: var(--aside);
+  grid-row: 1 / span 2;
+  margin-left: var(--mark-bearing);
+  font-family: var(--display);
+  font-size: clamp(5rem, 11vw, 9rem);
+  line-height: .74;
+  letter-spacing: -.045em;
+}
+.back__where { grid-column: var(--content-start) / span 4; grid-row: 1; font-weight: 600; }
+.back > nav { grid-column: var(--rail); grid-row: 1; }
+.back__links { display: flex; flex-wrap: wrap; gap: 0 1.25rem; justify-content: end; }
+.back__links a { display: inline-flex; align-items: center; min-height: 44px; }
+.back__copy { grid-column: var(--content-start) / -1; grid-row: 2; color: var(--ink-soft); }
+
+/* ---------- Inner pages: running head ---------- */
+
+.runhead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .25rem 1.5rem;
+  padding-block: .5rem;
+  border-bottom: 1px solid var(--line);
+}
+.runhead__mark {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  margin-left: var(--mark-bearing);
+  font-family: var(--display);
+  font-size: 2.4rem;
+  line-height: 1;
+  letter-spacing: -.04em;
+  text-decoration: none;
+}
+.runhead .nav a { font-weight: 500; }
+.runhead .nav a[aria-current] { text-decoration-color: var(--accent-ink); }
+
+/* ---------- Writing index ---------- */
+
+.archive { padding-block: clamp(3rem, 9vh, 6rem) clamp(4rem, 10vh, 7rem); }
+.archive__head { grid-column: var(--aside); align-self: start; position: sticky; top: 2rem; display: grid; gap: 1.25rem; }
+.archive__head h1 {
+  font-family: var(--display);
+  font-size: clamp(3.5rem, 8vw, 7rem);
+  line-height: .84;
+  letter-spacing: -.04em;
+}
+.archive__head > p { max-width: 28ch; font-size: 1.1875rem; color: var(--ink-soft); }
+
+/* The filter needs :has() to do anything, so it only appears where :has() works.
+   Everywhere else (and with JS off it needs nothing) every note stays listed. */
+.filter { display: none; border: 0; margin: 1rem 0 0; padding: 0; min-width: 0; }
+@supports selector(:has(*)) {
+  .filter { display: block; }
+}
+.filter legend { padding: 0; margin-bottom: .6rem; font-weight: 600; font-size: .9375rem; }
+.filter__opts { position: relative; display: flex; flex-wrap: wrap; gap: .5rem; }
+.filter input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.filter label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 1.1rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color .2s var(--ease-out), color .2s var(--ease-out);
+}
+.filter label:hover { background: var(--surface); }
+/* Selected: a light blue fill with ink text; the ink border keeps the chip's edge.
+   The fill is close to the hover grey (1.46:1), so selected also gets a doubled
+   border (an inset ring), which reads in greyscale. The weight stays at 600 so the
+   chip keeps its width and the row does not re-flow. */
+.filter input:checked + label { background: var(--accent); color: var(--on-accent); box-shadow: inset 0 0 0 1.5px var(--ink); }
+.filter input:focus-visible + label { outline: 3px solid var(--accent-ink); outline-offset: 3px; }
+.filter__note { font-size: .9375rem; color: var(--ink-soft); }
+
+.archive__list { grid-column: var(--content-start) / -1; border-top: 3px solid var(--ink); }
+
+.archive:has(#f-training:checked) .toc__item:not([data-label='Training']),
+.archive:has(#f-building:checked) .toc__item:not([data-label='Building']),
+.archive:has(#f-operating:checked) .toc__item:not([data-label='Operating']) { display: none; }
+
+/* ---------- Article ---------- */
+
+.progress {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 20;
+  height: 4px;
+  background: var(--accent-ink);
+  transform: scaleX(0);
+  transform-origin: left;
+  display: none;
+}
+
+/* The title runs from the gutter; the dek, body, reactions and sign-off share the
+   content edge with the "More Field Notes" list below, and the byline sits in the aside. */
+.article { padding-top: clamp(3rem, 9vh, 6rem); }
+.article__head {
+  grid-column: 1 / -1;
+  padding-bottom: clamp(2rem, 5vh, 3rem);
+  border-bottom: 3px solid var(--ink);
+}
+.article__meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; margin-bottom: 1.5rem; font-size: .9375rem; }
+.article__meta .toc__label { color: var(--ink); }
+.article__meta time { color: var(--ink-soft); }
+.article__head h1 {
+  grid-column: 1 / span 10;
+  font-family: var(--display);
+  font-size: clamp(3rem, 8vw, 7.5rem);
+  line-height: .9;
+  letter-spacing: -.035em;
+}
+/* The dek, body, reactions and sign-off run from the content edge to the page edge
+   and stop at --measure, so they share one right edge as well as one left edge. */
+.article__dek {
+  grid-column: var(--content-start) / -1;
+  max-width: var(--measure);
+  grid-row: 3;
+  margin-top: 1.75rem;
+  font-size: clamp(1.25rem, 1.7vw, 1.55rem);
+  line-height: 1.4;
+}
+.byline { grid-column: var(--aside); grid-row: 3; align-self: start; margin-top: 1.75rem; display: flex; align-items: center; gap: .9rem; font-weight: 600; }
+.byline img { width: 56px; height: 56px; border-radius: 50%; }
+.byline__who span { display: block; font-weight: 400; font-size: .9375rem; color: var(--ink-soft); }
+
+.article__body, .article__react, .article__end {
+  grid-column: var(--content-start) / -1;
+  max-width: var(--measure);
+}
+.article__body {
+  margin-top: clamp(2.5rem, 7vh, 4.5rem);
+  font-size: 1.1875rem;
+  line-height: 1.7;
+}
+.article__body > * + * { margin-top: 1.15em; }
+.article__body > p:first-of-type {
+  display: flow-root;
+  font-family: var(--display);
+  font-size: clamp(1.5rem, 2.2vw, 1.85rem);
+  line-height: 1.3;
+}
+.article__body > p:first-of-type::first-letter {
+  float: left;
+  margin: .02em .1em 0 0;
+  font-size: 2.6em;
+  line-height: .74;
+  color: var(--accent-ink);
+}
+.article__body > p:last-child {
+  margin-top: 2.25rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+  font-family: var(--display);
+  font-size: clamp(1.5rem, 2.2vw, 1.85rem);
+  line-height: 1.3;
+}
+.article__body h2 {
+  margin-top: 2.2em;
+  font-family: var(--display);
+  font-size: clamp(1.85rem, 2.8vw, 2.4rem);
+  line-height: 1.05;
+  letter-spacing: -.02em;
+}
+.article__body h2 + * { margin-top: .75em; }
+.article__body h3 { margin-top: 1.8em; font-weight: 700; font-size: 1.2rem; }
+.article__body ul { padding-left: 1.25em; list-style: disc; }
+.article__body ol { padding-left: 1.4em; list-style: decimal; }
+.article__body li + li { margin-top: .4em; }
+.article__body li::marker { color: var(--accent-ink); }
+.article__body strong { font-weight: 700; }
+.article__body blockquote {
+  padding: .25rem 0 .25rem 1.25rem;
+  border-left: 4px solid var(--accent-ink);
+  font-family: var(--display);
+  font-size: 1.35em;
+  line-height: 1.3;
+}
+.article__body code { font-size: .9em; padding: .1em .3em; background: var(--surface); border-radius: 3px; }
+.article__body hr { border: 0; border-top: 1px solid var(--line); margin-block: 2.5em; }
+
+/* MDX figures written in the posts (class="field-note-image") */
+.article__body .field-note-image { margin-block: 2em; }
+.article__body .field-note-image--hero { margin-top: 0; }
+.field-note-image img { width: 100%; height: auto; background: var(--surface); }
+.field-note-image figcaption {
+  margin-top: .75rem;
+  padding-top: .6rem;
+  border-top: 1px solid var(--line);
+  font-size: .9375rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.article__react { margin-top: 2.5rem; }
+.article__end { margin-top: 1.5rem; color: var(--ink-soft); font-weight: 500; }
+.article__end a { color: var(--ink); font-weight: 600; display: inline-flex; min-height: 44px; align-items: center; }
+
+/* Reaction control (markup and behaviour in LikeButton.astro) */
+.like { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.like[hidden] { display: none; }
+.like__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  min-width: 76px;
+  min-height: 44px;
+  padding: .55rem 1.1rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color .2s var(--ease-out), color .2s var(--ease-out), border-color .2s var(--ease-out);
+}
+.like__btn:hover { background: var(--surface); }
+.like__btn:disabled { cursor: wait; opacity: .7; }
+.like__btn.is-liked { border-color: var(--accent-ink); color: var(--accent-ink); }
+.like__heart { position: relative; display: inline-flex; }
+.like__heart svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7px; }
+.like__btn.is-liked .like__heart svg { fill: var(--accent); stroke: var(--accent-ink); }
+.like__count { min-width: 1ch; text-align: center; font-variant-numeric: tabular-nums; }
+.like__label { color: var(--ink-soft); font-size: .9375rem; }
+.like__status { flex-basis: 100%; min-height: 1.5em; color: var(--ink-soft); font-size: .9375rem; }
+.like__status[data-tone='error'] { color: var(--error); }
+.like__burst { display: none; }
+
+.more {
+  margin-top: clamp(4rem, 10vh, 6rem);
+  padding-block: clamp(3rem, 8vh, 5rem);
+  background: var(--surface);
+}
+.more h2 { grid-column: var(--aside); font-family: var(--display); font-size: clamp(2.25rem, 4vw, 3.5rem); line-height: .95; letter-spacing: -.03em; }
+.more .toc { grid-column: var(--content-start) / -1; border-top: 3px solid var(--ink); }
+.more__all { grid-column: var(--content-start) / -1; margin-top: 1.25rem; font-weight: 600; }
+.more__all a { display: inline-flex; min-height: 44px; align-items: center; }
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1080px) {
+  /* The aside widens to five columns, so every content edge moves to column 6. */
+  :root { --aside: 1 / span 5; --content-start: 6; --rail: span 5 / -1; }
+  .toc__item a { grid-template-columns: 1fr; }
+  .toc__meta { grid-row: auto; display: flex; gap: .75rem; padding: 0 0 .3rem; }
+  /* The briefs take column 8 here, so the title must stop at 7 or it is pushed below them. */
+  .feature__title, .lead-project, .feature__home { grid-column: 1 / span 7; }
+  .lead-project { grid-template-columns: 1fr; }
+  .pole, .lead-project__text { grid-column: 1 / -1; }
+  .pole { max-width: 9rem; }
+  .feature { background-size: calc(41.666% - var(--gap) / 2 + var(--gutter)) 100%; }
+  .profile__body { grid-column: var(--content-start) / -1; }
+  .profile__side { grid-column: var(--content-start) / -1; grid-template-columns: 1fr 1fr; margin-top: 2.5rem; }
+  /* The footer links drop under the address, on the same content edge. */
+  .back > nav { grid-column: var(--content-start) / -1; grid-row: 2; }
+  .back__links { justify-content: start; }
+  .back__copy { grid-row: 3; }
+  .back__mark { grid-row: 1 / span 3; }
+  /* Posts read in one column from here down: on the content side the body would
+     run at about 41 characters a line at 768px. Byline, dek, body, figures,
+     reactions, sign-off and the More list stack on the gutter and stop at
+     --measure, as they do on phones, so nothing jumps at 760/761px. */
+  :is(.article, .article__head, .more__inner) { --cols: minmax(0, 1fr); }
+  :is(.article, .article__head, .more__inner) > * { grid-column: 1 / -1 !important; grid-row: auto !important; }
+  .more .toc, .more__all { max-width: var(--measure); }
+  .more h2 { margin-bottom: 1.5rem; }
+}
+
+@media (max-width: 760px) {
+  body { font-size: 1.0625rem; }
+  .cover { min-height: 560px; padding-bottom: 1.5rem; }
+  .cover__photo { inset: 0 0 auto; height: 66%; }
+  .cover__photo img { object-position: 50% 6%; }
+  /* Same breakpoint as the name plate below: the strip gets a solid backing so nav
+     links keep contrast over the photo. */
+  .cover__strip {
+    z-index: 2;
+    margin-inline: calc(-1 * var(--gutter));
+    padding: .25rem var(--gutter) 0;
+    font-size: .875rem;
+    background: var(--ink);
+  }
+  .cover__edition { padding-block: .5rem 0; width: 100%; }
+  .nav ul { margin-left: -.75rem; }
+  .masthead { font-size: min(44vw, 26svh); margin-top: .1em; }
+  .cover__name { font-size: 1rem; max-width: 20ch; }
+  /* The name line sits over the photo on phones: give it a solid ink plate
+     so it reads at AA whatever part of the photo is behind it. */
+  .cover__name span {
+    padding: .1em .4em;
+    margin-left: -.4em;
+    background: var(--ink);
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  .coverlines { grid-column: 2 / -1; grid-row: 3 / span 2; }
+  .coverline a { font-size: 1.3rem; }
+  .coverline--lead a { font-size: 2.15rem; }
+  .coverline__dek { font-size: .9375rem; }
+  .flash {
+    grid-column: 8 / -1;
+    grid-row: 2;
+    align-self: start;
+    width: 7.5rem;
+    margin-top: 1rem;
+    padding: .7rem;
+    font-size: 1.2rem;
+  }
+  .flash span { font-size: .75em; }
+
+  /* One column on phones for the content grids only: every placed child spans it,
+     whatever its desktop placement. The cover is not in this list: it keeps its
+     twelve columns (the roundel and cover lines are placed on them). */
+  :is(.contents, .feature, .profile__inner, .colophon, .archive, .article, .article__head, .more__inner, .back) { --cols: minmax(0, 1fr); }
+  :is(.contents, .feature, .profile__inner, .colophon, .archive, .article, .article__head, .more__inner, .back) > * { grid-column: 1 / -1 !important; grid-row: auto !important; }
+
+  .contents__letter { position: static; padding: 0 0 2.25rem; margin-bottom: 2.25rem; border-right: 0; border-bottom: 1px solid var(--line); }
+  .contents__head h2 { font-size: 4rem; }
+  .toc__item--lead .toc__title { font-size: 2rem; }
+
+  .pull__line:nth-child(2) { padding-left: .6em; }
+  .pull__line:nth-child(3) { padding-left: 1.2em; }
+  .pull__src { padding-left: 0; }
+
+  .feature { background: none; }
+  .lead-project { grid-template-columns: 6rem minmax(0, 1fr); }
+  .pole { grid-column: 1; max-width: 6rem; }
+  .lead-project__text { grid-column: 2; }
+  .briefs { margin-top: 3rem; margin-inline: calc(-1 * var(--gutter)); padding: .25rem var(--gutter) .5rem; background: var(--surface); }
+  .feature__home { margin-top: 2.5rem; }
+
+  .profile__photo { margin-bottom: 2.5rem; }
+  .profile__side { grid-template-columns: 1fr; }
+
+  .colophon__list { margin-top: 2.5rem; }
+  .colophon__list > div { grid-template-columns: 6.5rem minmax(0, 1fr); }
+
+  /* The footer stacks on the gutter: mark, address, links, copyright. */
+  .back { row-gap: .75rem; }
+  .back__mark { margin-bottom: .5rem; }
+
+  .archive__head { position: static; margin-bottom: 2.5rem; }
+  .byline { margin-top: 2rem; }
+}
+
+@media (max-width: 420px) {
+  .lead-project { grid-template-columns: 1fr; }
+  .pole, .lead-project__text { grid-column: 1 / -1; }
+  .pole { max-width: 5rem; }
+}
+
+/* Touch screens: every link and control gets at least a 44px target. */
+@media (pointer: coarse) {
+  .toc__item a, .coverline a, .colophon__list a, .back__links a, .nav a, .runhead__mark { min-height: 44px; }
+  .article__body a, .profile__body a, .feature__home a { padding-block: .35em; }
+}
+
+/* =========================================================
+   Motion. Everything below runs only when the reader allows it.
+   Under prefers-reduced-motion: reduce none of it applies, so the
+   page shows its final composed state.
+   Engine 1: CSS scroll-driven animations.
+   Engine 2: html.fx, set by edition-motion.js where scroll timelines are missing.
+   ========================================================= */
+
+@media (prefers-reduced-motion: no-preference) {
+
+  /* ----- Shared stage for the page turn ----- */
+  @supports (animation-timeline: view()) {
+    .turn__stage {
+      position: sticky;
+      top: 0;
+      perspective: max(2600px, 190vw);
+      perspective-origin: 50% 50vh;
+      overflow-x: clip;
+    }
+    .home .cover {
+      position: absolute;
+      inset: 0 0 auto 0;
+      transform-origin: 0 50%;
+      backface-visibility: hidden;
+    }
+    .turn__run { height: 105svh; }
+  }
+  html.fx .turn__stage { position: sticky; top: 0; perspective: max(2600px, 190vw); perspective-origin: 50% 50vh; overflow-x: clip; }
+  html.fx .home .cover { position: absolute; inset: 0 0 auto 0; transform-origin: 0 50%; backface-visibility: hidden; }
+  html.fx .turn__run { height: 105svh; }
+
+  /* The turning page carries its own light: the free edge darkens as it lifts */
+  .home .cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--bg) 16%, transparent), transparent 18%, color-mix(in srgb, var(--shade) 50%, transparent) 72%, color-mix(in srgb, var(--shade) 78%, transparent));
+    opacity: 0;
+  }
+  .home .cover:focus-within { transform: none !important; }
+  /* While the stage is pinned the cover lies on top of the spread. When keyboard
+     focus moves into the spread, lift the cover out of the way so focus stays visible.
+     Only focus inside main counts. main is not focusable, so a click on its text
+     focuses nothing; the skip link targets a zero-size span first inside main,
+     which a click can never reach. */
+  html.fx .home .turn__stage:has(main :focus-visible) .cover { visibility: hidden; }
+
+  @supports (animation-timeline: view()) {
+    .home .turn__stage:has(main :focus-visible) .cover { visibility: hidden; }
+    .home .cover {
+      animation: page-turn linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 100svh;
+    }
+    .home .cover::after {
+      animation: page-shade linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 100svh;
+    }
+
+    /* Hero depth: back, middle, front layers travel at different rates */
+    .cover__photo { animation: layer-back linear both; animation-timeline: scroll(root); animation-range: 0 100svh; }
+    .cover__mast { animation: layer-mid linear both; animation-timeline: scroll(root); animation-range: 0 100svh; }
+    .coverline, .flash { animation: layer-front linear both; animation-timeline: scroll(root); }
+    .coverline:nth-child(1) { animation-range: 0 55svh; }
+    .coverline:nth-child(2) { animation-range: 0 68svh; }
+    .coverline:nth-child(3) { animation-range: 0 85svh; }
+    .flash { animation-name: layer-flash; animation-range: 0 80svh; }
+
+    /* Pull quote: each sentence prints in from below its own baseline */
+    .pull__line { animation: print-line var(--ease-out) both; animation-timeline: view(); }
+    .pull__line:nth-child(1) { animation-range: entry 20% cover 32%; }
+    .pull__line:nth-child(2) { animation-range: entry 45% cover 40%; }
+    .pull__line:nth-child(3) { animation-range: entry 70% cover 48%; }
+    .pull__src { animation: fade-in linear both; animation-timeline: view(); animation-range: entry 80% cover 40%; }
+
+    /* Lead project: the pole is drawn, then the wires are strung */
+    .pole .draw { stroke-dasharray: 1; animation: draw-line linear both; animation-timeline: --pole; animation-range: entry 30% cover 45%; }
+    .pole .draw--wire { animation-range: cover 25% cover 55%; }
+    .lead-project { view-timeline-name: --pole; }
+
+    /* Briefs: the rule runs across first, then the item settles */
+    .brief::before { animation: rule-draw var(--ease-out) both; animation-timeline: view(); animation-range: entry 10% cover 30%; }
+    .brief > * { animation: settle var(--ease-out) both; animation-timeline: view(); animation-range: entry 30% cover 34%; }
+
+    /* Profile: the photo is uncovered from the bottom like a print sliding out */
+    .profile__photo { animation: print-up var(--ease-out) both; animation-timeline: view(); animation-range: entry 5% cover 45%; }
+    /* Rises like the briefs; a sideways slide pushed the boxes past the viewport edge. */
+    .sidebox { animation: settle var(--ease-out) both; animation-timeline: view(); animation-range: entry 15% cover 35%; }
+
+    /* Colophon rows rule in one after another */
+    .colophon__list > div { animation: rule-in var(--ease-out) both; animation-timeline: view(); animation-range: entry 0% cover 25%; }
+
+    /* Back page: the small masthead rises into place */
+    .back__mark { animation: rise linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
+
+    /* Article reading progress */
+    .progress { display: block; animation: progress linear both; animation-timeline: scroll(root); }
+  }
+
+  @keyframes page-turn {
+    0%, 12% { transform: rotateY(0deg); }
+    100% { transform: rotateY(-100deg); }
+  }
+  @keyframes page-shade {
+    0%, 12% { opacity: 0; }
+    70% { opacity: 1; }
+    100% { opacity: 1; }
+  }
+  @keyframes layer-back {
+    from { transform: scale(1.1) translateY(0); }
+    to { transform: scale(1.02) translateY(-3%); }
+  }
+  @keyframes layer-mid { to { transform: translateY(-9vh); } }
+  @keyframes layer-front { to { transform: translateY(-26vh); } }
+  @keyframes layer-flash { to { transform: translateY(-18vh) rotate(-6deg); } }
+  @keyframes print-line {
+    from { clip-path: inset(0 0 100% 0); transform: translateY(.35em); }
+    to { clip-path: inset(0 0 -.2em 0); transform: none; }
+  }
+  @keyframes fade-in { from { opacity: 0; } }
+  @keyframes draw-line { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+  @keyframes rule-draw { from { transform: scaleX(0); } }
+  @keyframes settle { from { opacity: 0; transform: translateY(.75rem); } }
+  @keyframes print-up { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0); } }
+  @keyframes rule-in { from { opacity: 0; clip-path: inset(0 100% 0 0); } to { opacity: 1; clip-path: inset(0); } }
+  @keyframes rise { from { transform: translateY(45%); } }
+  @keyframes progress { to { transform: scaleX(1); } }
+
+  /* Reaction burst, only for readers who allow motion */
+  .like__btn.is-burst .like__heart svg { animation: like-pop 360ms var(--ease-out); }
+  @keyframes like-pop { 45% { transform: scale(.86); } }
+
+  /* ----- Fallback engine (edition-motion.js writes --p, 0 to 1, and adds .in) ----- */
+  html.fx .home .cover { transform: rotateY(calc(max(0, var(--p, 0) - .12) / .88 * -100deg)); }
+  html.fx .home .cover::after { opacity: calc(min(1, max(0, var(--p, 0) - .12) / .58)); }
+  html.fx .cover__photo { transform: scale(calc(1.1 - var(--p, 0) * .08)) translateY(calc(var(--p, 0) * -3%)); }
+  html.fx .cover__mast { transform: translateY(calc(var(--p, 0) * -9vh)); }
+  html.fx .coverline { transform: translateY(calc(min(1, var(--p, 0) * 1.8) * -26vh)); }
+  html.fx .coverline:nth-child(2) { transform: translateY(calc(min(1, var(--p, 0) * 1.45) * -26vh)); }
+  html.fx .coverline:nth-child(3) { transform: translateY(calc(min(1, var(--p, 0) * 1.15) * -26vh)); }
+  html.fx .flash { transform: translateY(calc(min(1, var(--p, 0) * 1.25) * -18vh)) rotate(calc(var(--p, 0) * -6deg)); }
+
+  html.fx .rv { transition: opacity .9s var(--ease-out), transform .9s var(--ease-out), clip-path 1.1s var(--ease-out); }
+  html.fx .pull__line.rv { clip-path: inset(0 0 100% 0); transform: translateY(.35em); }
+  html.fx .pull__line.rv:nth-child(2) { transition-delay: .15s; }
+  html.fx .pull__line.rv:nth-child(3) { transition-delay: .3s; }
+  html.fx .profile__photo.rv { clip-path: inset(100% 0 0 0); }
+  html.fx .brief.rv, html.fx .sidebox.rv { opacity: 0; transform: translateY(.75rem); }
+  html.fx .rv.in { clip-path: inset(0 0 -.2em 0); opacity: 1; transform: none; }
+}

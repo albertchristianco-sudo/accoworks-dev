@@ -1,0 +1,20 @@
+---
+// "Next race" roundel. Driven by src/data/races.json; renders nothing when no
+// race falls on or after the build date. The selection happens at build time,
+// so a deploy made before race day keeps showing the race afterwards. The
+// inline script removes the roundel once the Asia/Manila date is past
+// data-until (with JS off it stays until the next rebuild). It builds the
+// YYYY-MM-DD string from formatToParts, so it does not rely on a locale's format.
+import { nextRace, raceDay } from '../../lib/races';
+
+const race = nextRace();
+---
+
+{race && (
+  <>
+    <p class="flash" data-until={race.date}>
+      <span>Next race:</span>{` ${race.name}, `}<time datetime={race.date}>{raceDay(race)}</time>
+    </p>
+    <script is:inline>(()=>{var f=document.currentScript.previousElementSibling,p={};new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Manila',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).forEach(function(x){p[x.type]=x.value});var d=p.year+'-'+p.month+'-'+p.day;if(f&&d>f.dataset.until)f.remove()})()</script>
+  </>
+)}

@@ -1,0 +1,66 @@
+---
+// The magazine cover: giant "Ac" masthead over the duotone photo, the newest
+// Field Notes as cover lines, and the next race roundel.
+import SiteNav from './SiteNav.astro';
+import NextRace from './NextRace.astro';
+import { firstSentence, noteHref, type Note } from '../../lib/notes';
+
+interface Props {
+  notes: Note[];
+}
+
+const [lead, ...rest] = Astro.props.notes;
+---
+
+<header class="cover" id="top">
+  <div class="cover__photo">
+    <!-- The photo is object-fit: cover over a full-bleed box (100vw x 100svh; 66% of
+         that height at <=760px), so on tall viewports it renders wider than 100vw.
+         sizes = max(box width, box height x 2560/3396). -->
+    <picture>
+      <source
+        type="image/avif"
+        srcset="/cover-1280.avif 1280w, /cover-1920.avif 1920w, /cover-2560.avif 2560w"
+        sizes="(max-width: 760px) max(100vw, 49.75vh), max(100vw, 75.38vh)"
+      />
+      <source
+        type="image/webp"
+        srcset="/cover-1280.webp 1280w, /cover-1920.webp 1920w, /cover-2560.webp 2560w"
+        sizes="(max-width: 760px) max(100vw, 49.75vh), max(100vw, 75.38vh)"
+      />
+      <img
+        src="/cover-1280.webp"
+        width="2560"
+        height="3396"
+        alt="Ac pushing a weighted sled at a HYROX race"
+        loading="eager"
+        decoding="async"
+        fetchpriority="high"
+      />
+    </picture>
+  </div>
+
+  <div class="cover__strip">
+    <p class="cover__edition">Edition: Field Notes</p>
+    <SiteNav />
+  </div>
+
+  <div class="cover__mast">
+    <p class="masthead" aria-hidden="true">Ac</p>
+    <h1 class="cover__name"><span>Albert Christian Co, coach, builder and operator in Cebu City.</span></h1>
+  </div>
+
+  {lead && (
+    <ul class="coverlines" aria-label="In this edition">
+      <li class="coverline coverline--lead">
+        <a href={noteHref(lead)}>{lead.data.title}</a>
+        <span class="coverline__dek">{firstSentence(lead.data.summary)}</span>
+      </li>
+      {rest.map((note) => (
+        <li class="coverline"><a href={noteHref(note)}>{note.data.title}</a></li>
+      ))}
+    </ul>
+  )}
+
+  <NextRace />
+</header>

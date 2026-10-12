@@ -1,0 +1,107 @@
+---
+// Sunday edition layout: home, Field Notes, projects, about and contact.
+// Legacy utility pages (coaching, links, power) stay on BaseLayout + global.css.
+import '../styles/edition.css';
+import editionCss from '../styles/edition.css?raw';
+import SiteNav from '../components/edition/SiteNav.astro';
+import SiteFooter from '../components/edition/SiteFooter.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  image?: string;
+  ogType?: string;
+  noindex?: boolean;
+  // 'cover' wraps the page in the turning-cover stage used by the home page.
+  variant?: 'cover' | 'page';
+}
+
+const {
+  title,
+  description,
+  image = '/og.png',
+  ogType = 'website',
+  noindex = false,
+  variant = 'page',
+} = Astro.props;
+
+const site = Astro.site ?? new URL('https://accoworks.dev');
+const canonical = new URL(Astro.url.pathname, site).href;
+const ogImage = new URL(image, site).href;
+// Browser chrome takes the ink token, read from the stylesheet so it cannot drift.
+const themeColor = editionCss.match(/--ink:\s*(#[0-9A-Fa-f]{6});/)?.[1];
+if (!themeColor) throw new Error('edition.css must define --ink as a hex color');
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="canonical" href={canonical} />
+
+    <meta name="theme-color" content={themeColor} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="accoworks.dev" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icon-16.png" />
+    <link rel="apple-touch-icon" href="/icon-180.png" />
+
+    <link rel="preload" href="/fonts/gloock-latin-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/schibsted-grotesk-latin-wght.woff2" as="font" type="font/woff2" crossorigin />
+  </head>
+  <body class:list={['edition', { home: variant === 'cover' }]}>
+    <a class="skip" href="#main-content">Skip to content</a>
+    <slot name="before" />
+
+    {variant === 'cover' ? (
+      <div class="turn">
+        <div class="turn__stage">
+          <slot name="cover" />
+          <main>
+            <span id="main-content" tabindex="-1"></span>
+            <slot />
+          </main>
+        </div>
+        <div class="turn__run" aria-hidden="true"></div>
+      </div>
+    ) : (
+      <>
+        <header class="runhead">
+          <a class="runhead__mark" href="/" aria-label="Ac, home">Ac</a>
+          <SiteNav />
+        </header>
+        <main>
+          <span id="main-content" tabindex="-1"></span>
+          <slot />
+        </main>
+      </>
+    )}
+
+    <SiteFooter />
+
+    <script>
+      import '../scripts/edition-motion.js';
+    </script>
+  </body>
+</html>

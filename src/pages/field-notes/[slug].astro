@@ -1,43 +1,57 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import EditionLayout from '../../layouts/EditionLayout.astro';
 import LikeButton from '../../components/LikeButton.astro';
-import { getCollection, render } from 'astro:content';
+import NoteList from '../../components/edition/NoteList.astro';
+import { render } from 'astro:content';
+import { getNotes, isoDay, noteSlug, shortDate } from '../../lib/notes';
 
 export async function getStaticPaths() {
-  const notes = await getCollection('field-notes', ({ data }) => !data.draft);
+  const notes = await getNotes();
   return notes.map((note) => ({
-    params: { slug: note.id.replace(/\.mdx?$/, '') },
-    props: { note },
+    params: { slug: noteSlug(note) },
+    props: { note, more: notes.filter((other) => other.id !== note.id).slice(0, 3) },
   }));
 }
 
-const { note } = Astro.props;
+const { note, more } = Astro.props;
 const { Content } = await render(note);
-const slug = note.id.replace(/\.mdx?$/, '');
+const slug = noteSlug(note);
 ---
 
-<BaseLayout title={`${note.data.title} | Field Notes`} description={note.data.summary} ogType="article">
-  <article class="note-article">
-    <p class="kicker">{note.data.label} · {note.data.date.toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-    <h1>{note.data.title}</h1>
-    <p class="note-summary">{note.data.summary}</p>
-    <div class="prose">
+<EditionLayout title={`${note.data.title} | Field Notes`} description={note.data.summary} ogType="article">
+  <div class="progress" slot="before" aria-hidden="true"></div>
+  <article class="article">
+    <header class="article__head">
+      <p class="article__meta">
+        <span class="toc__label">{note.data.label}</span> <time datetime={isoDay(note.data.date)}>{shortDate(note.data.date)}</time>
+      </p>
+      <h1>{note.data.title}</h1>
+      <p class="article__dek">{note.data.summary}</p>
+      <p class="byline">
+        <picture>
+          <source type="image/avif" srcset="/avatar-160.avif 160w, /avatar-440.avif 440w" sizes="56px" />
+          <source type="image/webp" srcset="/avatar-160.webp 160w, /avatar-440.webp 440w" sizes="56px" />
+          <img src="/avatar-160.webp" width="160" height="160" alt="Ac" decoding="async" />
+        </picture>
+        <span class="byline__who">Ac <span>Albert Christian Co</span></span>
+      </p>
+    </header>
+    <div class="article__body">
       <Content />
     </div>
-
-    <LikeButton slug={slug} />
-
-    <aside class="author-card" aria-label="About Ac">
-      <img src="/ac-author-crossfit.jpg" alt="Ac at a CrossFit event" loading="lazy" width="72" height="72" />
-      <div>
-        <p class="author-card__eyebrow">About Ac</p>
-        <p class="author-card__copy">Ac is a CrossFit Level 3 Trainer, owner of CrossFit Subtero in Cebu City, and CrossFit Philippines Country Manager. He writes Field Notes on training, building, and operating from the ground floor of coaching, business, and real work.</p>
-      </div>
-    </aside>
-
-    <a class="cta-link" href="/field-notes/">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
-      Back to Field Notes
-    </a>
+    <div class="article__react">
+      <LikeButton slug={slug} />
+    </div>
+    <p class="article__end">Filed under {note.data.label}. <a href="/field-notes/">Back to all Field Notes</a></p>
   </article>
-</BaseLayout>
+
+  {more.length > 0 && (
+    <section class="more" aria-labelledby="more-title">
+      <div class="more__inner">
+        <h2 id="more-title">More Field Notes</h2>
+        <NoteList notes={more} />
+        <p class="more__all"><a href="/field-notes/">All Field Notes</a></p>
+      </div>
+    </section>
+  )}
+</EditionLayout>
