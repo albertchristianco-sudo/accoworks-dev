@@ -182,11 +182,17 @@ test('uses responsive modern formats for the above-fold cover photo', () => {
   assert.match(cover, /<picture>/);
   assert.match(cover, /type="image\/avif"/);
   assert.match(cover, /type="image\/webp"/);
-  assert.match(cover, /photo-400\.avif 400w, \/photo-640\.avif 640w, \/photo-720\.avif 720w, \/photo-800\.avif 799w/);
+  for (const format of ['avif', 'webp']) {
+    const srcset = cover.match(new RegExp(`type="image/${format}"\\s+srcset="([^"]+)"`))?.[1] ?? '';
+    for (const width of [1280, 1920, 2560]) {
+      assert.match(srcset, new RegExp(`/cover-${width}\\.${format} ${width}w`));
+    }
+  }
   assert.match(cover, /fetchpriority="high"/);
   assert.match(cover, /sizes="[^"]+"/);
-  assert.match(cover, /width="640"\s+height="849"/);
-  assert.match(cover, /<!-- placeholder: replace with high-res cover when Albert sends it -->/);
+  assert.match(cover, /src="\/cover-1280\.webp"/);
+  assert.match(cover, /width="2560"\s+height="3396"/);
+  assert.doesNotMatch(cover, /placeholder|photo-\d+/);
 });
 
 test('gives every edition image alt text and explicit dimensions', () => {

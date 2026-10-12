@@ -14,22 +14,24 @@ const [lead, ...rest] = Astro.props.notes;
 
 <header class="cover" id="top">
   <div class="cover__photo">
-    <!-- placeholder: replace with high-res cover when Albert sends it -->
+    <!-- The photo is object-fit: cover over a full-bleed box (100vw x 100svh; 66% of
+         that height at <=760px), so on tall viewports it renders wider than 100vw.
+         sizes = max(box width, box height x 2560/3396). -->
     <picture>
       <source
         type="image/avif"
-        srcset="/photo-400.avif 400w, /photo-640.avif 640w, /photo-720.avif 720w, /photo-800.avif 799w"
-        sizes="100vw"
+        srcset="/cover-1280.avif 1280w, /cover-1920.avif 1920w, /cover-2560.avif 2560w"
+        sizes="(max-width: 760px) max(100vw, 49.75vh), max(100vw, 75.38vh)"
       />
       <source
         type="image/webp"
-        srcset="/photo-400.webp 400w, /photo-640.webp 640w, /photo-720.webp 720w, /photo-800.webp 799w"
-        sizes="100vw"
+        srcset="/cover-1280.webp 1280w, /cover-1920.webp 1920w, /cover-2560.webp 2560w"
+        sizes="(max-width: 760px) max(100vw, 49.75vh), max(100vw, 75.38vh)"
       />
       <img
-        src="/photo-640.webp"
-        width="640"
-        height="849"
+        src="/cover-1280.webp"
+        width="2560"
+        height="3396"
         alt="Ac pushing a weighted sled at a HYROX race"
         loading="eager"
         decoding="async"
