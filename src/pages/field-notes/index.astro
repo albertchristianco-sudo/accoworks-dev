@@ -1,69 +1,40 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCollection } from 'astro:content';
+import EditionLayout from '../../layouts/EditionLayout.astro';
+import NoteList from '../../components/edition/NoteList.astro';
+import { getNotes } from '../../lib/notes';
 
-const notes = (await getCollection('field-notes'))
-  .filter((note) => !note.data.draft)
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-const [featured, ...archive] = notes;
+const notes = await getNotes();
+const filters = [
+  { id: 'f-all', label: 'Everything' },
+  { id: 'f-training', label: 'Training' },
+  { id: 'f-building', label: 'Building' },
+  { id: 'f-operating', label: 'Operating' },
+];
 ---
 
-<BaseLayout title="Field Notes | accoworks.dev" description="Notes from training, building, and operating in the real world.">
-  <section class="page-intro field-notes-intro page-intro--folio">
-    <span class="page-folio" aria-hidden="true">03 / FIELD NOTES</span>
-    <p class="kicker">Field Notes</p>
-    <h1 class="page-title">
-      Training. Building. <span class="accent">Operating.</span>
-    </h1>
-    <p class="page-copy">
-      Observations from the gym floor, the office, and the workbench. Not a blog treadmill. Just a public trail of the work,
-      the lessons, and the systems worth remembering.
-    </p>
-  </section>
-
-  <section class="section" aria-label="Field notes list">
-    {!featured ? (
-      <p class="page-copy">No notes published yet. The workbench is being cleared.</p>
+<EditionLayout title="Field Notes | accoworks.dev" description="Notes from training, building, and operating in the real world.">
+  <div class="archive">
+    <div class="archive__head">
+      <h1>Field Notes</h1>
+      <p>Notes from training, building, and operating in the real world.</p>
+      <!-- CSS-only filter: radios plus :has(). Without :has support the fieldset stays hidden and every note shows. -->
+      <fieldset class="filter">
+        <legend>Show notes on</legend>
+        <div class="filter__opts">
+          {filters.map((filter, index) => (
+            <>
+              <input type="radio" name="label" id={filter.id} checked={index === 0} />
+              <label for={filter.id}>{filter.label}</label>
+            </>
+          ))}
+        </div>
+      </fieldset>
+      <p class="filter__note">{notes.length} notes, newest first.</p>
+    </div>
+    {notes.length > 0 ? (
+      <NoteList notes={notes} labelled class="archive__list" />
     ) : (
-      <>
-        <article class="featured-note">
-          <div class="featured-note__meta">
-            <span>Latest issue</span>
-            <time datetime={featured.data.date.toISOString()}>
-              {featured.data.date.toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric' })}
-            </time>
-          </div>
-          <div class="featured-note__body">
-            <span class="tag">{featured.data.label}</span>
-            <h2><a href={`/field-notes/${featured.id.replace(/\.mdx?$/, '')}/`}>{featured.data.title}</a></h2>
-            <p>{featured.data.summary}</p>
-            <a class="cta-link" href={`/field-notes/${featured.id.replace(/\.mdx?$/, '')}/`}>
-              Read the latest note
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-            </a>
-          </div>
-        </article>
-
-        {archive.length > 0 && (
-          <div class="note-archive">
-            <p class="section-eyebrow"><span class="hash">//</span> previous notes</p>
-            <ol class="note-list">
-              {archive.map((note) => (
-                <li class="note-item">
-                  <span class="note-date">
-                    {note.data.date.toLocaleDateString('en', { year: 'numeric', month: 'short', day: 'numeric' })}
-                  </span>
-                  <div>
-                    <h2 class="note-title"><a href={`/field-notes/${note.id.replace(/\.mdx?$/, '')}/`}>{note.data.title}</a></h2>
-                    <p>{note.data.summary}</p>
-                  </div>
-                  <span class="tag">{note.data.label}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-        )}
-      </>
+      <p class="archive__list">No notes published yet.</p>
     )}
-  </section>
-</BaseLayout>
+  </div>
+</EditionLayout>

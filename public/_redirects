@@ -1,0 +1,7 @@
+# Cloudflare Pages redirects.
+# The Sunday edition concept used /writing/ for Field Notes. Field Notes stay
+# canonical at /field-notes/, so the concept paths redirect there.
+/writing /field-notes/ 301
+/writing/ /field-notes/ 301
+/writing/:slug /field-notes/:slug/ 301
+/writing/:slug/ /field-notes/:slug/ 301
