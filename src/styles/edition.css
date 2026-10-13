@@ -1,6 +1,6 @@
 /* Sunday edition: a personal magazine for accoworks.dev.
-   Used only by EditionLayout (home, Field Notes, projects, about, contact).
-   Legacy pages (coaching, links, power) keep BaseLayout + global.css. */
+   Used only by EditionLayout (home, Field Notes, projects, about, contact, coaching).
+   Legacy pages (links, power) keep BaseLayout + global.css. */
 
 @font-face {
   font-family: 'Gloock';
@@ -114,12 +114,12 @@ picture { display: contents; }
 picture > source { display: none; }
 
 /* The shared page container and grid (see --cols above). */
-.runhead, .contents, .pull, .feature, .profile__inner, .colophon, .back, .archive, .article, .more {
+.runhead, .contents, .pull, .feature, .profile__inner, .colophon, .back, .archive, .article, .more, .coach {
   max-width: var(--max);
   margin-inline: auto;
   padding-inline: var(--gutter);
 }
-.contents, .feature, .profile__inner, .colophon, .back, .archive, .article, .article__head, .more__inner {
+.contents, .feature, .profile__inner, .colophon, .back, .archive, .article, .article__head, .more__inner, .coach {
   display: grid;
   grid-template-columns: var(--cols);
   column-gap: var(--gap);
@@ -871,6 +871,91 @@ main { display: block; }
 .more__all { grid-column: var(--content-start) / -1; margin-top: 1.25rem; font-weight: 600; }
 .more__all a { display: inline-flex; min-height: 44px; align-items: center; }
 
+/* ---------- Remote coaching ---------- */
+
+/* Title, slot and price in the aside like the writing index; the copy and the
+   intake form on the content edge, stopping at --measure like a post. */
+.coach { padding-block: clamp(3rem, 9vh, 6rem) clamp(4rem, 10vh, 7rem); }
+.coach__head { grid-column: var(--aside); align-self: start; position: sticky; top: 2rem; display: grid; gap: 1.25rem; justify-items: start; }
+.coach__head h1 {
+  font-family: var(--display);
+  font-size: clamp(3.25rem, 6.5vw, 6rem);
+  line-height: .86;
+  letter-spacing: -.035em;
+}
+.coach__slot { font-size: 1.1875rem; font-weight: 600; }
+.coach__head .sidebox { justify-self: stretch; }
+.coach__body { grid-column: var(--content-start) / -1; max-width: var(--measure); padding-top: 1.5rem; border-top: 3px solid var(--ink); }
+.coach__copy { display: grid; gap: 1.1rem; font-size: 1.1875rem; line-height: 1.65; }
+.coach__copy .coach__open { font-family: var(--display); font-size: clamp(1.5rem, 2.2vw, 1.85rem); line-height: 1.3; }
+.coach__open::first-letter {
+  float: left;
+  margin: .02em .1em 0 0;
+  font-size: 2.6em;
+  line-height: .74;
+  color: var(--accent-ink);
+}
+.coach__copy .coach__cred { font-size: 1rem; font-weight: 500; color: var(--ink-soft); }
+.coach__copy h2 {
+  margin-top: 1.4rem;
+  font-family: var(--display);
+  font-size: clamp(1.85rem, 2.8vw, 2.4rem);
+  line-height: 1.05;
+  letter-spacing: -.02em;
+}
+.coach__noscript { margin-top: 2rem; padding: 1.25rem 1.35rem; background: var(--surface); font-weight: 500; }
+
+.coach__form { display: grid; gap: 2.5rem; margin-top: 3rem; }
+.coach__form[hidden], .coach__done[hidden] { display: none; }
+.fgroup { display: grid; gap: 1.25rem; min-width: 0; margin: 0; padding: 0; border: 0; }
+.fgroup legend {
+  float: left;
+  width: 100%;
+  padding: 0 0 .6rem;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--display);
+  font-size: 1.5rem;
+  line-height: 1.1;
+}
+.field { display: grid; gap: .4rem; min-width: 0; }
+.field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 1.25rem var(--gap); }
+.field > label { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; font-size: .9375rem; font-weight: 600; }
+.field > label .opt { font-weight: 500; color: var(--ink-soft); }
+/* Ink borders on the page ground; the focus ring is the shared deep blue one. */
+.coach__form :is(input, select, textarea) {
+  width: 100%;
+  min-height: 48px;
+  padding: .7rem .9rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+}
+.coach__form :is(input, select, textarea):focus-visible { outline-offset: 2px; }
+.coach__form :is(input, textarea):user-invalid { border-color: var(--error); box-shadow: inset 0 0 0 1px var(--error); }
+.coach__form textarea { min-height: 8.5rem; resize: vertical; }
+.coach__form ::placeholder { color: var(--ink-soft); opacity: 1; }
+/* A chevron drawn from two ink triangles, so the select needs no colour literal. */
+.coach__form select {
+  appearance: none;
+  padding-right: 2.75rem;
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+  background-position: calc(100% - 1.3rem) 52%, calc(100% - .95rem) 52%;
+  background-size: .35rem .35rem;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+.coach__submit { display: grid; gap: .75rem; justify-items: start; }
+.coach__submit .btn { font: inherit; font-weight: 600; cursor: pointer; }
+.coach__submit .btn:disabled { cursor: wait; opacity: .7; }
+.form-status { min-height: 1.5em; font-size: .9375rem; color: var(--ink-soft); }
+.form-status[data-tone='error'] { color: var(--error); }
+.coach__done { margin-top: 3rem; }
+.coach__done p { font-size: 1.125rem; }
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 1080px) {
@@ -895,10 +980,13 @@ main { display: block; }
      run at about 41 characters a line at 768px. Byline, dek, body, figures,
      reactions, sign-off and the More list stack on the gutter and stop at
      --measure, as they do on phones, so nothing jumps at 760/761px. */
-  :is(.article, .article__head, .more__inner) { --cols: minmax(0, 1fr); }
-  :is(.article, .article__head, .more__inner) > * { grid-column: 1 / -1 !important; grid-row: auto !important; }
+  :is(.article, .article__head, .more__inner, .coach) { --cols: minmax(0, 1fr); }
+  :is(.article, .article__head, .more__inner, .coach) > * { grid-column: 1 / -1 !important; grid-row: auto !important; }
   .more .toc, .more__all { max-width: var(--measure); }
   .more h2 { margin-bottom: 1.5rem; }
+  /* Coaching stacks the same way: the copy and form would sit in about 405px at 768px. */
+  .coach__head { position: static; margin-bottom: 2.5rem; }
+  .coach__head .sidebox { max-width: var(--measure); }
 }
 
 @media (max-width: 760px) {
@@ -946,8 +1034,8 @@ main { display: block; }
   /* One column on phones for the content grids only: every placed child spans it,
      whatever its desktop placement. The cover is not in this list: it keeps its
      twelve columns (the roundel and cover lines are placed on them). */
-  :is(.contents, .feature, .profile__inner, .colophon, .archive, .article, .article__head, .more__inner, .back) { --cols: minmax(0, 1fr); }
-  :is(.contents, .feature, .profile__inner, .colophon, .archive, .article, .article__head, .more__inner, .back) > * { grid-column: 1 / -1 !important; grid-row: auto !important; }
+  :is(.contents, .feature, .profile__inner, .colophon, .archive, .article, .article__head, .more__inner, .back, .coach) { --cols: minmax(0, 1fr); }
+  :is(.contents, .feature, .profile__inner, .colophon, .archive, .article, .article__head, .more__inner, .back, .coach) > * { grid-column: 1 / -1 !important; grid-row: auto !important; }
 
   .contents__letter { position: static; padding: 0 0 2.25rem; margin-bottom: 2.25rem; border-right: 0; border-bottom: 1px solid var(--line); }
   .contents__head h2 { font-size: 4rem; }
@@ -1081,6 +1169,8 @@ main { display: block; }
     .profile__photo { animation: print-up var(--ease-out) both; animation-timeline: view(); animation-range: entry 5% cover 45%; }
     /* Rises like the briefs; a sideways slide pushed the boxes past the viewport edge. */
     .sidebox { animation: settle var(--ease-out) both; animation-timeline: view(); animation-range: entry 15% cover 35%; }
+    /* The coaching "Received" box takes focus the moment it shows: no fade in. */
+    .coach__done { animation: none; }
 
     /* Colophon rows rule in one after another */
     .colophon__list > div { animation: rule-in var(--ease-out) both; animation-timeline: view(); animation-range: entry 0% cover 25%; }

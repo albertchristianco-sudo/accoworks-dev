@@ -12,7 +12,7 @@ const root = new URL('../', import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), 'utf8');
 const exists = (path) => existsSync(new URL(path, root));
 
-// Sunday edition (home, Field Notes, projects, about, contact)
+// Sunday edition (home, Field Notes, projects, about, contact, coaching)
 const css = read('src/styles/edition.css');
 const layout = read('src/layouts/EditionLayout.astro');
 const home = read('src/pages/index.astro');
@@ -24,8 +24,9 @@ const projectsData = read('src/data/projects.ts');
 const notes = read('src/pages/field-notes/index.astro');
 const post = read('src/pages/field-notes/[slug].astro');
 const noteList = read('src/components/edition/NoteList.astro');
+const coaching = read('src/pages/coaching.astro');
 
-// Legacy utility pages (coaching, links, power) stay on BaseLayout + global.css
+// Legacy utility pages (links, power) stay on BaseLayout + global.css
 const legacyCss = read('src/styles/global.css');
 const legacyLayout = read('src/layouts/BaseLayout.astro');
 const links = read('src/pages/links.astro');
@@ -238,7 +239,7 @@ test('defines the cool grey and light blue palette as tokens', () => {
 });
 
 test('removes hibiscus, sand and teal from every edition file', () => {
-  const legacy = /(coaching|links|power)\.astro$|power\/update\.astro$|BaseLayout\.astro$|global\.css$/;
+  const legacy = /(links|power)\.astro$|power\/update\.astro$|BaseLayout\.astro$|global\.css$/;
   const files = ['src/pages', 'src/components', 'src/layouts', 'src/styles', 'src/data', 'src/lib']
     .flatMap((dir) => walk(new URL(dir, root).pathname))
     .filter((file) => !legacy.test(file));
@@ -360,7 +361,7 @@ test('keeps head essentials and drops the concept preview robots tag', () => {
   for (const tag of [/<link rel="canonical"/, /property="og:image"/, /name="twitter:card"/, /rel="icon"/, /rel="apple-touch-icon"/, /name="theme-color"/, /<meta name="description"/]) {
     assert.match(layout, tag);
   }
-  // robots noindex only when a page opts in; no edition page does.
+  // robots noindex only when a page opts in; of the edition pages only the unlisted coaching page does.
   assert.match(layout, /\{noindex && <meta name="robots"/);
   assert.match(layout, /noindex = false/);
   for (const source of [home, notes, post, projectsPage, read('src/pages/about.astro'), read('src/pages/contact.astro')]) {
@@ -635,7 +636,7 @@ test('keeps public service paths focused on coaching and uses semantic link-grou
 });
 
 test('keeps legacy utility pages on the legacy layout and styles', () => {
-  for (const page of ['src/pages/coaching.astro', 'src/pages/links.astro', 'src/pages/power.astro', 'src/pages/power/update.astro']) {
+  for (const page of ['src/pages/links.astro', 'src/pages/power.astro', 'src/pages/power/update.astro']) {
     const source = read(page);
     assert.match(source, /import BaseLayout from/);
     assert.doesNotMatch(source, /EditionLayout|edition\.css/);
@@ -646,6 +647,52 @@ test('keeps legacy utility pages on the legacy layout and styles', () => {
   assert.match(legacyCss, /\/paper-grain\.png/);
   assert.doesNotMatch(legacyCss, /feTurbulence|mix-blend-mode/);
   assert.doesNotMatch(links, /chapter-band|folio-number|field-strip|masthead|coverline/);
+});
+
+test('puts the unlisted coaching page on the edition and keeps its intake contract', () => {
+  assert.match(coaching, /import EditionLayout from '\.\.\/layouts\/EditionLayout\.astro'/);
+  // No page styles; the one inline rule hides the form when JavaScript is off.
+  assert.doesNotMatch(coaching.replace(/<noscript>[\s\S]*?<\/noscript>/, ''), /BaseLayout|global\.css|<style/);
+  // Still out of search results: the robots meta tag and the edge header.
+  assert.match(coaching, /<EditionLayout\s+noindex\b/);
+  const headers = read('public/_headers');
+  assert.match(headers, /^\/coaching\/\*\n  X-Robots-Tag: noindex, nofollow$/m);
+  assert.match(headers, /^\/coaching\n  X-Robots-Tag: noindex, nofollow$/m);
+  assert.equal(coaching.match(/<h1\b/g)?.length, 1, 'exactly one h1');
+  // The intake form contract read by functions/api/coaching.js.
+  assert.match(coaching, /<form class="[^"]*" id="intake-form" novalidate>/);
+  for (const [id, name, tag] of [['in-name', 'name', 'input'], ['in-email', 'email', 'input'], ['in-experience', 'experience', 'select'], ['in-training', 'training', 'textarea'], ['in-goal', 'goal', 'textarea'], ['in-why', 'why', 'textarea'], ['in-company', 'company', 'input']]) {
+    assert.match(coaching, new RegExp(`<${tag} id="${id}" name="${name}"`), name);
+  }
+  for (const name of ['name', 'email']) assert.match(coaching, new RegExp(`name="${name}"[^>]*required maxlength="200"`), name);
+  for (const name of ['training', 'goal']) assert.match(coaching, new RegExp(`name="${name}" required maxlength="2000"`), name);
+  assert.match(coaching, /name="why" maxlength="2000"/);
+  assert.match(coaching, /<div class="field visually-hidden" aria-hidden="true">[\s\S]*?name="company" type="text" tabindex="-1" autocomplete="off"/);
+  assert.match(coaching, /fetch\('\/api\/coaching', \{\s*method: 'POST'/);
+  assert.match(coaching, /data-status role="status" aria-live="polite"/);
+  assert.match(coaching, /data-done hidden tabindex="-1"/);
+  assert.match(css, /\.coach__form\[hidden\], \.coach__done\[hidden\] \{ display: none; \}/);
+  // Without JavaScript the form cannot send, so the page says where to email.
+  assert.match(coaching, /<noscript>[\s\S]*?mailto:ac@accoworks\.dev[\s\S]*?<\/noscript>/);
+  // And the form is hidden there, so a no-JS submit cannot GET personal data into the URL.
+  assert.match(coaching, /<noscript>\s*<style is:inline>\.coach__form\{display:none\}<\/style>/);
+  // The done box is a named region that takes focus; it does not fade in.
+  assert.match(coaching, /data-done hidden tabindex="-1" role="region" aria-labelledby="coach-done-title"/);
+  assert.match(coaching, /id="coach-done-title">Received</);
+  assert.match(css, /\.coach__done \{ animation: none; \}/);
+  assert.match(read('src/scripts/edition-motion.js'), /\.sidebox:not\(\.coach__done\)/);
+  // A server error (bad email, rate limit) is shown when present.
+  assert.match(coaching, /\(await response\.json\(\)\.catch\(\(\) => null\)\)\?\.error/);
+  // Either one is enough: training on their own, or the equipment.
+  assert.match(coaching, /people who can train on their own, or who have the equipment they need/);
+  // The real terms, written plainly: no approximation glyph, no back arrow.
+  assert.match(coaching, /\$150 USD per month/);
+  assert.match(coaching, /About \u{20B1}9,300 per month/u);
+  assert.match(coaching, /3-month commitment/);
+  assert.match(coaching, /1 slot open/);
+  assert.match(coaching, /I read every submission myself/);
+  assert.match(coaching, /reply within 48 hours/);
+  assert.doesNotMatch(coaching, /\u{2248}|&larr;|&rarr;|One athlete/u);
 });
 
 test('does not animate layout properties', () => {
@@ -662,8 +709,8 @@ test('defines coarse-pointer touch targets at 44px or larger', () => {
 });
 
 test('adds no em dashes, en dashes, arrows, or middle dots to edition files', () => {
-  // Legacy pages (coaching, links, power, BaseLayout, global.css) predate this rule.
-  const legacy = /(coaching|links|power)\.astro$|power\/update\.astro$|BaseLayout\.astro$|global\.css$/;
+  // Legacy pages (links, power, BaseLayout, global.css) predate this rule.
+  const legacy = /(links|power)\.astro$|power\/update\.astro$|BaseLayout\.astro$|global\.css$/;
   const files = ['src/pages', 'src/components', 'src/layouts', 'src/styles', 'src/data', 'src/lib']
     .flatMap((dir) => walk(new URL(dir, root).pathname))
     .concat([new URL('src/scripts/edition-motion.js', root).pathname, new URL('src/scripts/next-race.mjs', root).pathname])
@@ -688,11 +735,11 @@ test('puts every edition section on one shared grid (Albert, Oct 12: text in lin
     assert.match(css, new RegExp(`--${name}:`), `--${name} token`);
   }
   // One container rule and one grid rule; no section restates the twelve columns.
-  assert.match(css, /\.runhead, \.contents, \.pull, \.feature, \.profile__inner, \.colophon, \.back, \.archive, \.article, \.more \{\s*max-width: var\(--max\);\s*margin-inline: auto;\s*padding-inline: var\(--gutter\);/);
-  assert.match(css, /\.contents, \.feature, \.profile__inner, \.colophon, \.back, \.archive, \.article, \.article__head, \.more__inner \{\s*display: grid;\s*grid-template-columns: var\(--cols\);/);
+  assert.match(css, /\.runhead, \.contents, \.pull, \.feature, \.profile__inner, \.colophon, \.back, \.archive, \.article, \.more, \.coach \{\s*max-width: var\(--max\);\s*margin-inline: auto;\s*padding-inline: var\(--gutter\);/);
+  assert.match(css, /\.contents, \.feature, \.profile__inner, \.colophon, \.back, \.archive, \.article, \.article__head, \.more__inner, \.coach \{\s*display: grid;\s*grid-template-columns: var\(--cols\);/);
   assert.match(css, /:root \{[^}]*--cols: repeat\(12, minmax\(0, 1fr\)\);/);
   // Lists, body copy, the contact list and the footer address start on the content edge.
-  for (const selector of ['.contents__page', '.archive__list', '.more .toc', '.colophon__list', '.back__copy']) {
+  for (const selector of ['.contents__page', '.archive__list', '.more .toc', '.colophon__list', '.back__copy', '.coach__body']) {
     assert.ok(css.includes(`${selector} { grid-column: var(--content-start) / -1;`), selector);
   }
   // --content-cols follows --content-start instead of being kept in step by hand.
@@ -743,7 +790,7 @@ test('keeps the home cover on twelve columns at every width (round 4 blocker)', 
   // At 760px and below the content grids, and only they, drop to one column.
   const phone = mediaBody('max-width: 760px');
   const oneCol = [...phone.matchAll(/([^{}]+)\{\s*--cols: minmax\(0, 1fr\);\s*\}/g)].map((m) => m[1].trim());
-  assert.deepEqual(oneCol, [':is(.contents, .feature, .profile__inner, .colophon, .archive, .article, .article__head, .more__inner, .back)']);
+  assert.deepEqual(oneCol, [':is(.contents, .feature, .profile__inner, .colophon, .archive, .article, .article__head, .more__inner, .back, .coach)']);
   // The cover's own phone placements still assume twelve tracks.
   assert.match(phone, /\.coverlines \{ grid-column: 2 \/ -1;/);
   assert.match(phone, /\.flash \{\s*grid-column: 8 \/ -1;/);
@@ -762,8 +809,10 @@ test('sets post copy at one measure from phones to desktop (round 4)', () => {
   // body does not drop to the seven content columns (41 characters at 768px) and
   // nothing jumps at 760/761px.
   const tablet = mediaBody('max-width: 1080px');
-  assert.match(tablet, /:is\(\.article, \.article__head, \.more__inner\) \{ --cols: minmax\(0, 1fr\); \}/);
-  assert.match(tablet, /:is\(\.article, \.article__head, \.more__inner\) > \* \{ grid-column: 1 \/ -1 !important; grid-row: auto !important; \}/);
+  assert.match(tablet, /:is\(\.article, \.article__head, \.more__inner, \.coach\) \{ --cols: minmax\(0, 1fr\); \}/);
+  assert.match(tablet, /:is\(\.article, \.article__head, \.more__inner, \.coach\) > \* \{ grid-column: 1 \/ -1 !important; grid-row: auto !important; \}/);
+  // Coaching stacks the same way, and its head stops being sticky.
+  assert.match(tablet, /\.coach__head \{ position: static;/);
   assert.match(tablet, /\.more \.toc, \.more__all \{ max-width: var\(--measure\); \}/);
 });
 
