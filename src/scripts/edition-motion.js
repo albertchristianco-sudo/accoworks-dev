@@ -36,7 +36,7 @@ if (!reduce && !native) {
     frame();
   }
 
-  const targets = document.querySelectorAll('.pull__line, .profile__photo, .brief, .sidebox');
+  const targets = document.querySelectorAll('.pull__line, .profile__photo, .brief, .sidebox:not(.coach__done)');
   if ('IntersectionObserver' in window && targets.length) {
     const io = new IntersectionObserver(
       (entries) => {

@@ -651,7 +651,8 @@ test('keeps legacy utility pages on the legacy layout and styles', () => {
 
 test('puts the unlisted coaching page on the edition and keeps its intake contract', () => {
   assert.match(coaching, /import EditionLayout from '\.\.\/layouts\/EditionLayout\.astro'/);
-  assert.doesNotMatch(coaching, /BaseLayout|global\.css|<style/);
+  // No page styles; the one inline rule hides the form when JavaScript is off.
+  assert.doesNotMatch(coaching.replace(/<noscript>[\s\S]*?<\/noscript>/, ''), /BaseLayout|global\.css|<style/);
   // Still out of search results: the robots meta tag and the edge header.
   assert.match(coaching, /<EditionLayout\s+noindex\b/);
   const headers = read('public/_headers');
@@ -673,6 +674,17 @@ test('puts the unlisted coaching page on the edition and keeps its intake contra
   assert.match(css, /\.coach__form\[hidden\], \.coach__done\[hidden\] \{ display: none; \}/);
   // Without JavaScript the form cannot send, so the page says where to email.
   assert.match(coaching, /<noscript>[\s\S]*?mailto:ac@accoworks\.dev[\s\S]*?<\/noscript>/);
+  // And the form is hidden there, so a no-JS submit cannot GET personal data into the URL.
+  assert.match(coaching, /<noscript>\s*<style is:inline>\.coach__form\{display:none\}<\/style>/);
+  // The done box is a named region that takes focus; it does not fade in.
+  assert.match(coaching, /data-done hidden tabindex="-1" role="region" aria-labelledby="coach-done-title"/);
+  assert.match(coaching, /id="coach-done-title">Received</);
+  assert.match(css, /\.coach__done \{ animation: none; \}/);
+  assert.match(read('src/scripts/edition-motion.js'), /\.sidebox:not\(\.coach__done\)/);
+  // A server error (bad email, rate limit) is shown when present.
+  assert.match(coaching, /\(await response\.json\(\)\.catch\(\(\) => null\)\)\?\.error/);
+  // Either one is enough: training on their own, or the equipment.
+  assert.match(coaching, /people who can train on their own, or who have the equipment they need/);
   // The real terms, written plainly: no approximation glyph, no back arrow.
   assert.match(coaching, /\$150 USD per month/);
   assert.match(coaching, /About \u{20B1}9,300 per month/u);
@@ -797,8 +809,10 @@ test('sets post copy at one measure from phones to desktop (round 4)', () => {
   // body does not drop to the seven content columns (41 characters at 768px) and
   // nothing jumps at 760/761px.
   const tablet = mediaBody('max-width: 1080px');
-  assert.match(tablet, /:is\(\.article, \.article__head, \.more__inner\) \{ --cols: minmax\(0, 1fr\); \}/);
-  assert.match(tablet, /:is\(\.article, \.article__head, \.more__inner\) > \* \{ grid-column: 1 \/ -1 !important; grid-row: auto !important; \}/);
+  assert.match(tablet, /:is\(\.article, \.article__head, \.more__inner, \.coach\) \{ --cols: minmax\(0, 1fr\); \}/);
+  assert.match(tablet, /:is\(\.article, \.article__head, \.more__inner, \.coach\) > \* \{ grid-column: 1 \/ -1 !important; grid-row: auto !important; \}/);
+  // Coaching stacks the same way, and its head stops being sticky.
+  assert.match(tablet, /\.coach__head \{ position: static;/);
   assert.match(tablet, /\.more \.toc, \.more__all \{ max-width: var\(--measure\); \}/);
 });
 

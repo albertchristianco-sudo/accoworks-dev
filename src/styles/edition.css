@@ -917,7 +917,6 @@ main { display: block; }
   font-size: 1.5rem;
   line-height: 1.1;
 }
-.fgroup legend + * { clear: both; }
 .field { display: grid; gap: .4rem; min-width: 0; }
 .field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 1.25rem var(--gap); }
 .field > label { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; font-size: .9375rem; font-weight: 600; }
@@ -981,10 +980,13 @@ main { display: block; }
      run at about 41 characters a line at 768px. Byline, dek, body, figures,
      reactions, sign-off and the More list stack on the gutter and stop at
      --measure, as they do on phones, so nothing jumps at 760/761px. */
-  :is(.article, .article__head, .more__inner) { --cols: minmax(0, 1fr); }
-  :is(.article, .article__head, .more__inner) > * { grid-column: 1 / -1 !important; grid-row: auto !important; }
+  :is(.article, .article__head, .more__inner, .coach) { --cols: minmax(0, 1fr); }
+  :is(.article, .article__head, .more__inner, .coach) > * { grid-column: 1 / -1 !important; grid-row: auto !important; }
   .more .toc, .more__all { max-width: var(--measure); }
   .more h2 { margin-bottom: 1.5rem; }
+  /* Coaching stacks the same way: the copy and form would sit in about 405px at 768px. */
+  .coach__head { position: static; margin-bottom: 2.5rem; }
+  .coach__head .sidebox { max-width: var(--measure); }
 }
 
 @media (max-width: 760px) {
@@ -1060,8 +1062,7 @@ main { display: block; }
   .back { row-gap: .75rem; }
   .back__mark { margin-bottom: .5rem; }
 
-  .archive__head, .coach__head { position: static; margin-bottom: 2.5rem; }
-  .coach__head .sidebox { max-width: var(--measure); }
+  .archive__head { position: static; margin-bottom: 2.5rem; }
   .byline { margin-top: 2rem; }
 }
 
@@ -1168,6 +1169,8 @@ main { display: block; }
     .profile__photo { animation: print-up var(--ease-out) both; animation-timeline: view(); animation-range: entry 5% cover 45%; }
     /* Rises like the briefs; a sideways slide pushed the boxes past the viewport edge. */
     .sidebox { animation: settle var(--ease-out) both; animation-timeline: view(); animation-range: entry 15% cover 35%; }
+    /* The coaching "Received" box takes focus the moment it shows: no fade in. */
+    .coach__done { animation: none; }
 
     /* Colophon rows rule in one after another */
     .colophon__list > div { animation: rule-in var(--ease-out) both; animation-timeline: view(); animation-range: entry 0% cover 25%; }

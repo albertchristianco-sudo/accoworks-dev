@@ -31,13 +31,14 @@ import EditionLayout from '../layouts/EditionLayout.astro';
         <p>Your program is written for you: your history, your schedule and what you need to work on. You do the training. I check it, ask questions and change the program when it needs changing.</p>
 
         <h2>Who it is for</h2>
-        <p>It is for people who can train on their own and have the equipment they need. If you are new to training and still building the habit, you may get more from a coach in person.</p>
+        <p>It is for people who can train on their own, or who have the equipment they need. If you are new to training and still building the habit, you may get more from a coach in person.</p>
 
         <h2>Apply</h2>
         <p>Fill in the form below. I read every submission myself. You can also email me at <a href="mailto:ac@accoworks.dev">ac@accoworks.dev</a>.</p>
       </div>
 
       <noscript>
+        <style is:inline>.coach__form{display:none}</style>
         <p class="coach__noscript">This form needs JavaScript. Without it, email me at <a href="mailto:ac@accoworks.dev">ac@accoworks.dev</a> instead.</p>
       </noscript>
 
@@ -96,8 +97,8 @@ import EditionLayout from '../layouts/EditionLayout.astro';
         </div>
       </form>
 
-      <div class="sidebox coach__done" data-done hidden tabindex="-1">
-        <h2 class="sidebox__title">Received</h2>
+      <div class="sidebox coach__done" data-done hidden tabindex="-1" role="region" aria-labelledby="coach-done-title">
+        <h2 class="sidebox__title" id="coach-done-title">Received</h2>
         <p>I will reply within 48 hours. If it is a fit, we start with a call.</p>
       </div>
     </div>
@@ -137,18 +138,23 @@ import EditionLayout from '../layouts/EditionLayout.astro';
       submitBtn.textContent = 'Sending…';
       setStatus('Sending your application.', 'neutral');
 
+      let serverError: unknown;
       try {
         const response = await fetch('/api/coaching', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify(payload),
         });
-        if (!response.ok) throw new Error(`Intake request failed with ${response.status}`);
+        if (!response.ok) {
+          // Keep the server's reason (bad email, rate limit) when it sends one.
+          serverError = (await response.json().catch(() => null))?.error;
+          throw new Error(`Intake request failed with ${response.status}`);
+        }
         form.hidden = true;
         done.hidden = false;
-        done.focus?.();
+        done.focus();
       } catch {
-        setStatus('Something went wrong on the way to my inbox. Please try again, or email ac@accoworks.dev directly.', 'error');
+        setStatus(typeof serverError === 'string' && serverError ? serverError : 'Something went wrong on the way to my inbox. Please try again, or email ac@accoworks.dev directly.', 'error');
         submitBtn.disabled = false;
         submitBtn.textContent = submitLabel;
       }
