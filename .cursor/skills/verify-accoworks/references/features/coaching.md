@@ -24,7 +24,7 @@ Preconditions:
 - Nothing may reach the real `/api/coaching`: it sends an email to Ac. The drive always stubs it in the browser.
 
 - **Open.** Run `control-app drive coaching-form`. Step `open-coaching` checks the h1, the `noindex` robots meta, and that `#intake-form` and the "Send my application" button are visible.
-- **Empty submit.** Step `empty-submit` presses the button with everything empty. Expect no `/api/coaching` request, Name `:invalid`, and "Received" still hidden.
+- **Empty submit.** Step `empty-submit` presses the button with everything empty. Expect no `/api/*` request at all (`captured` and `apiRequests` both empty), Name `:invalid`, and "Received" still hidden.
 - **Fill.** Step `fill` fills each field by its label, using marked test values (`Verify Bot`, `verify-bot@example.invalid`, "Verification run: ..."), and selects `Advanced`. It reads every value back and checks the honeypot is empty. `coaching-filled-desktop.png` is a full-page shot of the filled form.
 - **Submit, success (stubbed).** Step `submit-stubbed` presses the button. `POST /api/coaching` is fulfilled in the browser with `{ok:true}`. It checks for exactly one captured POST whose body matches every typed value (`company: ""`), a hidden form, and a visible and focused "Received" box. See `coaching-submitted-ok-desktop.png` and `captured` in the result JSON.
 - **Submit, error (stubbed).** Run `control-app drive coaching-form --stub error`. The stub returns 400 `{error:"That email address does not look valid."}`. Expect that exact status text, an enabled button and a visible form. See `coaching-submitted-error-<viewport>.png`.

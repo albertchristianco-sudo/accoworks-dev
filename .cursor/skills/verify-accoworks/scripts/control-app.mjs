@@ -131,13 +131,18 @@ function pidAlive(pid) {
   try { process.kill(pid, 0); return true; } catch (e) { return e.code === 'EPERM'; }
 }
 
-function argv(pid) {
-  try { return readFileSync(`/proc/${pid}/cmdline`, 'utf8').split('\0').filter(Boolean); } catch { /* not linux */ }
-  const ps = spawnSync('ps', ['-o', 'command=', '-p', String(pid)], { encoding: 'utf8' });
-  return ps.status === 0 ? ps.stdout.trim().split(/\s+/) : [];
+// Exact argv from /proc on Linux; null where there is no /proc (cmdline() falls back to ps).
+function procArgv(pid) {
+  try { return readFileSync(`/proc/${pid}/cmdline`, 'utf8').split('\0').filter(Boolean); } catch { return null; }
 }
 
-function cmdline(pid) { return argv(pid).join(' '); }
+// One unsplit string: ps cannot tell an argv boundary from a space inside a path.
+function cmdline(pid) {
+  const a = procArgv(pid);
+  if (a) return a.join(' ');
+  const ps = spawnSync('ps', ['-ww', '-o', 'command=', '-p', String(pid)], { encoding: 'utf8' });
+  return ps.status === 0 ? ps.stdout.trim() : '';
+}
 
 function processGroup(pid) {
   try { return Number(readFileSync(`/proc/${pid}/stat`, 'utf8').replace(/^.*\)\s+/, '').split(' ')[2]); } catch { /* not linux */ }
@@ -145,13 +150,19 @@ function processGroup(pid) {
   return ps.status === 0 ? Number(ps.stdout.trim()) : null;
 }
 
+// Exactly what launch spawns after the node binary.
+function previewArgv(port) { return [ASTRO_BIN, 'preview', '--host', '127.0.0.1', '--port', String(port)]; }
+
 // The recorded PID only counts as ours when it is still this checkout's astro preview
-// on exactly our port: argv carries our ASTRO_BIN path, `preview` and `--port <port>`.
+// on exactly our port: its argv contains previewArgv(port) as a contiguous run. Without
+// /proc, the unsplit ps command line must contain that run joined with spaces, followed
+// by a space or the end (so --port 433 does not match 43305); paths with spaces still work.
 function isOurPreview(state) {
   if (!state?.pid || !pidAlive(state.pid)) return false;
-  const a = argv(state.pid);
-  const portAt = a.indexOf('--port');
-  return a.includes(ASTRO_BIN) && a.includes('preview') && portAt !== -1 && a[portAt + 1] === String(state.port);
+  const want = previewArgv(state.port);
+  const a = procArgv(state.pid);
+  if (a) return a.some((_, i) => want.every((w, j) => a[i + j] === w));
+  return `${cmdline(state.pid)} `.includes(`${want.join(' ')} `);
 }
 
 function ourPreviews() {
@@ -264,7 +275,7 @@ async function launch(args) {
 
   const previewLog = join(STATE_DIR, 'preview.log');
   const fd = openSync(previewLog, 'w');
-  const child = spawn(process.execPath, [ASTRO_BIN, 'preview', '--host', '127.0.0.1', '--port', String(port)], {
+  const child = spawn(process.execPath, previewArgv(port), {
     cwd: REPO, detached: true, stdio: ['ignore', fd, fd], env: { ...process.env, ASTRO_TELEMETRY_DISABLED: '1' },
   });
   closeSync(fd);
@@ -424,6 +435,7 @@ async function shot(args) {
   const route = args._[1];
   if (!route || !route.startsWith('/')) fail('shot needs a route starting with /.', 'Example: shot /coaching/ --viewport mobile. List routes with: routes', {}, 2);
   if (args.name !== undefined && !/^[\w-][\w.-]*$/.test(args.name)) fail(`Bad --name ${args.name}.`, 'Use letters, digits, ".", "_" and "-" only; it becomes a file name inside --out.', {}, 2);
+  if (args.viewport !== undefined && !VIEWPORTS[args.viewport]) fail(`Unknown --viewport ${args.viewport}.`, 'Use desktop or mobile.', {}, 2);
   const state = requireRunning();
   if (new URL(route, state.url).origin !== new URL(state.url).origin) fail(`Route ${route} leaves the local preview.`, 'Pass a path on this site, e.g. /coaching/.', {}, 2);
   const dir = outDir(args);
@@ -472,9 +484,11 @@ const DRIVES = {
   async 'home-cover'({ b, step, snap }) {
     const { page, go } = b;
     const races = JSON.parse(readFileSync(join(REPO, 'src/data/races.json'), 'utf8'));
-    const { nextRace, cebuToday } = await import(pathToFileURL(join(REPO, 'src/scripts/next-race.mjs')).href);
+    const { cebuToday } = await import(pathToFileURL(join(REPO, 'src/scripts/next-race.mjs')).href);
+    const { expectedFlash } = await import(pathToFileURL(join(SCRIPT_DIR, 'race-flash.mjs')).href);
     const buildDay = cebuToday(new Date(statSync(join(DIST, 'index.html')).mtimeMs));
-    const expected = nextRace(races, buildDay);
+    const today = cebuToday();
+    const expected = expectedFlash(races, buildDay, today);
     await step('open-home', 'Open /', 'Masthead "Ac", name h1, Main nav with 4 links', async () => {
       await go('/');
       const mast = (await page.locator('.cover .masthead').textContent())?.trim();
@@ -488,14 +502,14 @@ const DRIVES = {
       const items = await links.evaluateAll((as) => as.map((a) => ({ text: a.textContent.trim(), href: a.getAttribute('href') })));
       return assert(items.length === 3 && items.every((i) => /^\/field-notes\/[^/]+\/$/.test(i.href)), items);
     });
-    await step('next-race', 'Read the next-race roundel', expected ? `"Next race: ${expected.name}" with data-until=${expected.date}` : 'No roundel (no race on or after build day)', async () => {
+    await step('next-race', 'Read the next-race roundel', expected.present ? `"Next race: ${expected.race.name}" with data-until=${expected.race.date}, visible` : `No .flash roundel (${expected.reason})`, async () => {
       const flash = page.locator('.flash');
       const count = await flash.count();
-      if (!expected) return assert(count === 0, { buildDay, rendered: count > 0 });
+      if (!expected.present) return assert(count === 0, { buildDay, today, reason: expected.reason, flashCount: count });
       const text = (await flash.textContent())?.replace(/\s+/g, ' ').trim();
       const until = await flash.getAttribute('data-until');
       const visible = await flash.isVisible();
-      return assert(text.includes(expected.name) && until === expected.date && visible, { buildDay, text, until, visible });
+      return assert(count === 1 && text.includes(expected.race.name) && until === expected.race.date && visible, { buildDay, today, text, until, visible });
     });
     await step('open-lead', 'Click the lead cover line', 'Lands on that post with a matching h1', async () => {
       const lead = page.locator('.coverline--lead a');
@@ -529,11 +543,11 @@ const DRIVES = {
       return assert(h1 === 'Remote coaching' && /noindex/.test(robots) && await form.isVisible() && await submit.isVisible(), { h1, robots });
     });
     if (!dry) {
-      await step('empty-submit', 'Press "Send my application" with every field empty', 'Browser validation blocks it: no /api/coaching request, Name is :invalid, "Received" stays hidden', async () => {
+      await step('empty-submit', 'Press "Send my application" with every field empty', 'Browser validation blocks it: no /api request at all, Name is :invalid, "Received" stays hidden', async () => {
         await submit.click();
         await page.waitForTimeout(300);
         const nameInvalid = await page.getByLabel('Name', { exact: true }).evaluate((el) => el.matches(':invalid'));
-        return assert(captured.length === 0 && nameInvalid && await page.locator('[data-done]').isHidden(), { apiCalls: captured.length, nameInvalid });
+        return assert(captured.length === 0 && api.length === 0 && nameInvalid && await page.locator('[data-done]').isHidden(), { captured: captured.length, apiRequests: api.length, nameInvalid });
       });
     }
     await step('fill', 'Fill Name, Email, Experience level=Advanced, Current training, Goal, Why me', 'Each field reads back the typed value; honeypot "Company" stays empty', async () => {
@@ -610,7 +624,7 @@ const DRIVES = {
   },
 
   async 'post-like'({ b, step, snap, args }) {
-    const { page, go } = b;
+    const { page, go, api } = b;
     const dry = Boolean(args['dry-run']);
     const captured = [];
     await page.route('**/api/reactions**', async (route) => {
@@ -627,7 +641,13 @@ const DRIVES = {
       const count = (await page.locator('[data-like-count]').textContent()).trim();
       return assert(await btn.isVisible() && count === '7' && await btn.getAttribute('aria-pressed') === 'false', { count, label: await btn.getAttribute('aria-label') });
     });
-    if (dry) return { clicked: false, captured };
+    if (dry) {
+      await step('dry-run', 'Stop before the heart (--dry-run)', 'Exactly one stubbed GET /api/reactions and no POST', async () => {
+        const methods = captured.map((c) => c.method);
+        return assert(methods.length === 1 && methods[0] === 'GET' && api.length === 1 && api[0].method === 'GET', { captured: methods, apiRequests: api.map((r) => r.method) });
+      });
+      return { clicked: false, captured };
+    }
     await step('like', 'Click the heart (POST /api/reactions stubbed: 8)', 'POST {slug, action:"like"}; aria-pressed=true; count 8; localStorage liked:<slug>', async () => {
       await btn.click();
       await page.locator('[data-like-btn][aria-pressed="true"][aria-busy="false"]').waitFor();

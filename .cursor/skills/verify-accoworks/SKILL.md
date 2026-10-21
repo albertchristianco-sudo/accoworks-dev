@@ -40,7 +40,7 @@ Isolation: one instance per checkout (one state file). Separate checkouts or wor
 node $C doctor
 ```
 
-Read-only. Run it first, and again whenever anything looks off. It checks: the state file is present and valid (integer pid that is also the pgid, `http://127.0.0.1:<port>/` URL), the PID is alive, that PID's argv is this checkout's `node_modules/astro/bin/astro.mjs preview` with exactly `--port <port>`, `GET /` returns 200 with Astro's generator tag and "Albert Christian Co", the URL is 127.0.0.1, Node version, Chrome, playwright-core. It **warns** without failing when git HEAD moved since launch or when `src/`/`public/` changed after the build: in that case stop and relaunch before you trust anything. `"ok": true` means the instance is worth driving.
+Read-only. Run it first, and again whenever anything looks off. It checks: the state file is present and valid (integer pid that is also the pgid, `http://127.0.0.1:<port>/` URL), the PID is alive, that PID's argv contains, in order, this checkout's `node_modules/astro/bin/astro.mjs preview --host 127.0.0.1 --port <port>` (from `/proc/<pid>/cmdline`; without `/proc`, the same sequence joined with spaces in `ps -ww -o command=`, so paths with spaces work), `GET /` returns 200 with Astro's generator tag and "Albert Christian Co", the URL is 127.0.0.1, Node version, Chrome, playwright-core. It **warns** without failing when git HEAD moved since launch or when `src/`/`public/` changed after the build: in that case stop and relaunch before you trust anything. `"ok": true` means the instance is worth driving.
 
 ## Drive
 
@@ -54,7 +54,7 @@ Features: `home-cover`, `coaching-form`, `field-notes`, `post-like`, `nav-footer
 
 Viewports: `desktop` = 1440x900 @1x; `mobile` = 390x844 @2x with touch. Reduced motion is on by default, so the home cover does not turn mid-capture; `--motion` turns it off for `shot`. `shot` captures the viewport only unless you pass `--full`.
 
-Side effects: only `coaching-form` and `post-like` would have any, and only in production. Locally they stub their `/api/*` call inside the browser, record the exact request body under `captured`, and assert the UI's response. `--dry-run` goes further and never presses the submitting control at all.
+Side effects: only `coaching-form` and `post-like` would have any, and only in production. Locally they stub their `/api/*` call inside the browser, record the exact request body under `captured`, and assert the UI's response. `--dry-run` goes further and never presses the submitting control (coaching-form never submits; post-like loads the count but never clicks the heart).
 
 For anything the drives do not script, write a one-off playwright-core script that reads `url` from the state file. Copy the network guard in `openBrowser()` so it stays local-only.
 
@@ -68,7 +68,8 @@ For anything the drives do not script, write a one-off playwright-core script th
   - Capture the action and the state it produced. A filled-form PNG is not proof of submission; the `submit-stubbed` step plus the "Received" PNG is.
   - Check side effects alongside what is on screen: the stubbed POST body has to match what was typed, and the like button's `localStorage` key has to be written.
   - Stubs only at the Pages Function boundary (`/api/coaching`, `/api/reactions`), which is where production talks to Resend and KV.
-- `blocked` must be `[]`. A non-empty list means the page tried to leave localhost, and the drive or shot marks itself failed. Under `--dry-run`, confirm `captured` and `apiRequests` are empty rather than trusting the flag.
+- `blocked` must be `[]`. A non-empty list means the page tried to leave localhost, and the drive or shot marks itself failed.
+- Under `--dry-run`, check the JSON rather than trusting the flag (the `dry-run` step asserts it too). `coaching-form`: `captured` and `apiRequests` are both empty. `post-like`: exactly one stubbed `GET /api/reactions` in `captured` and `apiRequests`, and no POST, because the page loads the count on open.
 - Expected noise: post pages (and home, after clicking through to a post) log one `404 /api/reactions?slug=...` in `httpErrors` and `consoleErrors`, because preview has no Functions. Any other 404 is a real finding.
 
 ## Cleanup

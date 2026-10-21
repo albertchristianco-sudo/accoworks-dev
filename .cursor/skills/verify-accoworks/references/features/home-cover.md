@@ -25,7 +25,7 @@ Preconditions:
 
 - **Open home.** Run `control-app drive home-cover`. Step `open-home` reports `mast: "Ac"`, the h1 and four nav links. `home-cover-desktop.png` shows the cover.
 - **Cover lines.** Step `cover-lines` lists three `{text, href}` items, each `/field-notes/<slug>/`.
-- **Next race.** Step `next-race` compares the `.flash` roundel with the race the build should have picked. It prints `buildDay`, the text (e.g. `Next race: HYROX Singapore, Nov 28`) and `data-until`. With no upcoming race the step passes only if no roundel exists.
+- **Next race.** Step `next-race` compares the `.flash` roundel with the race the build should have picked. It prints `buildDay`, `today` (Manila, when the drive runs), the text (e.g. `Next race: HYROX Singapore, Nov 28`) and `data-until`. If the build picked no race, or today is after that race's date (the inline script has removed it), the step passes only if `.flash` is absent. Otherwise it needs exactly one visible `.flash` with that name and `data-until`. The decision is `expectedFlash()` in `scripts/race-flash.mjs`, tested by `tests/verify-race-flash.test.mjs`.
 - **Click through.** Step `open-lead` clicks the lead cover line and checks the post's h1 equals the link text. `home-cover-lead-post-desktop.png` is the landing page.
 - **Mobile.** Run `control-app drive home-cover --viewport mobile`. The same steps run at 390x844.
 - **Appearance.** Run `control-app shot / --viewport desktop` and `control-app shot / --viewport mobile`. Add `--motion` to capture with motion allowed.

@@ -27,7 +27,7 @@ Preconditions:
 - **Filter.** Steps `filter-training`, `filter-building` and `filter-operating` click each visible label. Each checks that its radio is checked and every visible item has that `data-label`. `filter-everything` restores the full list and checks the three filters add up to it. `field-notes-filter-operating-desktop.png` shows a filtered list.
 - **Open a post.** Step `open-post` clicks the first note. The post h1 matches, the body has paragraphs and the back link exists. `field-notes-post-desktop.png` shows the post.
 - **Like (stubbed).** Run `control-app drive post-like`. Step `open-post` loads `/field-notes/the-one-tool-coach/` with `GET /api/reactions` stubbed to `{likes: 7}`: the widget is unhidden, shows `7`, and `aria-pressed="false"`. Step `like` clicks the heart with `POST` stubbed to `{likes: 8}`. It expects `aria-pressed="true"`, the count `8`, a captured body `{"slug":"the-one-tool-coach","action":"like"}` and `localStorage["liked:the-one-tool-coach"]` set. `post-like-liked-desktop.png` shows the liked state.
-- **Like, load only.** Run `control-app drive post-like --dry-run`. Only the stubbed GET happens and `captured` holds a single GET.
+- **Like, load only.** Run `control-app drive post-like --dry-run`. The `dry-run` step passes only if exactly one stubbed GET happened and no POST: `captured` and `apiRequests` each hold a single GET.
 - **Appearance.** Run `control-app shot /field-notes/ --viewport mobile` and `control-app shot /field-notes/the-one-tool-coach/ --full`.
 
 ## Gotchas
