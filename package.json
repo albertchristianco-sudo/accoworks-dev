@@ -13,7 +13,8 @@
     "check:no-react": "node scripts/check-no-react.mjs dist",
     "test": "npm run test:ui",
     "test:ui": "node --test tests/*.test.mjs",
-    "check:cover": "node scripts/check-cover-layout.mjs dist"
+    "check:cover": "node scripts/check-cover-layout.mjs dist",
+    "control-app": "node .cursor/skills/verify-accoworks/scripts/control-app.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^6.0.1",

@@ -42,3 +42,6 @@ pnpm-debug.log*
 
 # Python bytecode from scripts/veco-poll.py
 __pycache__/
+
+# verify-accoworks evidence (control-app default --out)
+/.verify-proof/
