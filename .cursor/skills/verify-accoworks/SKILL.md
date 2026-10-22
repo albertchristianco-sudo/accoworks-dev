@@ -82,6 +82,7 @@ node $C stop
 
 ## Helpers
 
-- `scripts/control-app.mjs`: the only helper. It is executable, `--help` documents it, and `npm run -s control-app -- <command>` also runs it.
+- `scripts/control-app.mjs`: the only command-line helper. It is executable, `--help` documents it, and `npm run -s control-app -- <command>` also runs it.
+- `scripts/race-flash.mjs`: not a command. It holds `expectedFlash()`, the decision behind the `home-cover` `next-race` step. `control-app.mjs` imports it, and `tests/verify-race-flash.test.mjs` tests it with fake dates.
 - The repo's own checks complement this skill but do not replace it: `npm test` (source contracts), `npm run check:no-react` and `npm run check:cover` (cover layout at 9 viewports; it needs a build and Chrome).
 - Keeping the map current: when a route, form field or nav item changes, update the matching `references/features/*.md` file and the drive in `control-app.mjs` in the same change.
