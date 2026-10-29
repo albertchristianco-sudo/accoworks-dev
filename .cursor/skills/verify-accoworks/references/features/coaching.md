@@ -27,7 +27,7 @@ Preconditions:
 - **Empty submit.** Step `empty-submit` presses the button with everything empty. Expect no `/api/*` request at all (`captured` and `apiRequests` both empty), Name `:invalid`, and "Received" still hidden.
 - **Fill.** Step `fill` fills each field by its label, using marked test values (`Verify Bot`, `verify-bot@example.invalid`, "Verification run: ..."), and selects `Advanced`. It reads every value back and checks the honeypot is empty. `coaching-filled-desktop.png` is a full-page shot of the filled form.
 - **Submit, success (stubbed).** Step `submit-stubbed` presses the button. `POST /api/coaching` is fulfilled in the browser with `{ok:true}`. It checks for exactly one captured POST whose body matches every typed value (`company: ""`), a hidden form, and a visible and focused "Received" box. See `coaching-submitted-ok-desktop.png` and `captured` in the result JSON.
-- **Submit, error (stubbed).** Run `control-app drive coaching-form --stub error`. The stub returns 400 `{error:"That email address does not look valid."}`. Expect that exact status text, an enabled button and a visible form. See `coaching-submitted-error-<viewport>.png`.
+- **Submit, error (stubbed).** Run `control-app drive coaching-form --stub error`. The stub returns 400 `{error:"That email address does not look valid."}`. Expect that exact status text, an enabled button and a visible form. See `coaching-submitted-error-<viewport>.png`. The stubbed 400 itself shows up once in `httpErrors` and `consoleErrors` ("Failed to load resource ... 400"). That is expected, not a finding.
 - **Fill only.** Run `control-app drive coaching-form --dry-run`. The submit button is never pressed. Check `captured: []` and `apiRequests: []` in the JSON.
 - **Mobile.** Add `--viewport mobile` to any of the above.
 - **Appearance.** Run `control-app shot /coaching/ --viewport desktop` and `--viewport mobile`. Add `--full` to include the form.
@@ -38,4 +38,5 @@ Preconditions:
 - The server-side rules (required name/email, email regex, training-or-goal, honeypot "pretend success", rate limit) live in `functions/api/coaching.js`. `tests/` covers them, not this drive. The browser only enforces the HTML `required` attributes.
 - Without the stub, the local POST returns a 404 from preview. The page then shows the generic "Something went wrong..." message, which is not the server's validation.
 - Field labels are the stable handles. "Why me" carries an "Optional" span, so it matches by substring, not exactly.
+- In `coaching-submitted-error-desktop.png` the button can look grey and washed out. The pointer is still over it after the click, so the `.btn--solid:hover` color transition (0.25s, not gated by reduced motion) is caught partway through. It is not the `:disabled` style. Trust the `submit-stubbed` step, which checks `isEnabled()`.
 - The "Received" box is excluded from the reveal animation (`.sidebox:not(.coach__done)`), so it shows immediately.
