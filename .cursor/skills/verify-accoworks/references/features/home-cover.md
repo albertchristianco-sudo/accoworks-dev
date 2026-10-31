@@ -36,5 +36,6 @@ Preconditions:
 - The roundel is chosen at build time. Change `races.json` or the date and you must `stop` + `launch` to rebuild; `--skip-build` keeps the old pick.
 - After race day, a stale build still has the roundel in HTML; the inline script removes it only when JS runs and the Manila date is past `data-until`.
 - Clicking a post logs one expected `404 /api/reactions` (no Functions under preview).
+- The duotone photo is meant to stay dark: its brightest pixel is `#58666A`. A cover shot whose photo area is one flat ink colour (`#1C2326`) means the image never painted. control-app waits for the image to decode, so a one-off script that skips that wait can capture a flat cover like this. That is a capture problem, not a site bug.
 - Full-page shots of home (`--full`) flatten the turning stage oddly. Use viewport shots for the cover.
 - Do not port the concept's TechText / React Bits name treatment; a "fix" that adds React fails `npm run check:no-react`.
