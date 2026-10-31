@@ -414,12 +414,18 @@ async function openBrowser(state, args) {
   const httpErrors = [];
   page.on('response', (r) => { if (r.status() >= 400) httpErrors.push({ status: r.status(), url: r.url() }); });
   page.on('request', (r) => { if (new URL(r.url()).pathname.startsWith('/api/')) api.push({ method: r.method(), url: r.url(), body: r.postData() }); });
+  // Fonts plus eager images: the cover photo is decoding="async", so "load" can fire
+  // before it paints and a screenshot shows only the ink background.
+  const settle = () => page.evaluate(async () => {
+    await document.fonts.ready;
+    await Promise.all([...document.images].filter((i) => i.loading !== 'lazy').map((i) => i.decode().catch(() => {})));
+  });
   const go = async (route) => {
     const res = await page.goto(new URL(route, state.url).href, { waitUntil: 'load' });
-    await page.evaluate(() => document.fonts.ready);
+    await settle();
     return res;
   };
-  return { browser, context, page, go, blocked, api, consoleErrors, httpErrors, viewport: vpName, origin };
+  return { browser, context, page, go, settle, blocked, api, consoleErrors, httpErrors, viewport: vpName, origin };
 }
 
 // npm run changes cwd to the repo root; INIT_CWD is where the caller ran it.
@@ -726,6 +732,7 @@ async function drive(args) {
   const artifacts = [];
   const snap = async (name, opts = {}) => {
     const path = join(dir, `${name}-${b.viewport}.png`);
+    await b.settle();
     await b.page.screenshot({ path, fullPage: Boolean(opts.fullPage) });
     artifacts.push(path);
   };
