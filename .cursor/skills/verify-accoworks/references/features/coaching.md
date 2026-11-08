@@ -5,7 +5,7 @@
 ## Sub-features
 
 - `coach-page` shows h1 "Remote coaching", the price box, the copy and `meta robots noindex`.
-- `coach-validate` lets browser validation block an empty or invalid submit (Name, Email, Current training and Goal are `required`).
+- `coach-validate` blocks an empty or invalid submit: the form is `novalidate`, so the page script calls `reportValidity()` before sending (Name, Email, Current training and Goal are `required`).
 - `coach-fill` covers the Name, Email, Experience level (select, default Intermediate), Current training, Goal and Why me (optional) fields, plus a hidden honeypot "Company".
 - `coach-submit-ok` hides the form after a 200 `{ok:true}`, then shows and focuses `[data-done]` "Received".
 - `coach-submit-error` shows the server `error` text in `[data-status][data-tone=error]` after a 4xx `{error}` and re-enables the button.
@@ -35,8 +35,8 @@ Preconditions:
 ## Gotchas
 
 - Do not submit the form against production or a Pages preview deploy with real secrets. Every real submission emails Ac and counts against a per-IP limit (5/hour in KV).
-- The server-side rules (required name/email, email regex, training-or-goal, honeypot "pretend success", rate limit) live in `functions/api/coaching.js`. `tests/` covers them, not this drive. The browser only enforces the HTML `required` attributes.
+- The server-side rules (required name/email, email regex, training-or-goal, honeypot "pretend success", rate limit) live in `functions/api/coaching.js`. Neither this drive nor `tests/` exercises them: `tests/ui-contract.test.mjs` only checks the form markup the function reads. The browser only enforces the HTML `required` attributes.
 - Without the stub, the local POST returns a 404 from preview. The page then shows the generic "Something went wrong..." message, which is not the server's validation.
 - Field labels are the stable handles. "Why me" carries an "Optional" span, so it matches by substring, not exactly.
 - In `coaching-submitted-error-desktop.png` the button can look grey and washed out. The pointer is still over it after the click, so the `.btn--solid:hover` color transition (0.25s, not gated by reduced motion) is caught partway through. It is not the `:disabled` style. Trust the `submit-stubbed` step, which checks `isEnabled()`.
-- The "Received" box is excluded from the reveal animation (`.sidebox:not(.coach__done)`), so it shows immediately.
+- The "Received" box is excluded from the `.sidebox` reveal animation (`.coach__done { animation: none; }` in `src/styles/edition.css`), so it shows immediately.

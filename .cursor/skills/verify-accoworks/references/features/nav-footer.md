@@ -1,6 +1,6 @@
 # Navigation and footer
 
-Every edition page has the Main nav (Writing, Projects, About, Contact). On home it sits in the cover strip. On every other edition page it sits in the running head next to an `Ac, home` mark. Every page ends with a footer that has the "Ac" mark, the location, a Footer nav (Writing, Projects, Power tool, GitHub) and the copyright line. A "Skip to content" link targets `#main-content`.
+Every edition page has the Main nav (Writing, Projects, About, Contact). On home it sits in the cover strip. On every other edition page it sits in the running head next to an `Ac, home` mark. Every edition page ends with a footer that has the "Ac" mark, the location, a Footer nav (Writing, Projects, Power tool, GitHub) and the copyright line. A "Skip to content" link targets `#main-content`.
 
 ## Sub-features
 
@@ -31,5 +31,7 @@ Preconditions:
 
 - `Power tool` (`/power/`) uses the legacy BaseLayout and has its own `/api/*` calls (outages, fyi, where). Under preview they 404. Do not judge that page from a local shot.
 - Home has no running head and no `Ac, home` mark; its Main nav lives in `.cover__strip`. Start the nav drive from a non-home page (it starts on `/about/`).
+- The legacy BaseLayout pages (`/links/`, `/power/`, `/power/update/`) have neither the Main nav nor this footer; they render their own `footer.site-footer`.
+- The drive only asserts `aria-current="page"`. To check the `"true"` case, fetch a post such as `/field-notes/the-it-guy-was-there-first/` from the preview and confirm the Writing link carries `aria-current="true"`.
 - `skip-link` is not scripted yet. To check it, press Tab on load in a one-off script and confirm focus lands on `#main-content`.
 - External links (GitHub, Instagram, LinkedIn, Facebook) are verified by href only. Clicking them is blocked by the network guard and would fail the drive.
