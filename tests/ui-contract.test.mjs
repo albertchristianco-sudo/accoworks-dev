@@ -541,6 +541,19 @@ test('builds the cover from real data: newest notes as cover lines and the race 
   assert.equal(raceDay(races[0]), 'Nov 28');
 });
 
+test('quotes the home pull quote verbatim from the field note it credits', () => {
+  const slug = home.match(/note\.id\.replace\([^)]*\) === '([a-z0-9-]+)'/)?.[1];
+  assert.ok(slug, 'home names the pull-quote source note');
+  const lines = [...home.matchAll(/<span class="pull__line">([^<]+)<\/span>/g)].map((match) => match[1]);
+  assert.equal(lines.length, 3, 'edition.css styles a three-line pull');
+
+  // MDX renders straight apostrophes as curly ones, so home sets the curly form.
+  const quote = lines.join(' ').replaceAll('’', "'");
+  const source = read(`src/content/field-notes/${slug}.mdx`);
+  const body = source.replace(/^---[\s\S]*?\n---\n/, '').replace(/\s+/g, ' ');
+  assert.ok(body.includes(quote), `"${quote}" is not in ${slug}.mdx`);
+});
+
 test('removes a stale race roundel in the browser once the Asia/Manila date is past race day', () => {
   assert.match(nextRaceComponent, /<p class="flash" data-until=\{race\.date\}>/);
   const inline = nextRaceComponent.match(/<script is:inline>([\s\S]*?)<\/script>/)?.[1];
