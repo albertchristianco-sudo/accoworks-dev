@@ -52,7 +52,7 @@ node $C shot <route> [--viewport desktop|mobile] [--out DIR] [--full] [--motion]
 
 Features: `home-cover`, `coaching-form`, `field-notes`, `post-like`, `nav-footer`, `about-contact`. Each one is a scripted user path that uses accessible names and the repo's stable handles (`#intake-form`, `[data-done]`, `[data-status]`, `[data-like-btn]`, `.flash[data-until]`, `nav[aria-label=Main|Footer]`). It prints every step as `{id, ok, action, expect, detail}`. The feature map in [`references/features/README.md`](references/features/README.md) is the source of truth for what each feature covers, its entry points and its traps: read the matching file before driving.
 
-Viewports: `desktop` = 1440x900 @1x; `mobile` = 390x844 @2x with touch. Reduced motion is on by default, so the home cover does not turn mid-capture; `--motion` turns it off for `shot`. `shot` captures the viewport only unless you pass `--full`.
+Viewports: `desktop` = 1440x900 @1x; `mobile` = 390x844 @2x with touch. Reduced motion is on by default, so the home cover does not turn mid-capture; `--motion` turns it off for `shot`. `shot` captures the viewport only unless you pass `--full`. Before every screenshot, `shot` and `drive` wait for web fonts and for every non-lazy image to decode. Without that wait, the home cover photo (`decoding="async"`) could be captured as plain ink.
 
 Side effects: only `coaching-form` and `post-like` would have any, and only in production. Locally they stub their `/api/*` call inside the browser, record the exact request body under `captured`, and assert the UI's response. `--dry-run` goes further and never presses the submitting control (coaching-form never submits; post-like loads the count but never clicks the heart).
 
