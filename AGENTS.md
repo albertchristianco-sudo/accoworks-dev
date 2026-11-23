@@ -35,7 +35,19 @@ landing-page --branch main`. So:
   (project `landing-page`, live at https://accoworks.dev).
 - Do work on a branch, run `npm run build` and `npx astro check`, verify,
   then merge to `main` only when you intend to ship.
-- Get Ac's OK before merging to `main` unless the change is small and verified.
+- Get Albert's explicit OK before every merge to `main` (merging deploys to production).
+
+## Coding lane and review
+
+Since 2026-11-23 (Albert's order):
+
+- **Who codes**: Claude Code writes all code. Default surface: T3 Code on `uther-mini` (Claude provider). Fallback: Claude Code CLI on the box.
+- **Models**: Opus 5.5 by default (`--model opus`). Fable 5.2 at high effort (`--model fable --effort high`) only for complex work (stubborn bugs, large multi-file changes, migrations) or design. Audits: `--model fable --effort xhigh`. Fast mode off unless Albert says it is urgent.
+- **Review**: after coding, Claude Code reviews its own work with the bundled `/code-review` in a FRESH pass. In T3: a new thread in this project whose first message starts with `/code-review high <PR#>`. Via CLI: `claude -p "/code-review high"` (or `claude -p "/code-review high <PR#>"`), without `--fix` or `--comment`. Add `/security-review` when the change touches auth, payments, PII or anything internet-exposed.
+- Fix blocking findings and review again, at most 2 rounds. In the PR description, summarize the findings and how each was handled, plus run proof from `.cursor/skills/verify-accoworks`.
+- Never use `/code-review ultra`, `/ultrareview` or `claude ultrareview`.
+- Cursor cloud agent reviews are dropped (they use shared tokens). No Codex, no OMP, no separate pstack review gate, no other reviewer.
+- Keep PRs small, one task per branch. Albert approves every merge and every deploy in his own words; an agent relaying approval does not count.
 
 ## Stack
 
