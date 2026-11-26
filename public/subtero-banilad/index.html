@@ -11,7 +11,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="img/subtero-logo-white.png">
-<link rel="stylesheet" href="deck.css">
+<style>
+/* Guard: keep nav cues hidden and sized until deck.css (v3+) loads, so a stale cached stylesheet can never show them unstyled. */
+.cue,.edge-cue{display:none}
+.cue svg,.arrow svg{width:18px;height:18px;max-width:18px;max-height:18px}
+button{-webkit-appearance:none;appearance:none}
+</style>
+<link rel="stylesheet" href="deck.css?v=3">
 </head>
 <body>
 <a class="skip" href="#s1">Skip to the deck</a>
@@ -44,7 +50,7 @@
   <button class="cue" id="cue" type="button" aria-label="Next slide" data-r>
     <span class="cue__text cue__text--touch">Swipe to continue</span>
     <span class="cue__text cue__text--desk">Press <kbd>&rarr;</kbd> or click to continue</span>
-    <span class="cue__chev" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span>
+    <span class="cue__chev" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7"/></svg><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7"/></svg></span>
   </button>
 </section>
 
@@ -290,11 +296,11 @@
   <ol class="progress" id="progress" role="list"></ol>
   <p class="count" aria-live="polite"><span id="cur">01</span><span class="count__of">/ 13</span></p>
   <div class="arrows">
-    <button class="arrow" id="prev" type="button" aria-label="Previous slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-    <button class="arrow" id="next" type="button" aria-label="Next slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+    <button class="arrow" id="prev" type="button" aria-label="Previous slide"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button class="arrow" id="next" type="button" aria-label="Next slide"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7"/></svg></button>
   </div>
 </nav>
 
-<script src="deck.js" defer></script>
+<script src="deck.js?v=3" defer></script>
 </body>
 </html>
