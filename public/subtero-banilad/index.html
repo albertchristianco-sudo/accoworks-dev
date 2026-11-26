@@ -40,7 +40,12 @@
       <div><dt>From</dt><dd>Albert Christian Co, CrossFit Subtero</dd></div>
     </dl>
   </div>
-  <p class="hint" data-r><span class="tag tag--inline">Concept render</span> Swipe or use the arrow keys</p>
+  <span class="tag render-tag" data-r>Concept render</span>
+  <button class="cue" id="cue" type="button" aria-label="Next slide" data-r>
+    <span class="cue__text cue__text--touch">Swipe to continue</span>
+    <span class="cue__text cue__text--desk">Press <kbd>&rarr;</kbd> or click to continue</span>
+    <span class="cue__chev" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span>
+  </button>
 </section>
 
 <!-- 2 WHO WE ARE -->
@@ -280,6 +285,7 @@
 
 </main>
 
+<div class="edge-cue" aria-hidden="true"></div>
 <nav class="nav" aria-label="Slide navigation">
   <ol class="progress" id="progress" role="list"></ol>
   <p class="count" aria-live="polite"><span id="cur">01</span><span class="count__of">/ 13</span></p>

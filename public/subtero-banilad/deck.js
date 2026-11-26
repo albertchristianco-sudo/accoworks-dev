@@ -7,6 +7,15 @@
   const next = document.getElementById('next');
   const pad = n => String(n).padStart(2, '0');
   let index = 0, lock = false;
+  const NAV_KEY = 'subteroDeckNavigated';
+  let navigated = false;
+  try { navigated = sessionStorage.getItem(NAV_KEY) === '1'; } catch (e) {}
+  const markNavigated = () => {
+    if (navigated) return; navigated = true;
+    document.body.classList.add('has-navigated');
+    try { sessionStorage.setItem(NAV_KEY, '1'); } catch (e) {}
+  };
+  if (navigated) document.body.classList.add('has-navigated');
 
   // stagger index per slide
   slides.forEach(s => s.querySelectorAll('[data-r]').forEach((el, i) => el.style.setProperty('--i', i)));
@@ -25,7 +34,9 @@
   function go(i, fromHash) {
     i = Math.max(0, Math.min(N - 1, i));
     if (i === index && slides[i].classList.contains('is-active')) return;
+    if (slides[index].classList.contains('is-active') && i !== index) markNavigated();
     index = i;
+    document.body.classList.toggle('is-last', i === N - 1);
     slides.forEach((s, k) => {
       s.classList.toggle('is-active', k === i);
       s.classList.toggle('is-before', k < i);
@@ -44,6 +55,7 @@
   }
   const step = d => { if (lock) return; lock = true; go(index + d); setTimeout(() => lock = false, 650); };
 
+  document.getElementById('cue').addEventListener('click', () => step(1));
   prev.addEventListener('click', () => step(-1));
   next.addEventListener('click', () => step(1));
 
@@ -65,8 +77,16 @@
   document.addEventListener('touchend', e => {
     if (!tracking) return; tracking = false;
     const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
-    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4 && Date.now() - st < 900) step(dx < 0 ? 1 : -1);
-  }, { passive: true });
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4 && Date.now() - st < 900) { step(dx < 0 ? 1 : -1); return; }
+    // tap on the left or right third of the screen (ignores links, buttons and form controls)
+    if (Math.abs(dx) < 10 && Math.abs(dy) < 10 && Date.now() - st < 350) {
+      if (e.target.closest && e.target.closest('a, button, input, select, textarea, label, .nav, .chrome')) return;
+      const sel = window.getSelection && String(window.getSelection()); if (sel) return;
+      const third = window.innerWidth / 3;
+      if (t.clientX > third * 2) { e.preventDefault(); step(1); }
+      else if (t.clientX < third) { e.preventDefault(); step(-1); }
+    }
+  }, { passive: false });
 
   // wheel / trackpad on desktop, only when the slide cannot scroll
   let wheelAcc = 0, wheelT = 0;
