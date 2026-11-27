@@ -1,11 +1,11 @@
 ---
 name: verify-accoworks
-description: Verify accoworks.dev (Ac's Astro static site, deployed to Cloudflare Pages) the way a visitor uses it, against a LOCAL build only. Builds dist/, serves it with astro preview on a free 127.0.0.1 port, and drives it in headless Chrome with control-app (launch, doctor, routes, shot, drive, stop) to prove the home cover and next-race roundel, Field Notes and the like button, the coaching application form, nav/footer and the about/contact/projects pages. Use it to confirm a change works in the rendered site, to take desktop/mobile screenshots, or whenever a task says "verify", "screenshot" or "prove it" for this repo.
+description: Verify accoworks.dev (Ac's Astro static site, deployed to Cloudflare Pages) the way a visitor uses it, against a LOCAL build only. Builds dist/, serves it with astro preview on a free 127.0.0.1 port, and drives it in headless Chrome with control-app (launch, doctor, routes, shot, drive, stop) to prove the home cover and next-race roundel, Field Notes and the like button, the coaching application form, nav/footer, the about/contact/projects pages and the unlisted Subtero slide deck. Use it to confirm a change works in the rendered site, to take desktop/mobile screenshots, or whenever a task says "verify", "screenshot" or "prove it" for this repo.
 ---
 
 # Verify accoworks.dev
 
-accoworks.dev is a static Astro 6 site (no React shipped). Visitors touch web pages only: the home "cover", `/field-notes/` and its posts, `/projects/`, `/about/`, `/contact/`, the unlisted `/coaching/` application form, and the legacy `/links/` and `/power/` tools. Two pieces of behavior live in Cloudflare Pages Functions (`functions/api/*`): the coaching form's `POST /api/coaching` (emails Ac through Resend) and the like button's `/api/reactions` (Workers KV). **`astro preview` does not run Pages Functions**, so locally every `/api/*` call 404s unless a drive stubs it in the browser.
+accoworks.dev is a static Astro 6 site (no React shipped). Visitors touch web pages only: the home "cover", `/field-notes/` and its posts, `/projects/`, `/about/`, `/contact/`, the unlisted `/coaching/` application form, the unlisted `/subtero-banilad/` slide deck (static files in `public/`), and the legacy `/links/` and `/power/` tools. Two pieces of behavior live in Cloudflare Pages Functions (`functions/api/*`): the coaching form's `POST /api/coaching` (emails Ac through Resend) and the like button's `/api/reactions` (Workers KV). **`astro preview` does not run Pages Functions**, so locally every `/api/*` call 404s unless a drive stubs it in the browser.
 
 `main` is production: a push deploys to https://accoworks.dev. This skill never builds for, pushes to, or requests production. Every browser context it opens aborts any request whose origin is not the local preview and reports it under `blocked`.
 
@@ -50,7 +50,7 @@ node $C drive <feature> [--viewport desktop|mobile] [--out DIR] [--dry-run] [--s
 node $C shot <route> [--viewport desktop|mobile] [--out DIR] [--full] [--motion] [--name NAME]
 ```
 
-Features: `home-cover`, `coaching-form`, `field-notes`, `post-like`, `nav-footer`, `about-contact`. Each one is a scripted user path that uses accessible names and the repo's stable handles (`#intake-form`, `[data-done]`, `[data-status]`, `[data-like-btn]`, `.flash[data-until]`, `nav[aria-label=Main|Footer]`). It prints every step as `{id, ok, action, expect, detail}`. The feature map in [`references/features/README.md`](references/features/README.md) is the source of truth for what each feature covers, its entry points and its traps: read the matching file before driving.
+Features: `home-cover`, `coaching-form`, `field-notes`, `post-like`, `nav-footer`, `about-contact`, `subtero-deck`. Each one is a scripted user path that uses accessible names and the repo's stable handles (`#intake-form`, `[data-done]`, `[data-status]`, `[data-like-btn]`, `.flash[data-until]`, `nav[aria-label=Main|Footer]`). It prints every step as `{id, ok, action, expect, detail}`. The feature map in [`references/features/README.md`](references/features/README.md) is the source of truth for what each feature covers, its entry points and its traps: read the matching file before driving.
 
 Viewports: `desktop` = 1440x900 @1x; `mobile` = 390x844 @2x with touch. Reduced motion is on by default, so the home cover does not turn mid-capture; `--motion` turns it off for `shot`. `shot` captures the viewport only unless you pass `--full`.
 
@@ -68,7 +68,7 @@ For anything the drives do not script, write a one-off playwright-core script th
   - Capture the action and the state it produced. A filled-form PNG is not proof of submission; the `submit-stubbed` step plus the "Received" PNG is.
   - Check side effects alongside what is on screen: the stubbed POST body has to match what was typed, and the like button's `localStorage` key has to be written.
   - Stubs only at the Pages Function boundary (`/api/coaching`, `/api/reactions`), which is where production talks to Resend and KV.
-- `blocked` must be `[]`. A non-empty list means the page tried to leave localhost, and the drive or shot marks itself failed.
+- `blocked` must be `[]`. A non-empty list means the page tried to leave localhost, and the drive or shot marks itself failed. One exception: `subtero-deck` loads Google Fonts on purpose, so `EXPECTED_BLOCKED` in `control-app.mjs` lets the drive pass with that aborted request listed. The drive's `unexpectedBlocked` must still be `[]`, and `shot /subtero-banilad/` still reports `ok: false`.
 - Under `--dry-run`, check the JSON rather than trusting the flag (the `dry-run` step asserts it too). `coaching-form`: `captured` and `apiRequests` are both empty. `post-like`: exactly one stubbed `GET /api/reactions` in `captured` and `apiRequests`, and no POST, because the page loads the count on open.
 - Expected noise: post pages (and home, after clicking through to a post) log one `404 /api/reactions?slug=...` in `httpErrors` and `consoleErrors`, because preview has no Functions. Any other 404 is a real finding.
 
