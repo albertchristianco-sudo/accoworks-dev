@@ -66,6 +66,9 @@ Commands
                        --dry-run loads the count only and never clicks.
         nav-footer     every Main nav link + aria-current, the "Ac, home" mark, footer links
         about-contact  /about/ -> "Read about remote coaching", /contact/ mailto, /projects/
+        subtero-deck   unlisted /subtero-banilad/ slide deck: cue, keys, progress bar, arrows,
+                       tap (mobile), #13 deep link. Its Google Fonts requests are aborted
+                       and listed under "blocked" but do not fail the drive.
   stop
       Stops only the pid recorded in the state file, after checking it is this
       checkout's astro preview on the recorded --port (its process group too when it
@@ -511,6 +514,16 @@ const DRIVES = {
       const visible = await flash.isVisible();
       return assert(count === 1 && text.includes(expected.race.name) && until === expected.race.date && visible, { buildDay, today, text, until, visible });
     });
+    await step('pull-quote', 'Read the home pull quote', '3 pull__line spans; the quote appears verbatim in the post its caption links to', async () => {
+      const lines = await page.locator('.pull__quote .pull__line').allTextContents();
+      const href = await page.locator('.pull__src a').getAttribute('href');
+      const slug = href.match(/^\/field-notes\/([^/]+)\/$/)?.[1];
+      const file = ['mdx', 'md'].map((x) => join(REPO, 'src/content/field-notes', `${slug}.${x}`)).find((p) => existsSync(p));
+      const quote = lines.map((l) => l.trim()).join(' ');
+      const norm = (s) => s.replace(/[’‘]/g, "'").replace(/\s+/g, ' ');
+      const found = Boolean(file) && norm(readFileSync(file, 'utf8')).includes(norm(quote));
+      return assert(lines.length === 3 && found, { quote, href, found });
+    });
     await step('open-lead', 'Click the lead cover line', 'Lands on that post with a matching h1', async () => {
       const lead = page.locator('.coverline--lead a');
       const [title, href] = [(await lead.textContent()).trim(), await lead.getAttribute('href')];
@@ -711,6 +724,83 @@ const DRIVES = {
     });
     await snap('projects');
   },
+
+  async 'subtero-deck'({ b, step, snap }) {
+    const { page, go } = b;
+    const route = '/subtero-banilad/';
+    const state = () => page.evaluate(() => ({
+      hash: location.hash, title: document.title, cur: document.getElementById('cur').textContent,
+      active: document.querySelector('.slide.is-active')?.id ?? null,
+      prevDisabled: document.getElementById('prev').disabled, nextDisabled: document.getElementById('next').disabled,
+      navigated: document.body.classList.contains('has-navigated'), last: document.body.classList.contains('is-last'),
+    }));
+    // deck.js ignores steps for 650ms after each one
+    const settle = () => page.waitForTimeout(700);
+    await step('open-deck', `Open ${route}`, 'noindex,nofollow; h1 "Subtero at QOMPLEX"; 13 slides and 13 progress buttons; slide 1 active, Previous disabled', async () => {
+      await go(route);
+      const robots = await page.locator('meta[name="robots"]').getAttribute('content');
+      // innerText, not textContent: the h1 breaks its line with <br> (and CSS uppercases it)
+      const h1 = (await page.getByRole('heading', { level: 1 }).innerText()).replace(/\s+/g, ' ').trim();
+      const slides = await page.locator('.slide').count();
+      const bars = await page.getByRole('navigation', { name: 'Slide navigation' }).getByRole('button', { name: /^Go to slide/ }).count();
+      const s = await state();
+      return assert(/noindex/.test(robots) && h1.toLowerCase() === 'subtero at qomplex' && slides === 13 && bars === 13 && s.active === 's1' && s.cur === '01' && s.prevDisabled, { robots, h1, slides, bars, ...s });
+    });
+    await snap('subtero-deck-cover');
+    await step('cue', 'Click the cover cue ("Next slide")', 'Slide 2 "Who we are", hash #2, cue hidden after navigating, sessionStorage flag set', async () => {
+      await page.locator('#cue').click();
+      await settle();
+      const s = await state();
+      const flag = await page.evaluate(() => sessionStorage.getItem('subteroDeckNavigated'));
+      return assert(s.active === 's2' && s.hash === '#2' && s.cur === '02' && s.title.startsWith('Who we are') && s.navigated && flag === '1', { ...s, flag });
+    });
+    await step('keys', 'Press ArrowRight, then End, then Home', 'Slide 3; then slide 13 with Next disabled and is-last; then slide 1', async () => {
+      await page.keyboard.press('ArrowRight'); await settle();
+      const a = await state();
+      await page.keyboard.press('End'); await settle();
+      const e = await state();
+      await page.keyboard.press('Home'); await settle();
+      const h = await state();
+      return assert(a.active === 's3' && e.active === 's13' && e.nextDisabled && e.last && h.active === 's1' && h.prevDisabled, { afterRight: a.cur, afterEnd: { cur: e.cur, nextDisabled: e.nextDisabled, last: e.last }, afterHome: h.cur });
+    });
+    await step('progress', 'Click "Go to slide 8: Layout concept" in the progress bar', 'Slide 8, that button aria-current="step", the #plan SVG drew its zones', async () => {
+      const bar = page.getByRole('button', { name: 'Go to slide 8: Layout concept' });
+      await bar.click(); await settle();
+      const s = await state();
+      const current = await bar.getAttribute('aria-current');
+      const zones = await page.locator('#plan g.pz').count();
+      return assert(s.active === 's8' && s.title.startsWith('Layout concept') && current === 'step' && zones >= 5, { ...s, current, zones });
+    });
+    await snap('subtero-deck-plan');
+    await step('arrows', 'Click "Next slide" then "Previous slide" in the bottom nav', 'Slide 9, then back to slide 8', async () => {
+      await page.locator('#next').click(); await settle();
+      const n = await state();
+      await page.getByRole('button', { name: 'Previous slide' }).click(); await settle();
+      const p = await state();
+      return assert(n.active === 's9' && p.active === 's8', { afterNext: n.cur, afterPrev: p.cur });
+    });
+    if (b.viewport === 'mobile') {
+      await step('tap', 'Tap the right third of the slide (touch)', 'Advances to slide 9', async () => {
+        const { width, height } = page.viewportSize();
+        await page.touchscreen.tap(Math.round(width * 0.85), Math.round(height * 0.45)); await settle();
+        const s = await state();
+        return assert(s.active === 's9', s);
+      });
+    }
+    await step('deep-link', `Open ${route}#13`, '"Let\'s talk" slide active; contact mailto present (not clicked)', async () => {
+      await go(`${route}#13`);
+      const s = await state();
+      const mail = await page.locator('#s13 a[href^="mailto:"]').getAttribute('href');
+      return assert(s.active === 's13' && s.title.startsWith("Let's talk") && s.last && Boolean(mail), { ...s, mail });
+    });
+    await snap('subtero-deck-close');
+  },
+};
+
+// Requests a drive's page makes to third parties on purpose. The guard still aborts them
+// (nothing leaves localhost); they are listed under "blocked" but do not fail the drive.
+const EXPECTED_BLOCKED = {
+  'subtero-deck': [/^https:\/\/fonts\.(googleapis|gstatic)\.com\//],
 };
 
 async function drive(args) {
@@ -736,10 +826,12 @@ async function drive(args) {
     steps.push({ id: 'crash', ok: false, action: 'drive', expect: 'no exception', detail: e.message.split('\n')[0] });
   }
   await b.browser.close();
-  const ok = steps.length > 0 && steps.every((s) => s.ok) && b.blocked.length === 0;
+  const allowed = EXPECTED_BLOCKED[feature] ?? [];
+  const unexpectedBlocked = b.blocked.filter((r) => !allowed.some((re) => re.test(r.url)));
+  const ok = steps.length > 0 && steps.every((s) => s.ok) && unexpectedBlocked.length === 0;
   const result = {
     ok, feature, viewport: b.viewport, dryRun: Boolean(args['dry-run']), url: state.url, revision: state.revision,
-    steps, ...extra, apiRequests: b.api, blocked: b.blocked, httpErrors: b.httpErrors, consoleErrors: b.consoleErrors, artifacts, ranAt: new Date().toISOString(),
+    steps, ...extra, apiRequests: b.api, blocked: b.blocked, unexpectedBlocked, httpErrors: b.httpErrors, consoleErrors: b.consoleErrors, artifacts, ranAt: new Date().toISOString(),
   };
   const json = join(dir, `result-${b.viewport}.json`);
   writeFileSync(json, `${JSON.stringify(result, null, 2)}\n`);

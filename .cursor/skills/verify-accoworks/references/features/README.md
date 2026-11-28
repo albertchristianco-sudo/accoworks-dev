@@ -21,7 +21,7 @@ This directory is the maintained source for verifying what a visitor can do on a
 
 ## Proof and skip reporting
 
-- Proof for a feature is its `drive-<feature>/result-<viewport>.json` with `"ok": true`, all steps ok, `blocked: []`, plus the PNGs it lists.
+- Proof for a feature is its `drive-<feature>/result-<viewport>.json` with `"ok": true`, all steps ok, `unexpectedBlocked: []` (and `blocked: []`, except the Google Fonts request `subtero-deck` is allowed), plus the PNGs it lists.
 - For page appearance, add `control-app shot <route> --viewport desktop` and `--viewport mobile`.
 - For stubbed submissions, quote the `captured` payload as the side-effect proof.
 - Report the feature ID, viewport and any `--dry-run`/`--stub` flag with every artifact.
@@ -38,3 +38,4 @@ Each feature file starts with an H1 and one paragraph on the visitor-facing beha
 - [Remote coaching application](./coaching.md) covers `/coaching/`, form validation, fill, and stubbed submission in its success and error states.
 - [Navigation and footer](./nav-footer.md) covers the Main nav and `aria-current`, the `Ac, home` mark and the footer links.
 - [About, contact and projects](./about-contact.md) covers the three profile pages and their outbound links.
+- [Subtero at QOMPLEX deck](./subtero-deck.md) covers the unlisted `/subtero-banilad/` slide deck: cue, keys, progress bar, arrows, tap and hash deep links.
